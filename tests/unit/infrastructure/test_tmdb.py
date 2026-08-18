@@ -1,6 +1,6 @@
 from datetime import date
 
-from reelore.application import TVEpisodeMetadata, TVSeriesCatalog
+from reelore.application.catalog import TVEpisodeMetadata, TVSeriesCatalog
 from reelore.infrastructure import TMDBItalianLocalizer
 
 
