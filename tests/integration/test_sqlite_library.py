@@ -47,8 +47,8 @@ def test_sqlite_repository_round_trips_media_and_personal_state(tmp_path: Path) 
 def test_sqlite_repository_round_trips_episode_progress(tmp_path: Path) -> None:
     repository = _repository(tmp_path / "reelore.db")
     media = MediaItem(id="severance", title="Severance", media_type=MediaType.TV_SERIES)
-    progress = EpisodeProgress(media_id=media.id).mark_seen(EpisodeRef(1, 1)).mark_seen(
-        EpisodeRef(1, 2)
+    progress = (
+        EpisodeProgress(media_id=media.id).mark_seen(EpisodeRef(1, 1)).mark_seen(EpisodeRef(1, 2))
     )
 
     repository.save_media(media)
@@ -65,9 +65,7 @@ def test_sqlite_episode_progress_replaces_previous_snapshot(tmp_path: Path) -> N
         EpisodeProgress(media_id=media.id).mark_seen(EpisodeRef(1, 1)).mark_seen(EpisodeRef(1, 2))
     )
 
-    repository.save_episode_progress(
-        EpisodeProgress(media_id=media.id).mark_seen(EpisodeRef(1, 1))
-    )
+    repository.save_episode_progress(EpisodeProgress(media_id=media.id).mark_seen(EpisodeRef(1, 1)))
 
     restored = repository.get_episode_progress(media.id)
     assert restored.seen_episodes == frozenset({EpisodeRef(1, 1)})
