@@ -39,7 +39,10 @@ class LocalizedTVCatalogProvider:
 
     def get_series(self, provider_id: str) -> TVSeriesCatalog:
         catalog = self._catalog_provider.get_series(provider_id)
-        localized = self._localizer.localize(catalog)
+        try:
+            localized = self._localizer.localize(catalog)
+        except Exception:
+            return catalog
         if localized is None:
             return catalog
 
