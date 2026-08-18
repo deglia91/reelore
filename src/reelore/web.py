@@ -117,7 +117,7 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     for number, rows in sorted(seasons.items()):
         episode_rows = "".join(rows)
         season_sections.append(
-            f'<section><h2>Stagione {number}</h2>'
+            f"<section><h2>Stagione {number}</h2>"
             f'<div class="episodes">{episode_rows}</div></section>'
         )
     season_html = "".join(season_sections)
@@ -147,10 +147,7 @@ def _render_episode(
     label = "Visto ✓" if seen else "Segna visto"
     media = escape(media_id, quote=True)
     display_ref = f"S{reference.season_number:02}E{reference.episode_number:02}"
-    action_url = (
-        f"/series/{media}/episodes/{reference.season_number}/"
-        f"{reference.episode_number}/{action}"
-    )
+    action_url = f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
     return f"""<div class="episode">
 <div><strong>{display_ref}</strong> {escape(title)}</div>
 <form method="post" action="{action_url}">
