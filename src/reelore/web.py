@@ -12,6 +12,7 @@ from reelore.application import ImportedTVSeries, TVSearchResult
 from reelore.application.availability import AvailabilityType, SeasonAvailability
 from reelore.application.library_view import (
     LibraryItemView,
+    TopTenItemView,
     TVSeriesDetailView,
     UpcomingEpisodeView,
 )
@@ -26,6 +27,8 @@ class TVImportService(Protocol):
 
 class LibraryViewReader(Protocol):
     def list_items(self, today: date | None = None) -> tuple[LibraryItemView, ...]: ...
+
+    def list_top_ten(self) -> tuple[TopTenItemView, ...]: ...
 
     def list_upcoming_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]: ...
 
@@ -42,10 +45,17 @@ class TrackingService(Protocol):
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> object: ...
 
 
+class TopTenTrackingService(Protocol):
+    def assign(self, media_id: str, rank: int) -> object: ...
+
+    def remove(self, media_id: str) -> object: ...
+
+
 def create_web_app(
     importer: TVImportService,
     views: LibraryViewReader,
     tracker: TrackingService,
+    top_ten: TopTenTrackingService,
 ) -> FastAPI:
     app = FastAPI(title="Reelore")
 
@@ -59,6 +69,7 @@ def create_web_app(
                 query,
                 results,
                 views.list_items(today),
+                views.list_top_ten(),
                 views.list_upcoming_episodes(today),
             )
         )
@@ -88,6 +99,16 @@ def create_web_app(
         tracker.record_completion(media_id)
         return RedirectResponse(url=f"/series/{media_id}", status_code=303)
 
+    @app.post("/series/{media_id}/top-ten")
+    def assign_top_ten(media_id: str, rank: Annotated[int, Form()]) -> RedirectResponse:
+        top_ten.assign(media_id, rank)
+        return RedirectResponse(url=f"/series/{media_id}", status_code=303)
+
+    @app.post("/series/{media_id}/top-ten/remove")
+    def remove_top_ten(media_id: str) -> RedirectResponse:
+        top_ten.remove(media_id)
+        return RedirectResponse(url=f"/series/{media_id}", status_code=303)
+
     @app.post("/series/{media_id}/episodes/{season}/{episode}/seen")
     def mark_seen(media_id: str, season: int, episode: int) -> RedirectResponse:
         tracker.mark_episode_seen(media_id, EpisodeRef(season, episode))
@@ -110,6 +131,7 @@ def _render_home(
     query: str,
     results: tuple[TVSearchResult, ...],
     library_items: tuple[LibraryItemView, ...],
+    top_ten_items: tuple[TopTenItemView, ...],
     upcoming_episodes: tuple[UpcomingEpisodeView, ...],
 ) -> str:
     search_results = "".join(_render_search_result(result) for result in results)
@@ -117,6 +139,7 @@ def _render_home(
         search_results = '<p class="empty">Nessuna serie trovata.</p>'
 
     upcoming_section = _render_upcoming_section(upcoming_episodes)
+    top_ten_section = _render_top_ten_section(top_ten_items)
     library_sections = _render_library_sections(library_items)
     return _page(
         f"""<h1>Reelore</h1>
@@ -126,6 +149,7 @@ def _render_home(
 <button type="submit">Cerca</button>
 </form>
 {upcoming_section}
+{top_ten_section}
 {library_sections}
 {_render_results_section(query, search_results)}"""
     )
@@ -167,6 +191,23 @@ def _render_upcoming_availability(availability: SeasonAvailability | None) -> st
         f'<div class="upcoming-availability">In Italia: {providers}'
         f'<span class="availability-source"> · Dati {source}</span></div>'
     )
+
+
+def _render_top_ten_section(items: tuple[TopTenItemView, ...]) -> str:
+    if not items:
+        return ""
+    cards = "".join(_render_top_ten_item(item) for item in items)
+    return f'<section><h2>La tua Top 10</h2><div class="grid">{cards}</div></section>'
+
+
+def _render_top_ten_item(item: TopTenItemView) -> str:
+    image = _render_image(item.image_url, item.title)
+    media_id = escape(item.media_id, quote=True)
+    return f"""<a class="card card-link top-ten-card" href="/series/{media_id}">
+<div class="top-ten-rank">#{item.rank}</div>
+{image}
+<div class="content"><p class="title">{escape(item.title)}</p></div>
+</a>"""
 
 
 def _render_library_sections(items: tuple[LibraryItemView, ...]) -> str:
@@ -248,6 +289,7 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     status_options = "".join(
         _render_status_option(status, detail.state.status) for status in LibraryStatus
     )
+    top_ten_controls = _render_top_ten_controls(detail)
     return _page(
         f"""<a class="back" href="/">← Libreria</a>
 <div class="hero">
@@ -266,11 +308,38 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
 <button type="submit">Registra completamento +1</button>
 </form>
 <p class="meta">Completamenti totali: {completion}</p>
+{top_ten_controls}
 </div>
 </div>
 </div>
 {season_html}"""
     )
+
+
+def _render_top_ten_controls(detail: TVSeriesDetailView) -> str:
+    media_id = escape(detail.media_id, quote=True)
+    current_rank = detail.state.top_ten_rank
+    options = "".join(_render_rank_option(rank, current_rank) for rank in range(1, 11))
+    current = f"Posizione attuale: #{current_rank}" if current_rank is not None else "Non in Top 10"
+    remove = ""
+    if current_rank is not None:
+        remove = f"""<form method="post" action="/series/{media_id}/top-ten/remove">
+<button type="submit">Rimuovi dalla Top 10</button>
+</form>"""
+    return f"""<div class="top-ten-controls">
+<p class="meta">{current}</p>
+<form class="status-form" method="post" action="/series/{media_id}/top-ten">
+<label for="top-ten-rank">Top 10</label>
+<select id="top-ten-rank" name="rank">{options}</select>
+<button type="submit">Salva posizione</button>
+</form>
+{remove}
+</div>"""
+
+
+def _render_rank_option(rank: int, current_rank: int | None) -> str:
+    selected = " selected" if rank == current_rank else ""
+    return f'<option value="{rank}"{selected}>#{rank}</option>'
 
 
 def _render_season_availability(availability: SeasonAvailability | None) -> str:
@@ -448,6 +517,12 @@ button {{
 .upcoming-availability {{ margin-top: 10px; font-size: .82rem; line-height: 1.35; }}
 .quick-action {{ padding: 0 14px 14px; }}
 .quick-action button {{ width: 100%; }}
+.top-ten-card {{ position: relative; }}
+.top-ten-rank {{
+  position: absolute; top: 10px; left: 10px; z-index: 1; padding: 6px 9px;
+  border-radius: 999px; background: #f4f4f5; color: #18181b; font-weight: 800;
+}}
+.top-ten-controls {{ margin-top: 18px; }}
 .back {{ display: inline-block; margin-bottom: 26px; text-decoration: none; }}
 .hero {{ display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }}
 .hero-poster .poster {{ border-radius: 16px; }}
