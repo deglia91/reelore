@@ -165,11 +165,7 @@ def _render_results_section(query: str, content: str) -> str:
 
 def _render_search_result(result: TVSearchResult) -> str:
     image = _render_image(result.image_url, result.title)
-    year = (
-        str(result.premiered.year)
-        if result.premiered is not None
-        else "Anno non disponibile"
-    )
+    year = str(result.premiered.year) if result.premiered is not None else "Anno non disponibile"
     status = f" / {escape(result.status)}" if result.status else ""
     provider_id = escape(result.provider_id, quote=True)
     return f"""<article class="card">
