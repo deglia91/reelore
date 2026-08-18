@@ -131,6 +131,20 @@ def test_tv_progress_starts_series_after_first_seen_episode() -> None:
     assert repository.states[media.id].status is LibraryStatus.IN_PROGRESS
 
 
+def test_tv_progress_marks_running_series_up_to_date_when_available_episodes_are_seen() -> None:
+    repository = FakeLibraryRepository()
+    media = _severance("tvmaze:1")
+    tracker = MediaTracker(repository)
+    tracker.add_media(media)
+    repository.catalogs["1"] = _catalog("Running")
+    progress_tracker = TVProgressTracker(tracker, repository, today=date(2026, 2, 1))
+
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 1))
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 2))
+
+    assert repository.states[media.id].status is LibraryStatus.UP_TO_DATE
+
+
 def test_tv_progress_completes_ended_series_when_all_episodes_are_seen() -> None:
     repository = FakeLibraryRepository()
     media = _severance("tvmaze:1")
@@ -177,3 +191,18 @@ def test_tv_progress_reopens_completed_series_when_episode_becomes_unseen() -> N
     state = repository.states[media.id]
     assert state.status is LibraryStatus.IN_PROGRESS
     assert state.completion_count == 1
+
+
+def test_tv_progress_reopens_up_to_date_series_when_episode_becomes_unseen() -> None:
+    repository = FakeLibraryRepository()
+    media = _severance("tvmaze:1")
+    tracker = MediaTracker(repository)
+    tracker.add_media(media)
+    repository.catalogs["1"] = _catalog("Running")
+    progress_tracker = TVProgressTracker(tracker, repository, today=date(2026, 2, 1))
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 1))
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 2))
+
+    progress_tracker.mark_episode_unseen(media.id, EpisodeRef(1, 2))
+
+    assert repository.states[media.id].status is LibraryStatus.IN_PROGRESS
