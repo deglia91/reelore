@@ -15,7 +15,8 @@ FOUNDATION_CSS = """
   --content-max: 1180px;
   --motion-fast: 150ms;
   --motion-base: 250ms;
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 """
 
