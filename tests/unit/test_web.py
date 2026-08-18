@@ -248,10 +248,15 @@ def test_add_series_imports_selection_and_redirects_detail() -> None:
     assert importer.imported_ids == ["16740"]
 
 
-def test_series_detail_renders_episodes_availability_and_top_ten_controls() -> None:
+def test_series_detail_renders_cinematic_tracking_and_episode_structure() -> None:
     detail = _client().get("/series/tvmaze:1")
 
     assert detail.status_code == 200
+    assert 'class="series-hero"' in detail.text
+    assert 'class="series-stats"' in detail.text
+    assert 'class="tracking-panel"' in detail.text
+    assert 'class="season-section"' in detail.text
+    assert 'class="episode-copy"' in detail.text
     assert "Stagione 1" in detail.text
     assert "Disponibile in Italia" in detail.text
     assert "Apple TV Plus" in detail.text
@@ -260,8 +265,8 @@ def test_series_detail_renders_episodes_availability_and_top_ten_controls() -> N
     assert "Good News About Hell" in detail.text
     assert "Visto ✓" in detail.text
     assert "Posizione attuale: #2" in detail.text
-    assert "Salva posizione" in detail.text
-    assert "Rimuovi dalla Top 10" in detail.text
+    assert ">Salva<" in detail.text
+    assert ">Rimuovi<" in detail.text
 
 
 def test_series_detail_updates_episode_progress() -> None:
