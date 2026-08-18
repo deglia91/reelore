@@ -534,14 +534,20 @@ body {{
 }}
 .app-header {{
   position: sticky; top: 0; z-index: 20; display: flex; align-items: center;
-  justify-content: space-between; min-height: 72px; padding: 0 max(24px, calc((100vw - var(--content-max)) / 2));
-  border-bottom: 1px solid var(--color-border); background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  justify-content: space-between; min-height: 72px;
+  padding: 0 max(24px, calc((100vw - var(--content-max)) / 2));
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
   backdrop-filter: blur(18px);
 }}
-.brand {{ display: inline-flex; align-items: center; gap: 10px; font-weight: 850; text-decoration: none; }}
+.brand {{
+  display: inline-flex; align-items: center; gap: 10px; font-weight: 850;
+  text-decoration: none;
+}}
 .brand-mark {{
   display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px;
-  background: var(--color-accent); color: var(--color-accent-contrast); box-shadow: var(--shadow-raised);
+  background: var(--color-accent); color: var(--color-accent-contrast);
+  box-shadow: var(--shadow-raised);
 }}
 .desktop-nav {{ display: flex; align-items: center; gap: 24px; }}
 .desktop-nav a {{ color: var(--color-text-muted); font-size: .92rem; text-decoration: none; }}
@@ -558,7 +564,10 @@ main {{
 h1 {{ margin: 0 0 var(--space-2); font-size: clamp(2.4rem, 8vw, 4.8rem); line-height: .95; }}
 h2 {{ margin: 0; font-size: 1.25rem; }}
 section {{ margin-top: 38px; }}
-.section-heading {{ display: flex; align-items: end; justify-content: space-between; margin-bottom: var(--space-4); }}
+.section-heading {{
+  display: flex; align-items: end; justify-content: space-between;
+  margin-bottom: var(--space-4);
+}}
 a {{ color: inherit; }}
 .sub, .meta, .summary, .empty {{ color: var(--color-text-muted); }}
 .sub {{ max-width: 620px; font-size: 1.05rem; line-height: 1.6; }}
@@ -629,7 +638,10 @@ button:active {{ transform: translateY(1px); }}
 @media (max-width: 720px) {{
   .app-header {{ min-height: 62px; padding: 0 16px; }}
   .desktop-nav {{ display: none; }}
-  main {{ width: min(100% - 24px, var(--content-max)); padding-top: 24px; padding-bottom: 110px; }}
+  main {{
+    width: min(100% - 24px, var(--content-max)); padding-top: 24px;
+    padding-bottom: 110px;
+  }}
   .home-hero {{ padding-top: 10px; }}
   .search {{ flex-direction: row; }}
   .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
@@ -637,8 +649,9 @@ button:active {{ transform: translateY(1px); }}
   .episode {{ align-items: flex-start; flex-direction: column; }}
   .mobile-nav {{
     position: fixed; right: 12px; bottom: 12px; left: 12px; z-index: 30; display: grid;
-    grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 8px; border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg); background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+    grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 8px;
+    border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--color-surface) 94%, transparent);
     box-shadow: var(--shadow-raised); backdrop-filter: blur(18px);
   }}
   .mobile-nav a {{
