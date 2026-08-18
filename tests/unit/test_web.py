@@ -65,6 +65,16 @@ class StubTracker:
     def __init__(self) -> None:
         self.seen: list[tuple[str, EpisodeRef]] = []
         self.unseen: list[tuple[str, EpisodeRef]] = []
+        self.statuses: list[tuple[str, LibraryStatus]] = []
+        self.completions: list[str] = []
+
+    def change_status(self, media_id: str, status: LibraryStatus) -> object:
+        self.statuses.append((media_id, status))
+        return object()
+
+    def record_completion(self, media_id: str) -> object:
+        self.completions.append(media_id)
+        return object()
 
     def mark_episode_seen(self, media_id: str, episode: EpisodeRef) -> object:
         self.seen.append((media_id, episode))
@@ -98,6 +108,7 @@ def test_home_renders_library_metadata_and_search_results() -> None:
 
     assert response.status_code == 200
     assert "The Bear" in response.text
+    assert "In corso" in response.text
     assert "1/2 episodi" in response.text
     assert "https://img.example/the-bear.jpg" in response.text
     assert "Severance" in response.text
@@ -130,3 +141,23 @@ def test_series_detail_renders_episodes_and_updates_progress() -> None:
     assert "Visto ✓" in detail.text
     assert marked.status_code == 303
     assert tracker.seen == [("tvmaze:1", EpisodeRef(1, 2))]
+
+
+def test_series_detail_changes_personal_status_and_records_completion() -> None:
+    tracker = StubTracker()
+    client = TestClient(create_web_app(StubImporter(), StubViews(), tracker))
+
+    status_response = client.post(
+        "/series/tvmaze:1/status",
+        data={"status": "dropped"},
+        follow_redirects=False,
+    )
+    completion_response = client.post(
+        "/series/tvmaze:1/completion",
+        follow_redirects=False,
+    )
+
+    assert status_response.status_code == 303
+    assert completion_response.status_code == 303
+    assert tracker.statuses == [("tvmaze:1", LibraryStatus.DROPPED)]
+    assert tracker.completions == ["tvmaze:1"]
