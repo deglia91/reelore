@@ -143,14 +143,30 @@ def _render_upcoming_episode(episode: UpcomingEpisodeView) -> str:
     media_id = escape(episode.media_id, quote=True)
     reference = f"S{episode.season_number:02}E{episode.episode_number:02}"
     airdate = episode.airdate.strftime("%d/%m/%Y")
+    availability = _render_upcoming_availability(episode.availability)
     return f"""<a class="card card-link" href="/series/{media_id}">
 {image}
 <div class="content">
 <p class="title">{escape(episode.series_title)}</p>
 <div class="meta">{reference} · {airdate}</div>
 <p>{escape(episode.episode_title)}</p>
+{availability}
 </div>
 </a>"""
+
+
+def _render_upcoming_availability(availability: SeasonAvailability | None) -> str:
+    if availability is None or not availability.providers:
+        return ""
+    providers = " · ".join(
+        f"{escape(provider.name)} ({_availability_label(provider.availability_type)})"
+        for provider in availability.providers
+    )
+    source = escape(availability.source)
+    return (
+        f'<div class="upcoming-availability">In Italia: {providers}'
+        f'<span class="availability-source"> · Dati {source}</span></div>'
+    )
 
 
 def _render_library_sections(items: tuple[LibraryItemView, ...]) -> str:
@@ -429,6 +445,7 @@ button {{
 .title {{ margin: 0 0 6px; font-weight: 750; }}
 .meta {{ font-size: .86rem; margin-bottom: 12px; }}
 .next-episode {{ margin: 0; line-height: 1.35; }}
+.upcoming-availability {{ margin-top: 10px; font-size: .82rem; line-height: 1.35; }}
 .quick-action {{ padding: 0 14px 14px; }}
 .quick-action button {{ width: 100%; }}
 .back {{ display: inline-block; margin-bottom: 26px; text-decoration: none; }}
