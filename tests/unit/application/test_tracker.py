@@ -1,8 +1,11 @@
 from dataclasses import dataclass, field
+from datetime import date
 
 import pytest
 
 from reelore.application import MediaNotFoundError, MediaTracker
+from reelore.application.catalog import TVEpisodeMetadata, TVSeriesCatalog
+from reelore.application.tracker import TVProgressTracker
 from reelore.domain import (
     EpisodeProgress,
     EpisodeRef,
@@ -18,6 +21,7 @@ class FakeLibraryRepository:
     media: dict[str, MediaItem] = field(default_factory=dict)
     states: dict[str, PersonalMediaState] = field(default_factory=dict)
     progress: dict[str, EpisodeProgress] = field(default_factory=dict)
+    catalogs: dict[str, TVSeriesCatalog] = field(default_factory=dict)
 
     def save_media(self, media: MediaItem) -> None:
         self.media[media.id] = media
@@ -37,9 +41,28 @@ class FakeLibraryRepository:
     def get_episode_progress(self, media_id: str) -> EpisodeProgress:
         return self.progress.get(media_id, EpisodeProgress(media_id=media_id))
 
+    def get_tv_series_catalog(self, provider_id: str) -> TVSeriesCatalog | None:
+        return self.catalogs.get(provider_id)
 
-def _severance() -> MediaItem:
-    return MediaItem(id="severance", title="Severance", media_type=MediaType.TV_SERIES)
+
+def _severance(media_id: str = "severance") -> MediaItem:
+    return MediaItem(id=media_id, title="Severance", media_type=MediaType.TV_SERIES)
+
+
+def _catalog(status: str = "Running") -> TVSeriesCatalog:
+    return TVSeriesCatalog(
+        provider_id="1",
+        title="Severance",
+        summary=None,
+        status=status,
+        premiered=None,
+        ended=None,
+        image_url=None,
+        episodes=(
+            TVEpisodeMetadata("11", 1, 1, "Episode 1", airdate=date(2026, 1, 1)),
+            TVEpisodeMetadata("12", 1, 2, "Episode 2", airdate=date(2026, 1, 8)),
+        ),
+    )
 
 
 def test_add_media_creates_personal_state_without_resetting_existing_tracking() -> None:
@@ -93,3 +116,64 @@ def test_tracking_unknown_media_fails_explicitly() -> None:
 
     with pytest.raises(MediaNotFoundError, match="missing"):
         tracker.mark_episode_seen("missing", EpisodeRef(1, 1))
+
+
+def test_tv_progress_starts_series_after_first_seen_episode() -> None:
+    repository = FakeLibraryRepository()
+    media = _severance("tvmaze:1")
+    tracker = MediaTracker(repository)
+    tracker.add_media(media)
+    repository.catalogs["1"] = _catalog()
+    progress_tracker = TVProgressTracker(tracker, repository, today=date(2026, 2, 1))
+
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 1))
+
+    assert repository.states[media.id].status is LibraryStatus.IN_PROGRESS
+
+
+def test_tv_progress_completes_ended_series_when_all_episodes_are_seen() -> None:
+    repository = FakeLibraryRepository()
+    media = _severance("tvmaze:1")
+    tracker = MediaTracker(repository)
+    tracker.add_media(media)
+    repository.catalogs["1"] = _catalog("Ended")
+    progress_tracker = TVProgressTracker(tracker, repository, today=date(2026, 2, 1))
+
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 1))
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 2))
+
+    state = repository.states[media.id]
+    assert state.status is LibraryStatus.COMPLETED
+    assert state.completion_count == 1
+
+
+def test_tv_progress_does_not_override_paused_or_dropped_status() -> None:
+    for manual_status in (LibraryStatus.PAUSED, LibraryStatus.DROPPED):
+        repository = FakeLibraryRepository()
+        media = _severance("tvmaze:1")
+        tracker = MediaTracker(repository)
+        tracker.add_media(media, manual_status)
+        repository.catalogs["1"] = _catalog("Ended")
+        progress_tracker = TVProgressTracker(tracker, repository, today=date(2026, 2, 1))
+
+        progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 1))
+        progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 2))
+
+        assert repository.states[media.id].status is manual_status
+
+
+def test_tv_progress_reopens_completed_series_when_episode_becomes_unseen() -> None:
+    repository = FakeLibraryRepository()
+    media = _severance("tvmaze:1")
+    tracker = MediaTracker(repository)
+    tracker.add_media(media)
+    repository.catalogs["1"] = _catalog("Ended")
+    progress_tracker = TVProgressTracker(tracker, repository, today=date(2026, 2, 1))
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 1))
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 2))
+
+    progress_tracker.mark_episode_unseen(media.id, EpisodeRef(1, 2))
+
+    state = repository.states[media.id]
+    assert state.status is LibraryStatus.IN_PROGRESS
+    assert state.completion_count == 1
