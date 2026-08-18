@@ -51,7 +51,8 @@ class LocalizedTVCatalogProvider:
             replace(
                 episode,
                 title=(localized_episode.title if localized_episode else None) or episode.title,
-                summary=(localized_episode.summary if localized_episode else None) or episode.summary,
+                summary=(localized_episode.summary if localized_episode else None)
+                or episode.summary,
             )
             for episode in catalog.episodes
             for localized_episode in [
