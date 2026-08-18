@@ -41,6 +41,65 @@ REEL_ORE_SKIN_CSS = """
 """
 
 COMPONENT_CSS = """
+button,
+input,
+select,
+a {
+  outline: none;
+}
+
+button,
+input,
+select {
+  min-height: 44px;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.button-secondary {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.button-secondary:hover {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-raised));
+}
+
+.card {
+  transition:
+    transform var(--motion-base) ease,
+    border-color var(--motion-base) ease,
+    box-shadow var(--motion-base) ease;
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 52%, var(--color-border));
+  box-shadow: 0 16px 38px rgb(0 0 0 / 20%);
+}
+
+.tracking-panel > div {
+  transition:
+    border-color var(--motion-base) ease,
+    background var(--motion-base) ease;
+}
+
+.tracking-panel > div:focus-within {
+  border-color: color-mix(in srgb, var(--color-accent) 58%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface-raised));
+}
+
+.mobile-nav a {
+  min-height: 44px;
+}
+
 .home-page main {
   display: grid;
   gap: var(--space-2);
@@ -540,9 +599,12 @@ COMPONENT_CSS = """
     grid-column: auto;
   }
 
+  .season-section {
+    margin-top: var(--space-6);
+  }
+
   .episode {
     align-items: stretch;
-    flex-direction: column;
   }
 
   .episode-copy {
@@ -553,6 +615,7 @@ COMPONENT_CSS = """
     white-space: normal;
   }
 
+  .episode form,
   .episode button {
     width: 100%;
   }
@@ -579,6 +642,15 @@ COMPONENT_CSS = """
   }
 
   #upcoming .upcoming-availability {
+    font-size: .72rem;
+  }
+
+  .series-hero {
+    grid-template-columns: 92px minmax(0, 1fr);
+  }
+
+  .series-stats span {
+    padding: 5px 8px;
     font-size: .72rem;
   }
 }
