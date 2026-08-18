@@ -1,9 +1,9 @@
 """SQLite implementation of the authoritative personal media library."""
 
+import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-import sqlite3
 
 from reelore.domain import (
     EpisodeProgress,
