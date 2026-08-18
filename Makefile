@@ -17,4 +17,4 @@ test:
 	pytest
 
 run:
-	uvicorn reelore.bootstrap:build_default_app --factory --reload
+	uvicorn reelore.bootstrap:build_default_app --factory --reload --port 8010
