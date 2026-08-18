@@ -1,5 +1,9 @@
 """Application use cases for the personal media tracker."""
 
+from datetime import date
+from typing import Protocol
+
+from reelore.application.catalog import TVSeriesCatalog
 from reelore.application.library import LibraryRepository
 from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus, MediaItem, PersonalMediaState
 
@@ -59,3 +63,75 @@ class MediaTracker:
         if state is None:
             raise MediaNotFoundError(media_id)
         return state
+
+
+class TVProgressStore(Protocol):
+    def get_personal_state(self, media_id: str) -> PersonalMediaState | None: ...
+
+    def get_tv_series_catalog(self, provider_id: str) -> TVSeriesCatalog | None: ...
+
+
+class TVProgressTracker:
+    """Keep personal TV status aligned with episode progress."""
+
+    _MANUAL_STATUSES = {LibraryStatus.PAUSED, LibraryStatus.DROPPED}
+
+    def __init__(
+        self,
+        tracker: MediaTracker,
+        store: TVProgressStore,
+        *,
+        today: date | None = None,
+    ) -> None:
+        self._tracker = tracker
+        self._store = store
+        self._today = today
+
+    def change_status(self, media_id: str, status: LibraryStatus) -> PersonalMediaState:
+        return self._tracker.change_status(media_id, status)
+
+    def record_completion(self, media_id: str) -> PersonalMediaState:
+        return self._tracker.record_completion(media_id)
+
+    def mark_episode_seen(self, media_id: str, episode: EpisodeRef) -> EpisodeProgress:
+        progress = self._tracker.mark_episode_seen(media_id, episode)
+        self._sync_after_seen(media_id, progress)
+        return progress
+
+    def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> EpisodeProgress:
+        progress = self._tracker.mark_episode_unseen(media_id, episode)
+        state = self._store.get_personal_state(media_id)
+        if state is not None and state.status is LibraryStatus.COMPLETED:
+            self._tracker.change_status(media_id, LibraryStatus.IN_PROGRESS)
+        return progress
+
+    def _sync_after_seen(self, media_id: str, progress: EpisodeProgress) -> None:
+        state = self._store.get_personal_state(media_id)
+        if state is None or state.status in self._MANUAL_STATUSES:
+            return
+        if state.status is LibraryStatus.PLANNED:
+            state = self._tracker.change_status(media_id, LibraryStatus.IN_PROGRESS)
+
+        catalog = self._catalog_for(media_id)
+        if catalog is None or state.status is LibraryStatus.COMPLETED:
+            return
+        available = tuple(
+            episode
+            for episode in catalog.episodes
+            if episode.airdate is None or episode.airdate <= (self._today or date.today())
+        )
+        if not available:
+            return
+        all_seen = all(
+            progress.has_seen(EpisodeRef(episode.season_number, episode.episode_number))
+            for episode in available
+        )
+        series_ended = (catalog.status or "").casefold() == "ended"
+        if all_seen and series_ended and len(available) == len(catalog.episodes):
+            self._tracker.record_completion(media_id)
+
+    def _catalog_for(self, media_id: str) -> TVSeriesCatalog | None:
+        _prefix, separator, provider_id = media_id.partition(":")
+        if not separator or not provider_id:
+            return None
+        return self._store.get_tv_series_catalog(provider_id)
