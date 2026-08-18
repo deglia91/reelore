@@ -1,10 +1,8 @@
-from reelore.application import (
+from reelore.application.catalog import TVEpisodeMetadata, TVSearchResult, TVSeriesCatalog
+from reelore.application.localization import (
     LocalizedEpisodeMetadata,
     LocalizedTVCatalogProvider,
     LocalizedTVSeriesMetadata,
-    TVEpisodeMetadata,
-    TVSearchResult,
-    TVSeriesCatalog,
 )
 
 
