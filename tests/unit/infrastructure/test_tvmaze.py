@@ -48,10 +48,7 @@ def test_tvmaze_search_rejects_empty_query() -> None:
 
 
 def test_tvmaze_series_maps_numbered_episodes_and_cast() -> None:
-    url = (
-        "https://api.tvmaze.com/shows/16740?"
-        "embed%5B%5D=episodes&embed%5B%5D=cast"
-    )
+    url = "https://api.tvmaze.com/shows/16740?embed%5B%5D=episodes&embed%5B%5D=cast"
     client = StubJsonHttpClient(
         {
             url: {
