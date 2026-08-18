@@ -1,4 +1,4 @@
-.PHONY: install verify format test
+.PHONY: install verify format test run
 
 install:
 	python -m pip install -e '.[dev]'
@@ -15,3 +15,6 @@ format:
 
 test:
 	pytest
+
+run:
+	uvicorn reelore.bootstrap:build_default_app --factory --reload

@@ -56,31 +56,85 @@ def _render_home(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Reelore</title>
 <style>
-:root {{ color-scheme: dark; font-family: Inter, system-ui, sans-serif; }}
+:root {{
+  color-scheme: dark;
+  font-family: Inter, system-ui, sans-serif;
+}}
 * {{ box-sizing: border-box; }}
-body {{ margin: 0; background: #101114; color: #f4f4f5; }}
-main {{ width: min(1100px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 64px; }}
-h1 {{ margin: 0 0 8px; font-size: clamp(2rem, 8vw, 4rem); }}
+body {{
+  margin: 0;
+  background: #101114;
+  color: #f4f4f5;
+}}
+main {{
+  width: min(1100px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 40px 0 64px;
+}}
+h1 {{
+  margin: 0 0 8px;
+  font-size: clamp(2rem, 8vw, 4rem);
+}}
 .sub {{ color: #a1a1aa; margin: 0 0 32px; }}
 .search {{ display: flex; gap: 10px; margin-bottom: 40px; }}
-input {{ flex: 1; min-width: 0; border: 1px solid #3f3f46; border-radius: 14px; }}
-input {{ background: #18181b; color: inherit; padding: 14px 16px; font-size: 1rem; }}
-button {{ border: 0; border-radius: 12px; padding: 12px 16px; font-weight: 700; }}
-button {{ background: #f4f4f5; color: #18181b; cursor: pointer; }}
+input {{
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #3f3f46;
+  border-radius: 14px;
+  background: #18181b;
+  color: inherit;
+  padding: 14px 16px;
+  font-size: 1rem;
+}}
+button {{
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-weight: 700;
+  background: #f4f4f5;
+  color: #18181b;
+  cursor: pointer;
+}}
 section {{ margin-top: 34px; }}
 h2 {{ font-size: 1.25rem; margin-bottom: 16px; }}
-.grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }}
-.card {{ background: #18181b; border: 1px solid #27272a; border-radius: 16px; overflow: hidden; }}
-.poster {{ width: 100%; aspect-ratio: 2 / 3; object-fit: cover; background: #27272a; }}
+.grid {{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 18px;
+}}
+.card {{
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 16px;
+  overflow: hidden;
+}}
+.poster {{
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background: #27272a;
+}}
 .placeholder {{ display: grid; place-items: center; color: #71717a; }}
 .content {{ padding: 14px; }}
 .title {{ margin: 0 0 6px; font-weight: 750; }}
-.meta {{ color: #a1a1aa; font-size: .86rem; min-height: 1.2em; margin-bottom: 12px; }}
+.meta {{
+  color: #a1a1aa;
+  font-size: .86rem;
+  min-height: 1.2em;
+  margin-bottom: 12px;
+}}
 .empty {{ color: #71717a; }}
 @media (max-width: 560px) {{
-  main {{ width: min(100% - 24px, 1100px); padding-top: 28px; }}
+  main {{
+    width: min(100% - 24px, 1100px);
+    padding-top: 28px;
+  }}
   .search {{ flex-direction: column; }}
-  .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
+  .grid {{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }}
 }}
 </style>
 </head>
@@ -105,13 +159,18 @@ h2 {{ font-size: 1.25rem; margin-bottom: 16px; }}
 def _render_results_section(query: str, content: str) -> str:
     if not query:
         return ""
-    return f'<section><h2>Risultati per "{escape(query)}"</h2><div class="grid">{content}</div></section>'
+    heading = f'Risultati per "{escape(query)}"'
+    return f'<section><h2>{heading}</h2><div class="grid">{content}</div></section>'
 
 
 def _render_search_result(result: TVSearchResult) -> str:
     image = _render_image(result.image_url, result.title)
-    year = str(result.premiered.year) if result.premiered is not None else "Anno non disponibile"
-    status = f" · {escape(result.status)}" if result.status else ""
+    year = (
+        str(result.premiered.year)
+        if result.premiered is not None
+        else "Anno non disponibile"
+    )
+    status = f" / {escape(result.status)}" if result.status else ""
     provider_id = escape(result.provider_id, quote=True)
     return f"""<article class="card">
 {image}
