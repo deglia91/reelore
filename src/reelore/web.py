@@ -147,7 +147,9 @@ def _render_episode(
     label = "Visto ✓" if seen else "Segna visto"
     media = escape(media_id, quote=True)
     display_ref = f"S{reference.season_number:02}E{reference.episode_number:02}"
-    action_url = f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
+    action_url = (
+        f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
+    )
     return f"""<div class="episode">
 <div><strong>{display_ref}</strong> {escape(title)}</div>
 <form method="post" action="{action_url}">
