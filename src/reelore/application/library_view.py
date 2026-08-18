@@ -1,6 +1,7 @@
 """Read models for rendering the personal TV library."""
 
 from dataclasses import dataclass
+from datetime import date
 from typing import Protocol
 
 from reelore.application.catalog import TVSeriesCatalog
@@ -27,6 +28,17 @@ class LibraryItemView:
     image_url: str | None
     seen_episodes: int
     total_episodes: int
+
+
+@dataclass(frozen=True, slots=True)
+class UpcomingEpisodeView:
+    media_id: str
+    series_title: str
+    season_number: int
+    episode_number: int
+    episode_title: str
+    airdate: date
+    image_url: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,6 +76,30 @@ class LibraryViewService:
                 )
             )
         return tuple(items)
+
+    def list_upcoming_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]:
+        upcoming: list[UpcomingEpisodeView] = []
+        excluded = {LibraryStatus.DROPPED, LibraryStatus.COMPLETED}
+        for media in self._store.list_media():
+            state = self._store.get_personal_state(media.id)
+            catalog = self._catalog_for(media.id)
+            if state is None or catalog is None or state.status in excluded:
+                continue
+            for episode in catalog.episodes:
+                if episode.airdate is None or episode.airdate < today:
+                    continue
+                upcoming.append(
+                    UpcomingEpisodeView(
+                        media_id=media.id,
+                        series_title=media.title,
+                        season_number=episode.season_number,
+                        episode_number=episode.episode_number,
+                        episode_title=episode.title,
+                        airdate=episode.airdate,
+                        image_url=episode.image_url or catalog.image_url,
+                    )
+                )
+        return tuple(sorted(upcoming, key=lambda episode: episode.airdate))
 
     def get_tv_series(self, media_id: str) -> TVSeriesDetailView | None:
         state = self._store.get_personal_state(media_id)
