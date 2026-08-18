@@ -65,6 +65,56 @@ class MediaTracker:
         return state
 
 
+class TopTenStore(Protocol):
+    def list_media(self) -> tuple[MediaItem, ...]: ...
+
+    def get_personal_state(self, media_id: str) -> PersonalMediaState | None: ...
+
+    def save_personal_state(self, state: PersonalMediaState) -> None: ...
+
+
+class TopTenService:
+    """Manage a unique personal top-ten ranking for library media."""
+
+    def __init__(self, store: TopTenStore) -> None:
+        self._store = store
+
+    def assign(self, media_id: str, rank: int) -> PersonalMediaState:
+        state = self._require_state(media_id)
+        previous_rank = state.top_ten_rank
+        occupant = self._state_at_rank(rank, excluding=media_id)
+        if occupant is not None:
+            self._store.save_personal_state(occupant.rank_in_top_ten(previous_rank))
+        ranked = state.rank_in_top_ten(rank)
+        self._store.save_personal_state(ranked)
+        return ranked
+
+    def remove(self, media_id: str) -> PersonalMediaState:
+        state = self._require_state(media_id).rank_in_top_ten(None)
+        self._store.save_personal_state(state)
+        return state
+
+    def _state_at_rank(
+        self,
+        rank: int,
+        *,
+        excluding: str,
+    ) -> PersonalMediaState | None:
+        for media in self._store.list_media():
+            if media.id == excluding:
+                continue
+            state = self._store.get_personal_state(media.id)
+            if state is not None and state.top_ten_rank == rank:
+                return state
+        return None
+
+    def _require_state(self, media_id: str) -> PersonalMediaState:
+        state = self._store.get_personal_state(media_id)
+        if state is None:
+            raise MediaNotFoundError(media_id)
+        return state
+
+
 class TVProgressStore(Protocol):
     def get_personal_state(self, media_id: str) -> PersonalMediaState | None: ...
 
