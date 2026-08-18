@@ -16,6 +16,7 @@ class MediaType(StrEnum):
 class LibraryStatus(StrEnum):
     PLANNED = "planned"
     IN_PROGRESS = "in_progress"
+    UP_TO_DATE = "up_to_date"
     PAUSED = "paused"
     DROPPED = "dropped"
     COMPLETED = "completed"
