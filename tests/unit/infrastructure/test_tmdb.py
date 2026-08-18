@@ -2,7 +2,8 @@ from datetime import date
 
 from reelore.application.availability import AvailabilityType
 from reelore.application.catalog import TVEpisodeMetadata, TVSeriesCatalog
-from reelore.infrastructure.tmdb import TMDBItalianAvailabilityProvider, TMDBItalianLocalizer
+from reelore.infrastructure.tmdb import TMDBItalianLocalizer
+from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProvider
 
 
 class StubAuthorizedJsonHttpClient:
