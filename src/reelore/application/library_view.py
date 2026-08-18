@@ -48,6 +48,7 @@ class UpcomingEpisodeView:
     episode_title: str
     airdate: date
     image_url: str | None
+    availability: SeasonAvailability | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -102,9 +103,15 @@ class LibraryViewService:
             catalog = self._catalog_for(media.id)
             if state is None or catalog is None or state.status in excluded:
                 continue
+            availability_by_season: dict[int, SeasonAvailability | None] = {}
             for episode in catalog.episodes:
                 if episode.airdate is None or episode.airdate < today:
                     continue
+                if episode.season_number not in availability_by_season:
+                    availability_by_season[episode.season_number] = self._season_availability(
+                        catalog,
+                        episode.season_number,
+                    )
                 upcoming.append(
                     UpcomingEpisodeView(
                         media_id=media.id,
@@ -114,6 +121,7 @@ class LibraryViewService:
                         episode_title=episode.title,
                         airdate=episode.airdate,
                         image_url=episode.image_url or catalog.image_url,
+                        availability=availability_by_season[episode.season_number],
                     )
                 )
         return tuple(sorted(upcoming, key=lambda episode: episode.airdate))
@@ -158,21 +166,27 @@ class LibraryViewService:
         return None
 
     def _availability_for(self, catalog: TVSeriesCatalog) -> tuple[SeasonAvailability, ...]:
+        availability = (
+            self._season_availability(catalog, season_number)
+            for season_number in sorted({episode.season_number for episode in catalog.episodes})
+        )
+        return tuple(season for season in availability if season is not None)
+
+    def _season_availability(
+        self,
+        catalog: TVSeriesCatalog,
+        season_number: int,
+    ) -> SeasonAvailability | None:
         if self._availability_provider is None:
-            return ()
-        availability: list[SeasonAvailability] = []
-        for season_number in sorted({episode.season_number for episode in catalog.episodes}):
-            try:
-                season = self._availability_provider.season_availability(
-                    catalog,
-                    season_number,
-                    "IT",
-                )
-            except Exception:
-                continue
-            if season is not None:
-                availability.append(season)
-        return tuple(availability)
+            return None
+        try:
+            return self._availability_provider.season_availability(
+                catalog,
+                season_number,
+                "IT",
+            )
+        except Exception:
+            return None
 
     def _catalog_for(self, media_id: str) -> TVSeriesCatalog | None:
         provider_id = _tvmaze_provider_id(media_id)
