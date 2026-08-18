@@ -3,6 +3,7 @@ from reelore.application import (
     LocalizedTVCatalogProvider,
     LocalizedTVSeriesMetadata,
     TVEpisodeMetadata,
+    TVSearchResult,
     TVSeriesCatalog,
 )
 
@@ -11,7 +12,7 @@ class StubCatalogProvider:
     def __init__(self, catalog: TVSeriesCatalog) -> None:
         self.catalog = catalog
 
-    def search(self, query: str):  # type: ignore[no-untyped-def]
+    def search(self, query: str) -> tuple[TVSearchResult, ...]:
         return ()
 
     def get_series(self, provider_id: str) -> TVSeriesCatalog:
