@@ -91,12 +91,10 @@ def _render_home(
     library_items: tuple[LibraryItemView, ...],
 ) -> str:
     search_results = "".join(_render_search_result(result) for result in results)
-    library_cards = "".join(_render_library_item(item) for item in library_items)
     if query and not results:
         search_results = '<p class="empty">Nessuna serie trovata.</p>'
-    if not library_items:
-        library_cards = '<p class="empty">La tua libreria è ancora vuota.</p>'
 
+    library_sections = _render_library_sections(library_items)
     return _page(
         f"""<h1>Reelore</h1>
 <p class="sub">Le storie che guardi. La tua memoria, finalmente organizzata.</p>
@@ -104,12 +102,41 @@ def _render_home(
 <input name="q" value="{escape(query, quote=True)}" placeholder="Cerca una serie TV...">
 <button type="submit">Cerca</button>
 </form>
-<section>
-<h2>La tua libreria</h2>
-<div class="grid">{library_cards}</div>
-</section>
+{library_sections}
 {_render_results_section(query, search_results)}"""
     )
+
+
+def _render_library_sections(items: tuple[LibraryItemView, ...]) -> str:
+    if not items:
+        return '<section><h2>La tua libreria</h2><p class="empty">La tua libreria è ancora vuota.</p></section>'
+
+    sections = (
+        (
+            "Continua a guardare",
+            tuple(item for item in items if item.status is LibraryStatus.IN_PROGRESS),
+        ),
+        (
+            "In pari",
+            tuple(item for item in items if item.status is LibraryStatus.UP_TO_DATE),
+        ),
+        (
+            "La tua libreria",
+            tuple(
+                item
+                for item in items
+                if item.status not in {LibraryStatus.IN_PROGRESS, LibraryStatus.UP_TO_DATE}
+            ),
+        ),
+    )
+    return "".join(_render_library_section(title, section_items) for title, section_items in sections)
+
+
+def _render_library_section(title: str, items: tuple[LibraryItemView, ...]) -> str:
+    if not items:
+        return ""
+    cards = "".join(_render_library_item(item) for item in items)
+    return f'<section><h2>{escape(title)}</h2><div class="grid">{cards}</div></section>'
 
 
 def _render_series_detail(detail: TVSeriesDetailView) -> str:
