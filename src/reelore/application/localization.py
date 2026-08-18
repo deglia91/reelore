@@ -1,9 +1,9 @@
 """Provider-independent localization boundary for TV metadata."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Protocol
 
-from reelore.application.catalog import TVSeriesCatalog
+from reelore.application.catalog import TVCatalogProvider, TVSearchResult, TVSeriesCatalog
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,15 +30,15 @@ class TVMetadataLocalizer(Protocol):
 class LocalizedTVCatalogProvider:
     """Decorate a catalog provider with optional localized metadata."""
 
-    def __init__(self, catalog_provider: object, localizer: TVMetadataLocalizer) -> None:
+    def __init__(self, catalog_provider: TVCatalogProvider, localizer: TVMetadataLocalizer) -> None:
         self._catalog_provider = catalog_provider
         self._localizer = localizer
 
-    def search(self, query: str) -> object:
-        return self._catalog_provider.search(query)  # type: ignore[attr-defined, no-any-return]
+    def search(self, query: str) -> tuple[TVSearchResult, ...]:
+        return self._catalog_provider.search(query)
 
     def get_series(self, provider_id: str) -> TVSeriesCatalog:
-        catalog: TVSeriesCatalog = self._catalog_provider.get_series(provider_id)  # type: ignore[attr-defined]
+        catalog = self._catalog_provider.get_series(provider_id)
         localized = self._localizer.localize(catalog)
         if localized is None:
             return catalog
@@ -48,28 +48,19 @@ class LocalizedTVCatalogProvider:
             for episode in localized.episodes
         }
         episodes = tuple(
-            type(episode)(
-                provider_id=episode.provider_id,
-                season_number=episode.season_number,
-                episode_number=episode.episode_number,
+            replace(
+                episode,
                 title=(localized_episode.title if localized_episode else None) or episode.title,
-                airdate=episode.airdate,
                 summary=(localized_episode.summary if localized_episode else None) or episode.summary,
-                image_url=episode.image_url,
             )
             for episode in catalog.episodes
             for localized_episode in [
                 localized_episodes.get((episode.season_number, episode.episode_number))
             ]
         )
-        return TVSeriesCatalog(
-            provider_id=catalog.provider_id,
+        return replace(
+            catalog,
             title=localized.title or catalog.title,
             summary=localized.summary or catalog.summary,
-            status=catalog.status,
-            premiered=catalog.premiered,
-            ended=catalog.ended,
-            image_url=catalog.image_url,
             episodes=episodes,
-            cast=catalog.cast,
         )
