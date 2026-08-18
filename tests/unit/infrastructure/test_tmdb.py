@@ -1,7 +1,8 @@
 from datetime import date
 
+from reelore.application.availability import AvailabilityType
 from reelore.application.catalog import TVEpisodeMetadata, TVSeriesCatalog
-from reelore.infrastructure import TMDBItalianLocalizer
+from reelore.infrastructure.tmdb import TMDBItalianAvailabilityProvider, TMDBItalianLocalizer
 
 
 class StubAuthorizedJsonHttpClient:
@@ -89,3 +90,96 @@ def test_tmdb_returns_none_when_no_series_matches() -> None:
     )
 
     assert TMDBItalianLocalizer("secret-token", client).localize(catalog) is None
+
+
+def test_tmdb_maps_italian_season_watch_providers_with_justwatch_attribution() -> None:
+    search_url = (
+        "https://api.themoviedb.org/3/search/tv?query=Severance&language=it-IT&include_adult=false"
+    )
+    providers_url = "https://api.themoviedb.org/3/tv/95396/season/2/watch/providers"
+    client = StubAuthorizedJsonHttpClient(
+        {
+            search_url: {
+                "results": [
+                    {
+                        "id": 95396,
+                        "first_air_date": "2022-02-18",
+                    }
+                ]
+            },
+            providers_url: {
+                "results": {
+                    "IT": {
+                        "link": "https://www.themoviedb.org/tv/95396/watch?locale=IT",
+                        "flatrate": [
+                            {
+                                "provider_name": "Apple TV Plus",
+                                "logo_path": "/apple.jpg",
+                            }
+                        ],
+                        "buy": [
+                            {
+                                "provider_name": "Example Store",
+                                "logo_path": None,
+                            }
+                        ],
+                    }
+                }
+            },
+        }
+    )
+    catalog = TVSeriesCatalog(
+        provider_id="16740",
+        title="Severance",
+        summary=None,
+        status="Running",
+        premiered=date(2022, 2, 18),
+        ended=None,
+        image_url=None,
+    )
+
+    availability = TMDBItalianAvailabilityProvider("secret-token", client).season_availability(
+        catalog,
+        2,
+        "IT",
+    )
+
+    assert availability is not None
+    assert availability.region == "IT"
+    assert availability.season_number == 2
+    assert availability.source == "JustWatch"
+    assert availability.source_url == "https://www.themoviedb.org/tv/95396/watch?locale=IT"
+    assert availability.providers[0].name == "Apple TV Plus"
+    assert availability.providers[0].availability_type is AvailabilityType.STREAM
+    assert availability.providers[0].logo_url == "https://image.tmdb.org/t/p/w92/apple.jpg"
+    assert availability.providers[1].availability_type is AvailabilityType.BUY
+
+
+def test_tmdb_returns_no_availability_when_region_is_missing() -> None:
+    search_url = (
+        "https://api.themoviedb.org/3/search/tv?query=Severance&language=it-IT&include_adult=false"
+    )
+    providers_url = "https://api.themoviedb.org/3/tv/95396/season/1/watch/providers"
+    client = StubAuthorizedJsonHttpClient(
+        {
+            search_url: {"results": [{"id": 95396}]},
+            providers_url: {"results": {"US": {"flatrate": []}}},
+        }
+    )
+    catalog = TVSeriesCatalog(
+        provider_id="16740",
+        title="Severance",
+        summary=None,
+        status="Running",
+        premiered=None,
+        ended=None,
+        image_url=None,
+    )
+
+    availability = TMDBItalianAvailabilityProvider("secret-token", client).season_availability(
+        catalog,
+        1,
+        "IT",
+    )
+
+    assert availability is None
