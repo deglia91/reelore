@@ -8,6 +8,11 @@ from reelore.application import (
     TVSearchResult,
     TVSeriesCatalog,
 )
+from reelore.application.availability import (
+    AvailabilityProvider,
+    AvailabilityType,
+    SeasonAvailability,
+)
 from reelore.application.library_view import (
     LibraryItemView,
     TVSeriesDetailView,
@@ -95,6 +100,17 @@ class StubViews:
             state=PersonalMediaState(media_id, LibraryStatus.IN_PROGRESS),
             progress=EpisodeProgress(media_id).mark_seen(EpisodeRef(1, 1)),
             catalog=_catalog("1"),
+            availability=(
+                SeasonAvailability(
+                    season_number=1,
+                    region="IT",
+                    providers=(
+                        AvailabilityProvider("Apple TV Plus", AvailabilityType.STREAM),
+                    ),
+                    source="JustWatch",
+                    source_url="https://example.test/watch",
+                ),
+            ),
         )
 
 
@@ -169,7 +185,7 @@ def test_add_series_imports_selection_and_redirects_detail() -> None:
     assert importer.imported_ids == ["16740"]
 
 
-def test_series_detail_renders_episodes_and_updates_progress() -> None:
+def test_series_detail_renders_episodes_availability_and_updates_progress() -> None:
     tracker = StubTracker()
     client = TestClient(create_web_app(StubImporter(), StubViews(), tracker))
 
@@ -181,6 +197,10 @@ def test_series_detail_renders_episodes_and_updates_progress() -> None:
 
     assert detail.status_code == 200
     assert "Stagione 1" in detail.text
+    assert "Disponibile in Italia" in detail.text
+    assert "Apple TV Plus" in detail.text
+    assert "streaming" in detail.text
+    assert "JustWatch" in detail.text
     assert "Good News About Hell" in detail.text
     assert "Visto ✓" in detail.text
     assert marked.status_code == 303

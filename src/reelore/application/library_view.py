@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Protocol
 
+from reelore.application.availability import SeasonAvailability, TVAvailabilityProvider
 from reelore.application.catalog import TVSeriesCatalog
 from reelore.domain import EpisodeProgress, LibraryStatus, MediaItem, PersonalMediaState
 
@@ -47,13 +48,19 @@ class TVSeriesDetailView:
     state: PersonalMediaState
     progress: EpisodeProgress
     catalog: TVSeriesCatalog
+    availability: tuple[SeasonAvailability, ...] = ()
 
 
 class LibraryViewService:
     """Combine local tracking state with cached provider metadata for presentation."""
 
-    def __init__(self, store: LibraryViewStore) -> None:
+    def __init__(
+        self,
+        store: LibraryViewStore,
+        availability_provider: TVAvailabilityProvider | None = None,
+    ) -> None:
         self._store = store
+        self._availability_provider = availability_provider
 
     def list_items(self) -> tuple[LibraryItemView, ...]:
         items: list[LibraryItemView] = []
@@ -111,7 +118,25 @@ class LibraryViewService:
             state=state,
             progress=self._store.get_episode_progress(media_id),
             catalog=catalog,
+            availability=self._availability_for(catalog),
         )
+
+    def _availability_for(self, catalog: TVSeriesCatalog) -> tuple[SeasonAvailability, ...]:
+        if self._availability_provider is None:
+            return ()
+        availability: list[SeasonAvailability] = []
+        for season_number in sorted({episode.season_number for episode in catalog.episodes}):
+            try:
+                season = self._availability_provider.season_availability(
+                    catalog,
+                    season_number,
+                    "IT",
+                )
+            except Exception:
+                continue
+            if season is not None:
+                availability.append(season)
+        return tuple(availability)
 
     def _catalog_for(self, media_id: str) -> TVSeriesCatalog | None:
         provider_id = _tvmaze_provider_id(media_id)

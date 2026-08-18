@@ -1,6 +1,11 @@
 from datetime import date
 
 from reelore.application import TVEpisodeMetadata, TVSeriesCatalog
+from reelore.application.availability import (
+    AvailabilityProvider,
+    AvailabilityType,
+    SeasonAvailability,
+)
 from reelore.application.library_view import LibraryViewService
 from reelore.domain import (
     EpisodeProgress,
@@ -46,8 +51,28 @@ class StubViewStore:
         )
 
 
+class StubAvailabilityProvider:
+    def season_availability(
+        self,
+        catalog: TVSeriesCatalog,
+        season_number: int,
+        region: str,
+    ) -> SeasonAvailability | None:
+        assert catalog.provider_id == "1"
+        assert region == "IT"
+        return SeasonAvailability(
+            season_number=season_number,
+            region=region,
+            providers=(
+                AvailabilityProvider("Example Stream", AvailabilityType.STREAM),
+            ),
+            source="JustWatch",
+            source_url="https://example.test/watch",
+        )
+
+
 def test_library_view_combines_catalog_tracking_and_rewatch_data() -> None:
-    service = LibraryViewService(StubViewStore())
+    service = LibraryViewService(StubViewStore(), StubAvailabilityProvider())
 
     item = service.list_items()[0]
     detail = service.get_tv_series("tvmaze:1")
@@ -60,6 +85,8 @@ def test_library_view_combines_catalog_tracking_and_rewatch_data() -> None:
     assert detail is not None
     assert detail.catalog.title == "Example"
     assert detail.progress.has_seen(EpisodeRef(1, 1))
+    assert detail.availability[0].providers[0].name == "Example Stream"
+    assert detail.availability[0].source == "JustWatch"
 
 
 def test_library_view_lists_future_episodes_in_airdate_order() -> None:

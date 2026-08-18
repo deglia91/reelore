@@ -9,6 +9,7 @@ from fastapi import FastAPI, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from reelore.application import ImportedTVSeries, TVSearchResult
+from reelore.application.availability import AvailabilityType, SeasonAvailability
 from reelore.application.library_view import (
     LibraryItemView,
     TVSeriesDetailView,
@@ -190,6 +191,7 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     seen = progress.seen_count
     poster = _render_image(catalog.image_url, catalog.title)
     summary = escape(catalog.summary or "Nessuna trama disponibile.")
+    availability = {item.season_number: item for item in detail.availability}
     seasons: dict[int, list[str]] = defaultdict(list)
     for episode in catalog.episodes:
         reference = EpisodeRef(episode.season_number, episode.episode_number)
@@ -204,8 +206,9 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     season_sections: list[str] = []
     for number, rows in sorted(seasons.items()):
         episode_rows = "".join(rows)
+        availability_html = _render_season_availability(availability.get(number))
         season_sections.append(
-            f"<section><h2>Stagione {number}</h2>"
+            f"<section><h2>Stagione {number}</h2>{availability_html}"
             f'<div class="episodes">{episode_rows}</div></section>'
         )
     season_html = "".join(season_sections)
@@ -238,6 +241,38 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
 </div>
 {season_html}"""
     )
+
+
+def _render_season_availability(availability: SeasonAvailability | None) -> str:
+    if availability is None or not availability.providers:
+        return ""
+    providers = "".join(
+        f'<span class="availability-provider">{escape(provider.name)}'
+        f" ({_availability_label(provider.availability_type)})</span>"
+        for provider in availability.providers
+    )
+    source = escape(availability.source)
+    source_link = ""
+    if availability.source_url:
+        url = escape(availability.source_url, quote=True)
+        source_link = f' · <a href="{url}" rel="noreferrer">{source}</a>'
+    return (
+        '<div class="availability">'
+        f"<strong>Disponibile in Italia:</strong> {providers}"
+        f'<div class="availability-source">Dati disponibilità: {source}{source_link}</div>'
+        "</div>"
+    )
+
+
+def _availability_label(availability_type: AvailabilityType) -> str:
+    labels = {
+        AvailabilityType.STREAM: "streaming",
+        AvailabilityType.FREE: "gratis",
+        AvailabilityType.ADS: "con pubblicità",
+        AvailabilityType.RENT: "noleggio",
+        AvailabilityType.BUY: "acquisto",
+    }
+    return labels[availability_type]
 
 
 def _render_status_option(status: LibraryStatus, selected: LibraryStatus) -> str:
@@ -366,6 +401,12 @@ button {{
 .tracking-controls {{ margin-top: 22px; }}
 .status-form {{ align-items: center; flex-wrap: wrap; }}
 .status-form label {{ font-weight: 700; }}
+.availability {{
+  margin: 0 0 14px; padding: 12px 14px; border: 1px solid #3f3f46;
+  border-radius: 12px; background: #18181b;
+}}
+.availability-provider {{ display: inline-block; margin: 4px 8px 4px 0; }}
+.availability-source {{ margin-top: 8px; color: #71717a; font-size: .78rem; }}
 .episodes {{ display: grid; gap: 8px; }}
 .episode {{
   display: flex; justify-content: space-between; gap: 16px; align-items: center;

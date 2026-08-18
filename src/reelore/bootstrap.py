@@ -11,6 +11,7 @@ from reelore.application.library_view import LibraryViewService
 from reelore.application.localization import LocalizedTVCatalogProvider
 from reelore.application.tracker import TVProgressTracker
 from reelore.infrastructure import SQLiteLibraryRepository, TMDBItalianLocalizer, TVMazeProvider
+from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProvider
 from reelore.web import create_web_app
 
 _DEFAULT_DATABASE_PATH = "data/reelore.db"
@@ -24,18 +25,20 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     repository.initialize()
     tracker = MediaTracker(repository)
     catalog_provider: TVCatalogProvider = TVMazeProvider()
+    availability_provider = None
     if tmdb_token:
         catalog_provider = LocalizedTVCatalogProvider(
             catalog_provider,
             TMDBItalianLocalizer(tmdb_token),
         )
+        availability_provider = TMDBItalianAvailabilityProvider(tmdb_token)
     importer = TVCatalogImporter(
         catalog_provider,
         repository,
         tracker,
         provider_name="tvmaze",
     )
-    views = LibraryViewService(repository)
+    views = LibraryViewService(repository, availability_provider)
     tv_progress = TVProgressTracker(tracker, repository)
     return create_web_app(importer, views, tv_progress)
 
