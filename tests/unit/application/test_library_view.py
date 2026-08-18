@@ -1,3 +1,5 @@
+from datetime import date
+
 from reelore.application import TVEpisodeMetadata, TVSeriesCatalog
 from reelore.application.library_view import LibraryViewService
 from reelore.domain import (
@@ -31,8 +33,15 @@ class StubViewStore:
             ended=None,
             image_url="https://img.example/poster.jpg",
             episodes=(
-                TVEpisodeMetadata("11", 1, 1, "Pilot"),
-                TVEpisodeMetadata("12", 1, 2, "Second"),
+                TVEpisodeMetadata("11", 1, 1, "Pilot", airdate=date(2026, 8, 1)),
+                TVEpisodeMetadata(
+                    "12",
+                    1,
+                    2,
+                    "Second",
+                    airdate=date(2026, 8, 20),
+                    image_url="https://img.example/episode.jpg",
+                ),
             ),
         )
 
@@ -51,3 +60,17 @@ def test_library_view_combines_catalog_tracking_and_rewatch_data() -> None:
     assert detail is not None
     assert detail.catalog.title == "Example"
     assert detail.progress.has_seen(EpisodeRef(1, 1))
+
+
+def test_library_view_lists_future_episodes_in_airdate_order() -> None:
+    service = LibraryViewService(StubViewStore())
+
+    upcoming = service.list_upcoming_episodes(date(2026, 8, 18))
+
+    assert len(upcoming) == 1
+    assert upcoming[0].series_title == "Example"
+    assert upcoming[0].season_number == 1
+    assert upcoming[0].episode_number == 2
+    assert upcoming[0].episode_title == "Second"
+    assert upcoming[0].airdate == date(2026, 8, 20)
+    assert upcoming[0].image_url == "https://img.example/episode.jpg"
