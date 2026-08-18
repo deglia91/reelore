@@ -41,6 +41,83 @@ REEL_ORE_SKIN_CSS = """
 """
 
 COMPONENT_CSS = """
+.home-page main {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.home-page .home-hero {
+  position: relative;
+  isolation: isolate;
+  margin-bottom: var(--space-2);
+  padding: var(--space-7) 0 var(--space-5);
+}
+
+.home-page .home-hero::before {
+  position: absolute;
+  top: -80px;
+  right: -12vw;
+  bottom: -40px;
+  left: -12vw;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 18% 32%, color-mix(in srgb, var(--color-accent) 18%, transparent),
+      transparent 34%),
+    linear-gradient(180deg, var(--color-surface-raised), transparent 76%);
+  content: "";
+  opacity: .72;
+}
+
+.home-page .search {
+  max-width: 760px;
+  margin-top: 0;
+  margin-bottom: var(--space-7);
+  box-shadow: 0 12px 34px rgb(0 0 0 / 18%);
+}
+
+.home-page section {
+  scroll-margin-top: 96px;
+}
+
+.home-page .section-heading {
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 62%, transparent);
+}
+
+#library {
+  display: grid;
+  gap: var(--space-3);
+}
+
+#library > section {
+  margin-top: var(--space-7);
+}
+
+#library > section:first-child {
+  margin-top: var(--space-6);
+}
+
+#library > section:not(:first-child) .grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+#library > section:not(:first-child) .card {
+  background: color-mix(in srgb, var(--color-surface) 86%, transparent);
+}
+
+#library > section:not(:first-child) .content {
+  padding: var(--space-3);
+}
+
+#library > section:not(:first-child) .title {
+  font-size: .94rem;
+}
+
+#library > section:not(:first-child) .meta {
+  margin-bottom: 0;
+  font-size: .78rem;
+}
+
 #upcoming .grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -216,6 +293,19 @@ COMPONENT_CSS = """
 }
 
 @media (max-width: 720px) {
+  .home-page .home-hero {
+    padding-top: var(--space-5);
+    padding-bottom: var(--space-3);
+  }
+
+  .home-page .search {
+    margin-bottom: var(--space-6);
+  }
+
+  #library > section {
+    margin-top: var(--space-6);
+  }
+
   #library .card:has(.quick-action) {
     grid-template-columns: 1fr;
     min-height: 0;
