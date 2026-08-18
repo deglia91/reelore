@@ -63,9 +63,7 @@ class StubAvailabilityProvider:
         return SeasonAvailability(
             season_number=season_number,
             region=region,
-            providers=(
-                AvailabilityProvider("Example Stream", AvailabilityType.STREAM),
-            ),
+            providers=(AvailabilityProvider("Example Stream", AvailabilityType.STREAM),),
             source="JustWatch",
             source_url="https://example.test/watch",
         )
