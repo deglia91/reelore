@@ -1,6 +1,7 @@
 """Minimal responsive web adapter for Reelore."""
 
 from collections import defaultdict
+from datetime import date
 from html import escape
 from typing import Annotated, Protocol
 
@@ -8,7 +9,11 @@ from fastapi import FastAPI, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from reelore.application import ImportedTVSeries, TVSearchResult
-from reelore.application.library_view import LibraryItemView, TVSeriesDetailView
+from reelore.application.library_view import (
+    LibraryItemView,
+    TVSeriesDetailView,
+    UpcomingEpisodeView,
+)
 from reelore.domain import EpisodeRef, LibraryStatus
 
 
@@ -20,6 +25,8 @@ class TVImportService(Protocol):
 
 class LibraryViewReader(Protocol):
     def list_items(self) -> tuple[LibraryItemView, ...]: ...
+
+    def list_upcoming_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]: ...
 
     def get_tv_series(self, media_id: str) -> TVSeriesDetailView | None: ...
 
@@ -45,7 +52,14 @@ def create_web_app(
     def home(q: str | None = Query(default=None)) -> HTMLResponse:
         query = q.strip() if q is not None else ""
         results = importer.search(query) if query else ()
-        return HTMLResponse(_render_home(query, results, views.list_items()))
+        return HTMLResponse(
+            _render_home(
+                query,
+                results,
+                views.list_items(),
+                views.list_upcoming_episodes(date.today()),
+            )
+        )
 
     @app.post("/series/{provider_id}/add")
     def add_series(provider_id: str) -> RedirectResponse:
@@ -89,11 +103,13 @@ def _render_home(
     query: str,
     results: tuple[TVSearchResult, ...],
     library_items: tuple[LibraryItemView, ...],
+    upcoming_episodes: tuple[UpcomingEpisodeView, ...],
 ) -> str:
     search_results = "".join(_render_search_result(result) for result in results)
     if query and not results:
         search_results = '<p class="empty">Nessuna serie trovata.</p>'
 
+    upcoming_section = _render_upcoming_section(upcoming_episodes)
     library_sections = _render_library_sections(library_items)
     return _page(
         f"""<h1>Reelore</h1>
@@ -102,9 +118,32 @@ def _render_home(
 <input name="q" value="{escape(query, quote=True)}" placeholder="Cerca una serie TV...">
 <button type="submit">Cerca</button>
 </form>
+{upcoming_section}
 {library_sections}
 {_render_results_section(query, search_results)}"""
     )
+
+
+def _render_upcoming_section(episodes: tuple[UpcomingEpisodeView, ...]) -> str:
+    if not episodes:
+        return ""
+    cards = "".join(_render_upcoming_episode(episode) for episode in episodes)
+    return f'<section><h2>Prossime uscite</h2><div class="grid">{cards}</div></section>'
+
+
+def _render_upcoming_episode(episode: UpcomingEpisodeView) -> str:
+    image = _render_image(episode.image_url, episode.series_title)
+    media_id = escape(episode.media_id, quote=True)
+    reference = f"S{episode.season_number:02}E{episode.episode_number:02}"
+    airdate = episode.airdate.strftime("%d/%m/%Y")
+    return f"""<a class="card card-link" href="/series/{media_id}">
+{image}
+<div class="content">
+<p class="title">{escape(episode.series_title)}</p>
+<div class="meta">{reference} · {airdate}</div>
+<p>{escape(episode.episode_title)}</p>
+</div>
+</a>"""
 
 
 def _render_library_sections(items: tuple[LibraryItemView, ...]) -> str:
