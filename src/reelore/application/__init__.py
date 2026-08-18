@@ -16,7 +16,6 @@ __all__ = [
     "LibraryRepository",
     "MediaNotFoundError",
     "MediaTracker",
-    "TopTenService",
     "TVCastMember",
     "TVCatalogImporter",
     "TVCatalogProvider",
@@ -24,4 +23,5 @@ __all__ = [
     "TVEpisodeMetadata",
     "TVSearchResult",
     "TVSeriesCatalog",
+    "TopTenService",
 ]
