@@ -6,7 +6,7 @@ from typing import Protocol
 
 from reelore.application.availability import SeasonAvailability, TVAvailabilityProvider
 from reelore.application.catalog import TVSeriesCatalog
-from reelore.domain import EpisodeProgress, LibraryStatus, MediaItem, PersonalMediaState
+from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus, MediaItem, PersonalMediaState
 
 
 class LibraryViewStore(Protocol):
@@ -20,6 +20,13 @@ class LibraryViewStore(Protocol):
 
 
 @dataclass(frozen=True, slots=True)
+class NextEpisodeView:
+    season_number: int
+    episode_number: int
+    title: str
+
+
+@dataclass(frozen=True, slots=True)
 class LibraryItemView:
     media_id: str
     title: str
@@ -29,6 +36,7 @@ class LibraryItemView:
     image_url: str | None
     seen_episodes: int
     total_episodes: int
+    next_episode: NextEpisodeView | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,7 +70,8 @@ class LibraryViewService:
         self._store = store
         self._availability_provider = availability_provider
 
-    def list_items(self) -> tuple[LibraryItemView, ...]:
+    def list_items(self, today: date | None = None) -> tuple[LibraryItemView, ...]:
+        current_date = today or date.today()
         items: list[LibraryItemView] = []
         for media in self._store.list_media():
             state = self._store.get_personal_state(media.id)
@@ -80,6 +89,7 @@ class LibraryViewService:
                     image_url=catalog.image_url if catalog is not None else None,
                     seen_episodes=progress.seen_count,
                     total_episodes=len(catalog.episodes) if catalog is not None else 0,
+                    next_episode=self._next_episode(catalog, progress, current_date),
                 )
             )
         return tuple(items)
@@ -120,6 +130,32 @@ class LibraryViewService:
             catalog=catalog,
             availability=self._availability_for(catalog),
         )
+
+    def _next_episode(
+        self,
+        catalog: TVSeriesCatalog | None,
+        progress: EpisodeProgress,
+        today: date,
+    ) -> NextEpisodeView | None:
+        if catalog is None:
+            return None
+        available = sorted(
+            (
+                episode
+                for episode in catalog.episodes
+                if episode.airdate is None or episode.airdate <= today
+            ),
+            key=lambda episode: (episode.season_number, episode.episode_number),
+        )
+        for episode in available:
+            reference = EpisodeRef(episode.season_number, episode.episode_number)
+            if not progress.has_seen(reference):
+                return NextEpisodeView(
+                    season_number=episode.season_number,
+                    episode_number=episode.episode_number,
+                    title=episode.title,
+                )
+        return None
 
     def _availability_for(self, catalog: TVSeriesCatalog) -> tuple[SeasonAvailability, ...]:
         if self._availability_provider is None:
