@@ -2,7 +2,12 @@ from datetime import date
 
 from fastapi.testclient import TestClient
 
-from reelore.application import ImportedTVSeries, TVEpisodeMetadata, TVSearchResult, TVSeriesCatalog
+from reelore.application import (
+    ImportedTVSeries,
+    TVEpisodeMetadata,
+    TVSearchResult,
+    TVSeriesCatalog,
+)
 from reelore.application.library_view import LibraryItemView, TVSeriesDetailView
 from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus, PersonalMediaState
 from reelore.web import create_web_app

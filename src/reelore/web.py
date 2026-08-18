@@ -106,12 +106,21 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     for episode in catalog.episodes:
         reference = EpisodeRef(episode.season_number, episode.episode_number)
         seasons[episode.season_number].append(
-            _render_episode(detail.media_id, episode.title, reference, progress.has_seen(reference))
+            _render_episode(
+                detail.media_id,
+                episode.title,
+                reference,
+                progress.has_seen(reference),
+            )
         )
-    season_html = "".join(
-        f'<section><h2>Stagione {number}</h2><div class="episodes">{"".join(rows)}</div></section>'
-        for number, rows in sorted(seasons.items())
-    )
+    season_sections: list[str] = []
+    for number, rows in sorted(seasons.items()):
+        episode_rows = "".join(rows)
+        season_sections.append(
+            f'<section><h2>Stagione {number}</h2>'
+            f'<div class="episodes">{episode_rows}</div></section>'
+        )
+    season_html = "".join(season_sections)
     state = escape(detail.state.status.value.replace("_", " ").title())
     completion = detail.state.completion_count
     return _page(
@@ -128,13 +137,23 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     )
 
 
-def _render_episode(media_id: str, title: str, reference: EpisodeRef, seen: bool) -> str:
+def _render_episode(
+    media_id: str,
+    title: str,
+    reference: EpisodeRef,
+    seen: bool,
+) -> str:
     action = "unseen" if seen else "seen"
     label = "Visto ✓" if seen else "Segna visto"
     media = escape(media_id, quote=True)
+    display_ref = f"S{reference.season_number:02}E{reference.episode_number:02}"
+    action_url = (
+        f"/series/{media}/episodes/{reference.season_number}/"
+        f"{reference.episode_number}/{action}"
+    )
     return f"""<div class="episode">
-<div><strong>S{reference.season_number:02}E{reference.episode_number:02}</strong> {escape(title)}</div>
-<form method="post" action="/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}">
+<div><strong>{display_ref}</strong> {escape(title)}</div>
+<form method="post" action="{action_url}">
 <button type="submit">{label}</button>
 </form>
 </div>"""
@@ -195,41 +214,109 @@ def _page(content: str) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Reelore</title>
 <style>
-:root {{ color-scheme: dark; font-family: Inter, system-ui, sans-serif; }}
+:root {{
+  color-scheme: dark;
+  font-family: Inter, system-ui, sans-serif;
+}}
 * {{ box-sizing: border-box; }}
-body {{ margin: 0; background: #101114; color: #f4f4f5; }}
-main {{ width: min(1100px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 64px; }}
-h1 {{ margin: 0 0 8px; font-size: clamp(2rem, 8vw, 4rem); }}
+body {{
+  margin: 0;
+  background: #101114;
+  color: #f4f4f5;
+}}
+main {{
+  width: min(1100px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 40px 0 64px;
+}}
+h1 {{
+  margin: 0 0 8px;
+  font-size: clamp(2rem, 8vw, 4rem);
+}}
 h2 {{ font-size: 1.25rem; margin-bottom: 16px; }}
 section {{ margin-top: 34px; }}
 a {{ color: inherit; }}
 .sub, .meta, .summary, .empty {{ color: #a1a1aa; }}
 .search {{ display: flex; gap: 10px; margin: 24px 0 40px; }}
-input {{ flex: 1; min-width: 0; border: 1px solid #3f3f46; border-radius: 14px; }}
-input {{ background: #18181b; color: inherit; padding: 14px 16px; font-size: 1rem; }}
-button {{ border: 0; border-radius: 12px; padding: 10px 14px; font-weight: 700; }}
-button {{ background: #f4f4f5; color: #18181b; cursor: pointer; }}
-.grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }}
-.card {{ background: #18181b; border: 1px solid #27272a; border-radius: 16px; overflow: hidden; }}
+input {{
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #3f3f46;
+  border-radius: 14px;
+  background: #18181b;
+  color: inherit;
+  padding: 14px 16px;
+  font-size: 1rem;
+}}
+button {{
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 700;
+  background: #f4f4f5;
+  color: #18181b;
+  cursor: pointer;
+}}
+.grid {{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 18px;
+}}
+.card {{
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 16px;
+  overflow: hidden;
+}}
 .card-link {{ text-decoration: none; }}
-.poster {{ width: 100%; aspect-ratio: 2 / 3; object-fit: cover; background: #27272a; }}
+.poster {{
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background: #27272a;
+}}
 .placeholder {{ display: grid; place-items: center; color: #71717a; }}
 .content {{ padding: 14px; }}
 .title {{ margin: 0 0 6px; font-weight: 750; }}
 .meta {{ font-size: .86rem; margin-bottom: 12px; }}
 .back {{ display: inline-block; margin-bottom: 26px; text-decoration: none; }}
-.hero {{ display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }}
+.hero {{
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 28px;
+  align-items: start;
+}}
 .hero-poster .poster {{ border-radius: 16px; }}
 .summary {{ line-height: 1.6; max-width: 720px; }}
 .episodes {{ display: grid; gap: 8px; }}
-.episode {{ display: flex; justify-content: space-between; gap: 16px; align-items: center; }}
-.episode {{ padding: 12px 14px; background: #18181b; border: 1px solid #27272a; border-radius: 12px; }}
+.episode {{
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 14px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+}}
 @media (max-width: 560px) {{
-  main {{ width: min(100% - 24px, 1100px); padding-top: 28px; }}
+  main {{
+    width: min(100% - 24px, 1100px);
+    padding-top: 28px;
+  }}
   .search {{ flex-direction: column; }}
-  .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
-  .hero {{ grid-template-columns: 110px 1fr; gap: 16px; }}
-  .episode {{ align-items: flex-start; flex-direction: column; }}
+  .grid {{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }}
+  .hero {{
+    grid-template-columns: 110px 1fr;
+    gap: 16px;
+  }}
+  .episode {{
+    align-items: flex-start;
+    flex-direction: column;
+  }}
 }}
 </style>
 </head>
