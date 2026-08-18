@@ -292,6 +292,177 @@ COMPONENT_CSS = """
   font-size: .95rem;
 }
 
+.detail-page main {
+  padding-top: var(--space-5);
+}
+
+.detail-page .back {
+  color: var(--color-text-muted);
+}
+
+.series-hero {
+  display: grid;
+  grid-template-columns: minmax(210px, 260px) minmax(0, 1fr);
+  gap: var(--space-7);
+  margin-top: 0;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--color-accent) 14%, transparent),
+      transparent 34%),
+    var(--color-surface);
+  box-shadow: var(--shadow-raised);
+}
+
+.series-hero .hero-poster .poster {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-raised);
+}
+
+.series-hero-content {
+  display: grid;
+  align-content: center;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.series-hero-content h1 {
+  margin: 0;
+}
+
+.series-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.series-stats span {
+  padding: 7px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  background: var(--color-surface-raised);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.tracking-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.tracking-panel > div {
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface-raised) 88%, transparent);
+}
+
+.tracking-panel .status-form {
+  margin: var(--space-2) 0 0;
+}
+
+.tracking-label {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.completion-count {
+  margin: var(--space-2) 0;
+  font-size: 2rem;
+  font-weight: 850;
+}
+
+.top-ten-controls {
+  margin: 0;
+}
+
+.top-ten-controls .meta {
+  margin: var(--space-2) 0 0;
+}
+
+.top-ten-controls form:last-child {
+  margin-top: var(--space-2);
+}
+
+.series-seasons {
+  display: grid;
+  gap: var(--space-7);
+}
+
+.season-section {
+  margin-top: var(--space-7);
+}
+
+.season-section .section-heading {
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.availability {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 36%, var(--color-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+}
+
+.episodes {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.episode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.episode-copy {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.episode-copy strong {
+  flex: 0 0 auto;
+  color: var(--color-accent-strong);
+  font-size: .82rem;
+}
+
+.episode-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .tracking-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tracking-panel .top-ten-controls {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 720px) {
   .home-page .home-hero {
     padding-top: var(--space-5);
@@ -344,6 +515,46 @@ COMPONENT_CSS = """
     bottom: 24px;
     left: -34px;
     font-size: clamp(4.5rem, 22vw, 6.2rem);
+  }
+
+  .series-hero {
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: var(--space-4);
+    padding: var(--space-4);
+  }
+
+  .series-hero .eyebrow {
+    display: none;
+  }
+
+  .series-hero .summary {
+    grid-column: 1 / -1;
+  }
+
+  .tracking-panel {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
+  }
+
+  .tracking-panel .top-ten-controls {
+    grid-column: auto;
+  }
+
+  .episode {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .episode-copy {
+    align-items: flex-start;
+  }
+
+  .episode-copy span {
+    white-space: normal;
+  }
+
+  .episode button {
+    width: 100%;
   }
 }
 
