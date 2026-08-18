@@ -1,5 +1,7 @@
 from datetime import date
 
+import pytest
+
 from reelore.infrastructure import TVMazeProvider
 
 
@@ -38,6 +40,11 @@ def test_tvmaze_search_maps_provider_neutral_results() -> None:
     assert results[0].premiered == date(2022, 2, 18)
     assert results[0].image_url == "https://img.example/severance.jpg"
     assert client.requested_urls == [url]
+
+
+def test_tvmaze_search_rejects_empty_query() -> None:
+    with pytest.raises(ValueError, match="search query"):
+        TVMazeProvider(StubJsonHttpClient({})).search("   ")
 
 
 def test_tvmaze_series_maps_numbered_episodes_and_cast() -> None:

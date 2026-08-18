@@ -77,8 +77,9 @@ class TVMazeProvider:
         if not normalized_id:
             raise ValueError("provider id cannot be empty")
 
+        encoded_id = quote(normalized_id, safe="")
         embeds = urlencode([("embed[]", "episodes"), ("embed[]", "cast")])
-        url = f"{self._base_url}/shows/{quote(normalized_id, safe='')}?{embeds}"
+        url = f"{self._base_url}/shows/{encoded_id}?{embeds}"
         show = _as_mapping(self._client.get(url))
         embedded = _as_mapping(show.get("_embedded"))
 
