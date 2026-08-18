@@ -4,12 +4,12 @@ from collections import defaultdict
 from html import escape
 from typing import Protocol
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from reelore.application import ImportedTVSeries, TVSearchResult
 from reelore.application.library_view import LibraryItemView, TVSeriesDetailView
-from reelore.domain import EpisodeRef
+from reelore.domain import EpisodeRef, LibraryStatus
 
 
 class TVImportService(Protocol):
@@ -24,7 +24,11 @@ class LibraryViewReader(Protocol):
     def get_tv_series(self, media_id: str) -> TVSeriesDetailView | None: ...
 
 
-class EpisodeTrackingService(Protocol):
+class TrackingService(Protocol):
+    def change_status(self, media_id: str, status: LibraryStatus) -> object: ...
+
+    def record_completion(self, media_id: str) -> object: ...
+
     def mark_episode_seen(self, media_id: str, episode: EpisodeRef) -> object: ...
 
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> object: ...
@@ -33,7 +37,7 @@ class EpisodeTrackingService(Protocol):
 def create_web_app(
     importer: TVImportService,
     views: LibraryViewReader,
-    tracker: EpisodeTrackingService,
+    tracker: TrackingService,
 ) -> FastAPI:
     app = FastAPI(title="Reelore")
 
@@ -54,6 +58,16 @@ def create_web_app(
         if detail is None:
             return HTMLResponse("Serie non trovata", status_code=404)
         return HTMLResponse(_render_series_detail(detail))
+
+    @app.post("/series/{media_id}/status")
+    def change_status(media_id: str, status: LibraryStatus = Form()) -> RedirectResponse:
+        tracker.change_status(media_id, status)
+        return RedirectResponse(url=f"/series/{media_id}", status_code=303)
+
+    @app.post("/series/{media_id}/completion")
+    def record_completion(media_id: str) -> RedirectResponse:
+        tracker.record_completion(media_id)
+        return RedirectResponse(url=f"/series/{media_id}", status_code=303)
 
     @app.post("/series/{media_id}/episodes/{season}/{episode}/seen")
     def mark_seen(media_id: str, season: int, episode: int) -> RedirectResponse:
@@ -121,20 +135,51 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
             f'<div class="episodes">{episode_rows}</div></section>'
         )
     season_html = "".join(season_sections)
-    state = escape(detail.state.status.value.replace("_", " ").title())
+    state = _status_label(detail.state.status)
     completion = detail.state.completion_count
+    rewatch = detail.state.rewatch_count
+    status_options = "".join(
+        _render_status_option(status, detail.state.status) for status in LibraryStatus
+    )
     return _page(
         f"""<a class="back" href="/">← Libreria</a>
 <div class="hero">
 <div class="hero-poster">{poster}</div>
 <div>
 <h1>{escape(catalog.title)}</h1>
-<p class="meta">{state} · {seen}/{total} episodi visti · {completion} completamenti</p>
+<p class="meta">{state} · {seen}/{total} episodi visti · Rivista {rewatch}x</p>
 <p class="summary">{summary}</p>
+<div class="tracking-controls">
+<form class="status-form" method="post" action="/series/{escape(detail.media_id)}/status">
+<label for="status">Stato personale</label>
+<select id="status" name="status">{status_options}</select>
+<button type="submit">Aggiorna</button>
+</form>
+<form method="post" action="/series/{escape(detail.media_id)}/completion">
+<button type="submit">Registra completamento +1</button>
+</form>
+<p class="meta">Completamenti totali: {completion}</p>
+</div>
 </div>
 </div>
 {season_html}"""
     )
+
+
+def _render_status_option(status: LibraryStatus, selected: LibraryStatus) -> str:
+    selected_attr = " selected" if status is selected else ""
+    return f'<option value="{status.value}"{selected_attr}>{_status_label(status)}</option>'
+
+
+def _status_label(status: LibraryStatus) -> str:
+    labels = {
+        LibraryStatus.PLANNED: "Da vedere",
+        LibraryStatus.IN_PROGRESS: "In corso",
+        LibraryStatus.PAUSED: "In pausa",
+        LibraryStatus.DROPPED: "Non più seguita",
+        LibraryStatus.COMPLETED: "Completata",
+    }
+    return labels[status]
 
 
 def _render_episode(
@@ -185,7 +230,7 @@ def _render_search_result(result: TVSearchResult) -> str:
 def _render_library_item(item: LibraryItemView) -> str:
     image = _render_image(item.image_url, item.title)
     media_id = escape(item.media_id, quote=True)
-    status = escape(item.status.value.replace("_", " ").title())
+    status = _status_label(item.status)
     progress = f"{item.seen_episodes}/{item.total_episodes} episodi"
     rewatch = f" · Rivista {item.rewatch_count}x" if item.rewatch_count else ""
     return f"""<a class="card card-link" href="/series/{media_id}">
@@ -213,109 +258,50 @@ def _page(content: str) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Reelore</title>
 <style>
-:root {{
-  color-scheme: dark;
-  font-family: Inter, system-ui, sans-serif;
-}}
+:root {{ color-scheme: dark; font-family: Inter, system-ui, sans-serif; }}
 * {{ box-sizing: border-box; }}
-body {{
-  margin: 0;
-  background: #101114;
-  color: #f4f4f5;
-}}
-main {{
-  width: min(1100px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 40px 0 64px;
-}}
-h1 {{
-  margin: 0 0 8px;
-  font-size: clamp(2rem, 8vw, 4rem);
-}}
+body {{ margin: 0; background: #101114; color: #f4f4f5; }}
+main {{ width: min(1100px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 64px; }}
+h1 {{ margin: 0 0 8px; font-size: clamp(2rem, 8vw, 4rem); }}
 h2 {{ font-size: 1.25rem; margin-bottom: 16px; }}
 section {{ margin-top: 34px; }}
 a {{ color: inherit; }}
 .sub, .meta, .summary, .empty {{ color: #a1a1aa; }}
-.search {{ display: flex; gap: 10px; margin: 24px 0 40px; }}
-input {{
-  flex: 1;
-  min-width: 0;
-  border: 1px solid #3f3f46;
-  border-radius: 14px;
-  background: #18181b;
-  color: inherit;
-  padding: 14px 16px;
-  font-size: 1rem;
+.search, .status-form {{ display: flex; gap: 10px; margin: 24px 0; }}
+input, select {{
+  flex: 1; min-width: 0; border: 1px solid #3f3f46; border-radius: 14px;
+  background: #18181b; color: inherit; padding: 12px 14px; font-size: 1rem;
 }}
 button {{
-  border: 0;
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-weight: 700;
-  background: #f4f4f5;
-  color: #18181b;
-  cursor: pointer;
+  border: 0; border-radius: 12px; padding: 10px 14px; font-weight: 700;
+  background: #f4f4f5; color: #18181b; cursor: pointer;
 }}
-.grid {{
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 18px;
-}}
-.card {{
-  background: #18181b;
-  border: 1px solid #27272a;
-  border-radius: 16px;
-  overflow: hidden;
-}}
+.grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }}
+.card {{ background: #18181b; border: 1px solid #27272a; border-radius: 16px; overflow: hidden; }}
 .card-link {{ text-decoration: none; }}
-.poster {{
-  width: 100%;
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
-  background: #27272a;
-}}
+.poster {{ width: 100%; aspect-ratio: 2 / 3; object-fit: cover; background: #27272a; }}
 .placeholder {{ display: grid; place-items: center; color: #71717a; }}
 .content {{ padding: 14px; }}
 .title {{ margin: 0 0 6px; font-weight: 750; }}
 .meta {{ font-size: .86rem; margin-bottom: 12px; }}
 .back {{ display: inline-block; margin-bottom: 26px; text-decoration: none; }}
-.hero {{
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 28px;
-  align-items: start;
-}}
+.hero {{ display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }}
 .hero-poster .poster {{ border-radius: 16px; }}
 .summary {{ line-height: 1.6; max-width: 720px; }}
+.tracking-controls {{ margin-top: 22px; }}
+.status-form {{ align-items: center; flex-wrap: wrap; }}
+.status-form label {{ font-weight: 700; }}
 .episodes {{ display: grid; gap: 8px; }}
 .episode {{
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-  padding: 12px 14px;
-  background: #18181b;
-  border: 1px solid #27272a;
-  border-radius: 12px;
+  display: flex; justify-content: space-between; gap: 16px; align-items: center;
+  padding: 12px 14px; background: #18181b; border: 1px solid #27272a; border-radius: 12px;
 }}
 @media (max-width: 560px) {{
-  main {{
-    width: min(100% - 24px, 1100px);
-    padding-top: 28px;
-  }}
+  main {{ width: min(100% - 24px, 1100px); padding-top: 28px; }}
   .search {{ flex-direction: column; }}
-  .grid {{
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }}
-  .hero {{
-    grid-template-columns: 110px 1fr;
-    gap: 16px;
-  }}
-  .episode {{
-    align-items: flex-start;
-    flex-direction: column;
-  }}
+  .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
+  .hero {{ grid-template-columns: 110px 1fr; gap: 16px; }}
+  .episode {{ align-items: flex-start; flex-direction: column; }}
 }}
 </style>
 </head>
