@@ -16,8 +16,7 @@ class StubAuthorizedJsonHttpClient:
 
 def test_tmdb_localizes_series_and_episode_metadata_in_italian() -> None:
     search_url = (
-        "https://api.themoviedb.org/3/search/tv?"
-        "query=Severance&language=it-IT&include_adult=false"
+        "https://api.themoviedb.org/3/search/tv?query=Severance&language=it-IT&include_adult=false"
     )
     details_url = "https://api.themoviedb.org/3/tv/95396?language=it-IT"
     season_url = "https://api.themoviedb.org/3/tv/95396/season/1?language=it-IT"
@@ -77,10 +76,7 @@ def test_tmdb_localizes_series_and_episode_metadata_in_italian() -> None:
 
 
 def test_tmdb_returns_none_when_no_series_matches() -> None:
-    url = (
-        "https://api.themoviedb.org/3/search/tv?"
-        "query=Unknown&language=it-IT&include_adult=false"
-    )
+    url = "https://api.themoviedb.org/3/search/tv?query=Unknown&language=it-IT&include_adult=false"
     client = StubAuthorizedJsonHttpClient({url: {"results": []}})
     catalog = TVSeriesCatalog(
         provider_id="1",
