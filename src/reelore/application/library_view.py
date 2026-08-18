@@ -37,6 +37,15 @@ class LibraryItemView:
     seen_episodes: int
     total_episodes: int
     next_episode: NextEpisodeView | None = None
+    top_ten_rank: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class TopTenItemView:
+    rank: int
+    media_id: str
+    title: str
+    image_url: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -91,9 +100,27 @@ class LibraryViewService:
                     seen_episodes=progress.seen_count,
                     total_episodes=len(catalog.episodes) if catalog is not None else 0,
                     next_episode=self._next_episode(catalog, progress, current_date),
+                    top_ten_rank=state.top_ten_rank,
                 )
             )
         return tuple(items)
+
+    def list_top_ten(self) -> tuple[TopTenItemView, ...]:
+        ranked: list[TopTenItemView] = []
+        for media in self._store.list_media():
+            state = self._store.get_personal_state(media.id)
+            if state is None or state.top_ten_rank is None:
+                continue
+            catalog = self._catalog_for(media.id)
+            ranked.append(
+                TopTenItemView(
+                    rank=state.top_ten_rank,
+                    media_id=media.id,
+                    title=media.title,
+                    image_url=catalog.image_url if catalog is not None else None,
+                )
+            )
+        return tuple(sorted(ranked, key=lambda item: item.rank))
 
     def list_upcoming_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]:
         upcoming: list[UpcomingEpisodeView] = []
