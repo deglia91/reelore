@@ -8,7 +8,11 @@ from reelore.application import (
     TVSearchResult,
     TVSeriesCatalog,
 )
-from reelore.application.library_view import LibraryItemView, TVSeriesDetailView
+from reelore.application.library_view import (
+    LibraryItemView,
+    TVSeriesDetailView,
+    UpcomingEpisodeView,
+)
 from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus, PersonalMediaState
 from reelore.web import create_web_app
 
@@ -72,6 +76,19 @@ class StubViews:
             ),
         )
 
+    def list_upcoming_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]:
+        return (
+            UpcomingEpisodeView(
+                media_id="tvmaze:2",
+                series_title="Severance",
+                season_number=3,
+                episode_number=1,
+                episode_title="Future Episode",
+                airdate=date(2027, 1, 10),
+                image_url="https://img.example/future.jpg",
+            ),
+        )
+
     def get_tv_series(self, media_id: str) -> TVSeriesDetailView | None:
         return TVSeriesDetailView(
             media_id=media_id,
@@ -121,12 +138,16 @@ def _catalog(provider_id: str) -> TVSeriesCatalog:
     )
 
 
-def test_home_renders_tracking_sections_and_search_results() -> None:
+def test_home_renders_tracking_upcoming_and_search_sections() -> None:
     client = TestClient(create_web_app(StubImporter(), StubViews(), StubTracker()))
 
     response = client.get("/?q=Severance")
 
     assert response.status_code == 200
+    assert "Prossime uscite" in response.text
+    assert "S03E01" in response.text
+    assert "10/01/2027" in response.text
+    assert "Future Episode" in response.text
     assert "Continua a guardare" in response.text
     assert "In pari" in response.text
     assert "La tua libreria" in response.text
