@@ -143,16 +143,20 @@ def _render_home(
     top_ten_section = _render_top_ten_section(top_ten_items)
     library_sections = _render_library_sections(library_items)
     return _page(
-        f"""<h1>Reelore</h1>
+        f"""<section class="home-hero" aria-labelledby="home-title">
+<p class="eyebrow">La tua raccolta personale</p>
+<h1 id="home-title">Reelore</h1>
 <p class="sub">Le storie che guardi. La tua memoria, finalmente organizzata.</p>
-<form class="search" method="get" action="/">
+</section>
+<form id="search" class="search" method="get" action="/">
 <input name="q" value="{escape(query, quote=True)}" placeholder="Cerca una serie TV...">
 <button type="submit">Cerca</button>
 </form>
 {upcoming_section}
 {top_ten_section}
-{library_sections}
-{_render_results_section(query, search_results)}"""
+<div id="library">{library_sections}</div>
+{_render_results_section(query, search_results)}""",
+        home=True,
     )
 
 
@@ -160,7 +164,12 @@ def _render_upcoming_section(episodes: tuple[UpcomingEpisodeView, ...]) -> str:
     if not episodes:
         return ""
     cards = "".join(_render_upcoming_episode(episode) for episode in episodes)
-    return f'<section><h2>Prossime uscite</h2><div class="grid">{cards}</div></section>'
+    return (
+        '<section id="upcoming"><div class="section-heading">'
+        '<div><p class="eyebrow">Calendario</p><h2>Prossime uscite</h2></div>'
+        '</div><div class="grid">'
+        f"{cards}</div></section>"
+    )
 
 
 def _render_upcoming_episode(episode: UpcomingEpisodeView) -> str:
@@ -198,7 +207,12 @@ def _render_top_ten_section(items: tuple[TopTenItemView, ...]) -> str:
     if not items:
         return ""
     cards = "".join(_render_top_ten_item(item) for item in items)
-    return f'<section><h2>La tua Top 10</h2><div class="grid">{cards}</div></section>'
+    return (
+        '<section id="top-ten"><div class="section-heading">'
+        '<div><p class="eyebrow">Preferite</p><h2>La tua Top 10</h2></div>'
+        '</div><div class="grid">'
+        f"{cards}</div></section>"
+    )
 
 
 def _render_top_ten_item(item: TopTenItemView) -> str:
@@ -253,7 +267,11 @@ def _render_library_section(
     if not items:
         return ""
     cards = "".join(_render_library_item(item, quick_action) for item in items)
-    return f'<section><h2>{escape(title)}</h2><div class="grid">{cards}</div></section>'
+    return (
+        '<section><div class="section-heading">'
+        f"<h2>{escape(title)}</h2>"
+        f'</div><div class="grid">{cards}</div></section>'
+    )
 
 
 def _render_series_detail(detail: TVSeriesDetailView) -> str:
@@ -480,8 +498,26 @@ def _render_image(image_url: str | None, title: str) -> str:
     return f'<img class="poster" src="{source}" alt="{alt}" loading="lazy">'
 
 
-def _page(content: str) -> str:
+def _render_app_header() -> str:
+    return """<header class="app-header">
+<a class="brand" href="/" aria-label="Reelore Home"><span class="brand-mark">R</span>Reelore</a>
+<nav class="desktop-nav" aria-label="Navigazione principale">
+<a href="/">Home</a><a href="/#library">Libreria</a><a href="/#upcoming">Calendario</a>
+<a href="/#top-ten">Top 10</a><a href="/#search">Cerca</a>
+</nav>
+</header>"""
+
+
+def _render_mobile_nav() -> str:
+    return """<nav class="mobile-nav" aria-label="Navigazione mobile">
+<a href="/">Home</a><a href="/#library">Libreria</a><a href="/#upcoming">Calendario</a>
+<a href="/#top-ten">Top 10</a><a href="/#search">Cerca</a>
+</nav>"""
+
+
+def _page(content: str, *, home: bool = False) -> str:
     theme = render_theme_css()
+    body_class = "home-page" if home else "detail-page"
     return f"""<!doctype html>
 <html lang="it">
 <head>
@@ -491,24 +527,51 @@ def _page(content: str) -> str:
 <style>
 {theme}
 * {{ box-sizing: border-box; }}
+html {{ scroll-behavior: smooth; scroll-padding-top: 96px; }}
 body {{
   margin: 0; background: var(--color-bg); color: var(--color-text);
   font-family: var(--font-sans);
 }}
-main {{
-  width: min(var(--content-max), calc(100% - 32px));
-  margin: 0 auto; padding: var(--space-7) 0 64px;
+.app-header {{
+  position: sticky; top: 0; z-index: 20; display: flex; align-items: center;
+  justify-content: space-between; min-height: 72px; padding: 0 max(24px, calc((100vw - var(--content-max)) / 2));
+  border-bottom: 1px solid var(--color-border); background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  backdrop-filter: blur(18px);
 }}
-h1 {{ margin: 0 0 var(--space-2); font-size: clamp(2rem, 8vw, 4rem); }}
-h2 {{ font-size: 1.25rem; margin-bottom: var(--space-4); }}
-section {{ margin-top: 34px; }}
+.brand {{ display: inline-flex; align-items: center; gap: 10px; font-weight: 850; text-decoration: none; }}
+.brand-mark {{
+  display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px;
+  background: var(--color-accent); color: var(--color-accent-contrast); box-shadow: var(--shadow-raised);
+}}
+.desktop-nav {{ display: flex; align-items: center; gap: 24px; }}
+.desktop-nav a {{ color: var(--color-text-muted); font-size: .92rem; text-decoration: none; }}
+.desktop-nav a:hover {{ color: var(--color-text); }}
+main {{
+  width: min(var(--content-max), calc(100% - 32px)); margin: 0 auto;
+  padding: var(--space-7) 0 92px;
+}}
+.home-hero {{ margin-top: 0; max-width: 760px; padding: 24px 0 8px; }}
+.eyebrow {{
+  margin: 0 0 8px; color: var(--color-accent-strong); font-size: .78rem;
+  font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+}}
+h1 {{ margin: 0 0 var(--space-2); font-size: clamp(2.4rem, 8vw, 4.8rem); line-height: .95; }}
+h2 {{ margin: 0; font-size: 1.25rem; }}
+section {{ margin-top: 38px; }}
+.section-heading {{ display: flex; align-items: end; justify-content: space-between; margin-bottom: var(--space-4); }}
 a {{ color: inherit; }}
 .sub, .meta, .summary, .empty {{ color: var(--color-text-muted); }}
+.sub {{ max-width: 620px; font-size: 1.05rem; line-height: 1.6; }}
 .search, .status-form {{ display: flex; gap: 10px; margin: var(--space-5) 0; }}
+.search {{
+  position: relative; padding: 8px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); background: var(--color-surface);
+}}
 input, select {{
   flex: 1; min-width: 0; border: 1px solid var(--color-border); border-radius: var(--radius-md);
   background: var(--color-surface); color: inherit; padding: 12px 14px; font-size: 1rem;
 }}
+.search input {{ border: 0; background: transparent; }}
 button {{
   border: 0; border-radius: var(--radius-sm); padding: 10px 14px; font-weight: 700;
   background: var(--color-accent); color: var(--color-accent-contrast); cursor: pointer;
@@ -520,7 +583,9 @@ button:active {{ transform: translateY(1px); }}
 .card {{
   background: var(--color-surface); border: 1px solid var(--color-border);
   border-radius: var(--radius-md); overflow: hidden;
+  transition: transform var(--motion-base) ease, border-color var(--motion-base) ease;
 }}
+.card:hover {{ transform: translateY(-3px); border-color: var(--color-accent); }}
 .card-link {{ display: block; text-decoration: none; }}
 .poster {{
   width: 100%; aspect-ratio: 2 / 3; object-fit: cover;
@@ -560,14 +625,36 @@ button:active {{ transform: translateY(1px); }}
   padding: 12px 14px; background: var(--color-surface); border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
 }}
-@media (max-width: 560px) {{
-  main {{ width: min(100% - 24px, var(--content-max)); padding-top: 28px; }}
-  .search {{ flex-direction: column; }}
+.mobile-nav {{ display: none; }}
+@media (max-width: 720px) {{
+  .app-header {{ min-height: 62px; padding: 0 16px; }}
+  .desktop-nav {{ display: none; }}
+  main {{ width: min(100% - 24px, var(--content-max)); padding-top: 24px; padding-bottom: 110px; }}
+  .home-hero {{ padding-top: 10px; }}
+  .search {{ flex-direction: row; }}
   .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
   .hero {{ grid-template-columns: 110px 1fr; gap: var(--space-4); }}
   .episode {{ align-items: flex-start; flex-direction: column; }}
+  .mobile-nav {{
+    position: fixed; right: 12px; bottom: 12px; left: 12px; z-index: 30; display: grid;
+    grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 8px; border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg); background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+    box-shadow: var(--shadow-raised); backdrop-filter: blur(18px);
+  }}
+  .mobile-nav a {{
+    display: grid; min-height: 42px; place-items: center; border-radius: var(--radius-sm);
+    color: var(--color-text-muted); font-size: .68rem; font-weight: 700; text-decoration: none;
+  }}
+  .mobile-nav a:active {{ background: var(--color-surface-raised); color: var(--color-text); }}
+}}
+@media (max-width: 420px) {{
+  .search {{ flex-direction: column; }}
 }}
 </style>
 </head>
-<body><main>{content}</main></body>
+<body class="{body_class}">
+{_render_app_header()}
+<main>{content}</main>
+{_render_mobile_nav()}
+</body>
 </html>"""
