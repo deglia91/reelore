@@ -44,6 +44,17 @@ def test_sqlite_repository_round_trips_media_and_personal_state(tmp_path: Path) 
     assert repository.get_personal_state(media.id) == state
 
 
+def test_sqlite_repository_lists_media_by_title(tmp_path: Path) -> None:
+    repository = _repository(tmp_path / "reelore.db")
+    severance = MediaItem(id="severance", title="Severance", media_type=MediaType.TV_SERIES)
+    bear = MediaItem(id="the-bear", title="The Bear", media_type=MediaType.TV_SERIES)
+
+    repository.save_media(severance)
+    repository.save_media(bear)
+
+    assert repository.list_media() == (severance, bear)
+
+
 def test_sqlite_repository_round_trips_episode_progress(tmp_path: Path) -> None:
     repository = _repository(tmp_path / "reelore.db")
     media = MediaItem(id="severance", title="Severance", media_type=MediaType.TV_SERIES)

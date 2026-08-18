@@ -130,6 +130,17 @@ class SQLiteLibraryRepository:
             return None
         return MediaItem(id=str(row[0]), title=str(row[1]), media_type=MediaType(str(row[2])))
 
+    def list_media(self) -> tuple[MediaItem, ...]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                "SELECT id, title, media_type FROM media_items ORDER BY title COLLATE NOCASE, id"
+            ).fetchall()
+
+        return tuple(
+            MediaItem(id=str(row[0]), title=str(row[1]), media_type=MediaType(str(row[2])))
+            for row in rows
+        )
+
     def save_personal_state(self, state: PersonalMediaState) -> None:
         with self._connection() as connection:
             connection.execute(
