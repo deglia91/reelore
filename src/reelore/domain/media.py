@@ -40,12 +40,15 @@ class PersonalMediaState:
     media_id: str
     status: LibraryStatus = LibraryStatus.PLANNED
     completion_count: int = 0
+    top_ten_rank: int | None = None
 
     def __post_init__(self) -> None:
         if not self.media_id.strip():
             raise ValueError("media id cannot be empty")
         if self.completion_count < 0:
             raise ValueError("completion count cannot be negative")
+        if self.top_ten_rank is not None and not 1 <= self.top_ten_rank <= 10:
+            raise ValueError("top ten rank must be between 1 and 10")
 
     @property
     def rewatch_count(self) -> int:
@@ -60,3 +63,6 @@ class PersonalMediaState:
             status=LibraryStatus.COMPLETED,
             completion_count=self.completion_count + 1,
         )
+
+    def rank_in_top_ten(self, rank: int | None) -> "PersonalMediaState":
+        return replace(self, top_ten_rank=rank)
