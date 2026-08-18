@@ -285,7 +285,14 @@ class SQLiteLibraryRepository:
                 return None
             episode_rows = connection.execute(
                 """
-                SELECT provider_id, season_number, episode_number, title, airdate, summary, image_url
+                SELECT
+                    provider_id,
+                    season_number,
+                    episode_number,
+                    title,
+                    airdate,
+                    summary,
+                    image_url
                 FROM tv_episode_catalog
                 WHERE series_provider_id = ?
                 ORDER BY season_number, episode_number
