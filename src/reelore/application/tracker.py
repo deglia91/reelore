@@ -1,7 +1,7 @@
 """Application use cases for the personal media tracker."""
 
 from datetime import date
-from typing import Protocol
+from typing import ClassVar, Protocol
 
 from reelore.application.catalog import TVSeriesCatalog
 from reelore.application.library import LibraryRepository
@@ -74,7 +74,10 @@ class TVProgressStore(Protocol):
 class TVProgressTracker:
     """Keep personal TV status aligned with episode progress."""
 
-    _MANUAL_STATUSES = {LibraryStatus.PAUSED, LibraryStatus.DROPPED}
+    _MANUAL_STATUSES: ClassVar[set[LibraryStatus]] = {
+        LibraryStatus.PAUSED,
+        LibraryStatus.DROPPED,
+    }
 
     def __init__(
         self,
