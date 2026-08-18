@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 from html import escape
-from typing import Protocol
+from typing import Annotated, Protocol
 
 from fastapi import FastAPI, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -60,7 +60,10 @@ def create_web_app(
         return HTMLResponse(_render_series_detail(detail))
 
     @app.post("/series/{media_id}/status")
-    def change_status(media_id: str, status: LibraryStatus = Form()) -> RedirectResponse:
+    def change_status(
+        media_id: str,
+        status: Annotated[LibraryStatus, Form()],
+    ) -> RedirectResponse:
         tracker.change_status(media_id, status)
         return RedirectResponse(url=f"/series/{media_id}", status_code=303)
 
