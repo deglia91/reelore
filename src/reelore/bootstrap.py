@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from reelore.application import MediaTracker, TVCatalogImporter
+from reelore.application.library_view import LibraryViewService
 from reelore.infrastructure import SQLiteLibraryRepository, TVMazeProvider
 from reelore.web import create_web_app
 
@@ -25,7 +26,8 @@ def build_app(database_path: str | Path) -> FastAPI:
         tracker,
         provider_name="tvmaze",
     )
-    return create_web_app(importer, repository)
+    views = LibraryViewService(repository)
+    return create_web_app(importer, views, tracker)
 
 
 def build_default_app() -> FastAPI:
