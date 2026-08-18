@@ -50,6 +50,9 @@ class PersonalMediaState:
     def rewatch_count(self) -> int:
         return max(0, self.completion_count - 1)
 
+    def change_status(self, status: LibraryStatus) -> "PersonalMediaState":
+        return replace(self, status=status)
+
     def record_completion(self) -> "PersonalMediaState":
         return replace(
             self,

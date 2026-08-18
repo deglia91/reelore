@@ -25,3 +25,13 @@ def test_episode_progress_marks_seen_episodes_idempotently() -> None:
     assert updated.has_seen(episode)
     assert updated.seen_count == 1
     assert progress.seen_count == 0
+
+
+def test_episode_progress_can_mark_episode_unseen_idempotently() -> None:
+    episode = EpisodeRef(season_number=2, episode_number=4)
+    progress = EpisodeProgress(media_id="severance").mark_seen(episode)
+
+    updated = progress.mark_unseen(episode).mark_unseen(episode)
+
+    assert not updated.has_seen(episode)
+    assert updated.seen_count == 0

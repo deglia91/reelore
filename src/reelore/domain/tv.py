@@ -38,6 +38,9 @@ class EpisodeProgress:
     def mark_seen(self, episode: EpisodeRef) -> "EpisodeProgress":
         return replace(self, seen_episodes=self.seen_episodes | {episode})
 
+    def mark_unseen(self, episode: EpisodeRef) -> "EpisodeProgress":
+        return replace(self, seen_episodes=self.seen_episodes - {episode})
+
     def has_seen(self, episode: EpisodeRef) -> bool:
         return episode in self.seen_episodes
 
