@@ -25,6 +25,11 @@ class StubLocalizer:
         return self.localized
 
 
+class FailingLocalizer:
+    def localize(self, catalog: TVSeriesCatalog) -> LocalizedTVSeriesMetadata | None:
+        raise RuntimeError("localization provider unavailable")
+
+
 def _catalog() -> TVSeriesCatalog:
     return TVSeriesCatalog(
         provider_id="16740",
@@ -76,5 +81,12 @@ def test_localized_catalog_uses_translation_and_falls_back_per_field() -> None:
 def test_localized_catalog_returns_original_when_localizer_has_no_match() -> None:
     catalog = _catalog()
     provider = LocalizedTVCatalogProvider(StubCatalogProvider(catalog), StubLocalizer(None))
+
+    assert provider.get_series("16740") == catalog
+
+
+def test_localized_catalog_returns_original_when_localizer_fails() -> None:
+    catalog = _catalog()
+    provider = LocalizedTVCatalogProvider(StubCatalogProvider(catalog), FailingLocalizer())
 
     assert provider.get_series("16740") == catalog
