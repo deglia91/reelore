@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-from reelore.application import MediaTracker, TVCatalogImporter
+from reelore.application import MediaTracker, TopTenService, TVCatalogImporter
 from reelore.application.catalog import TVCatalogProvider
 from reelore.application.library_view import LibraryViewService
 from reelore.application.localization import LocalizedTVCatalogProvider
@@ -40,7 +40,8 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     )
     views = LibraryViewService(repository, availability_provider)
     tv_progress = TVProgressTracker(tracker, repository)
-    return create_web_app(importer, views, tv_progress)
+    top_ten = TopTenService(repository)
+    return create_web_app(importer, views, tv_progress, top_ten)
 
 
 def build_default_app() -> FastAPI:
