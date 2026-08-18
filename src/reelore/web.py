@@ -298,7 +298,9 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
         episode_rows = "".join(rows)
         availability_html = _render_season_availability(availability.get(number))
         season_sections.append(
-            f"<section><h2>Stagione {number}</h2>{availability_html}"
+            '<section class="season-section">'
+            f'<div class="section-heading"><h2>Stagione {number}</h2></div>'
+            f"{availability_html}"
             f'<div class="episodes">{episode_rows}</div></section>'
         )
     season_html = "".join(season_sections)
@@ -309,29 +311,38 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
         _render_status_option(status, detail.state.status) for status in LibraryStatus
     )
     top_ten_controls = _render_top_ten_controls(detail)
+    media_id = escape(detail.media_id, quote=True)
     return _page(
         f"""<a class="back" href="/">← Libreria</a>
-<div class="hero">
+<section class="series-hero" aria-labelledby="series-title">
 <div class="hero-poster">{poster}</div>
-<div>
-<h1>{escape(catalog.title)}</h1>
-<p class="meta">{state} · {seen}/{total} episodi visti · Rivista {rewatch}x</p>
+<div class="series-hero-content">
+<p class="eyebrow">Scheda serie</p>
+<h1 id="series-title">{escape(catalog.title)}</h1>
+<div class="series-stats">
+<span>{state}</span><span>{seen}/{total} episodi</span><span>Rivista {rewatch}x</span>
+</div>
 <p class="summary">{summary}</p>
-<div class="tracking-controls">
-<form class="status-form" method="post" action="/series/{escape(detail.media_id)}/status">
-<label for="status">Stato personale</label>
-<select id="status" name="status">{status_options}</select>
+<div class="tracking-panel">
+<div>
+<p class="tracking-label">Stato personale</p>
+<form class="status-form" method="post" action="/series/{media_id}/status">
+<select id="status" name="status" aria-label="Stato personale">{status_options}</select>
 <button type="submit">Aggiorna</button>
 </form>
-<form method="post" action="/series/{escape(detail.media_id)}/completion">
-<button type="submit">Registra completamento +1</button>
+</div>
+<div class="completion-control">
+<p class="tracking-label">Completamenti</p>
+<p class="completion-count">{completion}</p>
+<form method="post" action="/series/{media_id}/completion">
+<button type="submit">Registra +1</button>
 </form>
-<p class="meta">Completamenti totali: {completion}</p>
+</div>
 {top_ten_controls}
 </div>
 </div>
-</div>
-{season_html}"""
+</section>
+<div class="series-seasons">{season_html}</div>"""
     )
 
 
@@ -343,14 +354,14 @@ def _render_top_ten_controls(detail: TVSeriesDetailView) -> str:
     remove = ""
     if current_rank is not None:
         remove = f"""<form method="post" action="/series/{media_id}/top-ten/remove">
-<button type="submit">Rimuovi dalla Top 10</button>
+<button class="secondary-button" type="submit">Rimuovi</button>
 </form>"""
     return f"""<div class="top-ten-controls">
+<p class="tracking-label">Top 10</p>
 <p class="meta">{current}</p>
 <form class="status-form" method="post" action="/series/{media_id}/top-ten">
-<label for="top-ten-rank">Top 10</label>
-<select id="top-ten-rank" name="rank">{options}</select>
-<button type="submit">Salva posizione</button>
+<select id="top-ten-rank" name="rank" aria-label="Posizione Top 10">{options}</select>
+<button type="submit">Salva</button>
 </form>
 {remove}
 </div>"""
@@ -376,7 +387,7 @@ def _render_season_availability(availability: SeasonAvailability | None) -> str:
         source_link = f' · <a href="{url}" rel="noreferrer">{source}</a>'
     return (
         '<div class="availability">'
-        f"<strong>Disponibile in Italia:</strong> {providers}"
+        f"<strong>Disponibile in Italia</strong><div>{providers}</div>"
         f'<div class="availability-source">Dati disponibilità: {source}{source_link}</div>'
         "</div>"
     )
@@ -424,7 +435,7 @@ def _render_episode(
         f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
     )
     return f"""<div class="episode">
-<div><strong>{display_ref}</strong> {escape(title)}</div>
+<div class="episode-copy"><strong>{display_ref}</strong><span>{escape(title)}</span></div>
 <form method="post" action="{action_url}">
 <button type="submit">{label}</button>
 </form>
@@ -588,6 +599,10 @@ button {{
 }}
 button:hover {{ background: var(--color-accent-strong); }}
 button:active {{ transform: translateY(1px); }}
+.secondary-button {{
+  border: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted);
+}}
+.secondary-button:hover {{ background: var(--color-surface-raised); color: var(--color-text); }}
 .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }}
 .card {{
   background: var(--color-surface); border: 1px solid var(--color-border);
@@ -614,26 +629,11 @@ button:active {{ transform: translateY(1px); }}
   border-radius: 999px; background: var(--color-accent); color: var(--color-accent-contrast);
   font-weight: 800; box-shadow: var(--shadow-raised);
 }}
-.top-ten-controls {{ margin-top: 18px; }}
 .back {{ display: inline-block; margin-bottom: 26px; text-decoration: none; }}
-.hero {{ display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }}
-.hero-poster .poster {{ border-radius: var(--radius-md); }}
 .summary {{ line-height: 1.6; max-width: 720px; }}
-.tracking-controls {{ margin-top: 22px; }}
 .status-form {{ align-items: center; flex-wrap: wrap; }}
-.status-form label {{ font-weight: 700; }}
-.availability {{
-  margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm); background: var(--color-surface);
-}}
 .availability-provider {{ display: inline-block; margin: 4px 8px 4px 0; }}
 .availability-source {{ margin-top: 8px; color: var(--color-text-muted); font-size: .78rem; }}
-.episodes {{ display: grid; gap: var(--space-2); }}
-.episode {{
-  display: flex; justify-content: space-between; gap: var(--space-4); align-items: center;
-  padding: 12px 14px; background: var(--color-surface); border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-}}
 .mobile-nav {{ display: none; }}
 @media (max-width: 720px) {{
   .app-header {{ min-height: 62px; padding: 0 16px; }}
@@ -645,7 +645,6 @@ button:active {{ transform: translateY(1px); }}
   .home-hero {{ padding-top: 10px; }}
   .search {{ flex-direction: row; }}
   .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
-  .hero {{ grid-template-columns: 110px 1fr; gap: var(--space-4); }}
   .episode {{ align-items: flex-start; flex-direction: column; }}
   .mobile-nav {{
     position: fixed; right: 12px; bottom: 12px; left: 12px; z-index: 30; display: grid;
