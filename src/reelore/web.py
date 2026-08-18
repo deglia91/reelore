@@ -25,7 +25,7 @@ class TVImportService(Protocol):
 
 
 class LibraryViewReader(Protocol):
-    def list_items(self) -> tuple[LibraryItemView, ...]: ...
+    def list_items(self, today: date | None = None) -> tuple[LibraryItemView, ...]: ...
 
     def list_upcoming_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]: ...
 
@@ -53,12 +53,13 @@ def create_web_app(
     def home(q: str | None = Query(default=None)) -> HTMLResponse:
         query = q.strip() if q is not None else ""
         results = importer.search(query) if query else ()
+        today = date.today()
         return HTMLResponse(
             _render_home(
                 query,
                 results,
-                views.list_items(),
-                views.list_upcoming_episodes(date.today()),
+                views.list_items(today),
+                views.list_upcoming_episodes(today),
             )
         )
 
@@ -91,6 +92,11 @@ def create_web_app(
     def mark_seen(media_id: str, season: int, episode: int) -> RedirectResponse:
         tracker.mark_episode_seen(media_id, EpisodeRef(season, episode))
         return RedirectResponse(url=f"/series/{media_id}", status_code=303)
+
+    @app.post("/series/{media_id}/episodes/{season}/{episode}/seen/home")
+    def mark_seen_from_home(media_id: str, season: int, episode: int) -> RedirectResponse:
+        tracker.mark_episode_seen(media_id, EpisodeRef(season, episode))
+        return RedirectResponse(url="/", status_code=303)
 
     @app.post("/series/{media_id}/episodes/{season}/{episode}/unseen")
     def mark_unseen(media_id: str, season: int, episode: int) -> RedirectResponse:
@@ -158,10 +164,12 @@ def _render_library_sections(items: tuple[LibraryItemView, ...]) -> str:
         (
             "Continua a guardare",
             tuple(item for item in items if item.status is LibraryStatus.IN_PROGRESS),
+            True,
         ),
         (
             "In pari",
             tuple(item for item in items if item.status is LibraryStatus.UP_TO_DATE),
+            False,
         ),
         (
             "La tua libreria",
@@ -170,17 +178,23 @@ def _render_library_sections(items: tuple[LibraryItemView, ...]) -> str:
                 for item in items
                 if item.status not in {LibraryStatus.IN_PROGRESS, LibraryStatus.UP_TO_DATE}
             ),
+            False,
         ),
     )
     return "".join(
-        _render_library_section(title, section_items) for title, section_items in sections
+        _render_library_section(title, section_items, quick_action)
+        for title, section_items, quick_action in sections
     )
 
 
-def _render_library_section(title: str, items: tuple[LibraryItemView, ...]) -> str:
+def _render_library_section(
+    title: str,
+    items: tuple[LibraryItemView, ...],
+    quick_action: bool,
+) -> str:
     if not items:
         return ""
-    cards = "".join(_render_library_item(item) for item in items)
+    cards = "".join(_render_library_item(item, quick_action) for item in items)
     return f'<section><h2>{escape(title)}</h2><div class="grid">{cards}</div></section>'
 
 
@@ -337,12 +351,32 @@ def _render_search_result(result: TVSearchResult) -> str:
 </article>"""
 
 
-def _render_library_item(item: LibraryItemView) -> str:
+def _render_library_item(item: LibraryItemView, quick_action: bool) -> str:
     image = _render_image(item.image_url, item.title)
     media_id = escape(item.media_id, quote=True)
     status = _status_label(item.status)
     progress = f"{item.seen_episodes}/{item.total_episodes} episodi"
     rewatch = f" · Rivista {item.rewatch_count}x" if item.rewatch_count else ""
+    next_episode = item.next_episode
+    if quick_action and next_episode is not None:
+        reference = f"S{next_episode.season_number:02}E{next_episode.episode_number:02}"
+        action_url = (
+            f"/series/{media_id}/episodes/{next_episode.season_number}/"
+            f"{next_episode.episode_number}/seen/home"
+        )
+        return f"""<article class="card">
+<a class="card-link" href="/series/{media_id}">
+{image}
+<div class="content">
+<p class="title">{escape(item.title)}</p>
+<div class="meta">{status} · {progress}{rewatch}</div>
+<p class="next-episode"><strong>{reference}</strong> {escape(next_episode.title)}</p>
+</div>
+</a>
+<form class="quick-action" method="post" action="{action_url}">
+<button type="submit">Segna visto</button>
+</form>
+</article>"""
     return f"""<a class="card card-link" href="/series/{media_id}">
 {image}
 <div class="content">
@@ -388,12 +422,15 @@ button {{
 }}
 .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }}
 .card {{ background: #18181b; border: 1px solid #27272a; border-radius: 16px; overflow: hidden; }}
-.card-link {{ text-decoration: none; }}
+.card-link {{ display: block; text-decoration: none; }}
 .poster {{ width: 100%; aspect-ratio: 2 / 3; object-fit: cover; background: #27272a; }}
 .placeholder {{ display: grid; place-items: center; color: #71717a; }}
 .content {{ padding: 14px; }}
 .title {{ margin: 0 0 6px; font-weight: 750; }}
 .meta {{ font-size: .86rem; margin-bottom: 12px; }}
+.next-episode {{ margin: 0; line-height: 1.35; }}
+.quick-action {{ padding: 0 14px 14px; }}
+.quick-action button {{ width: 100%; }}
 .back {{ display: inline-block; margin-bottom: 26px; text-decoration: none; }}
 .hero {{ display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }}
 .hero-poster .poster {{ border-radius: 16px; }}

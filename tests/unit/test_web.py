@@ -15,6 +15,7 @@ from reelore.application.availability import (
 )
 from reelore.application.library_view import (
     LibraryItemView,
+    NextEpisodeView,
     TVSeriesDetailView,
     UpcomingEpisodeView,
 )
@@ -47,7 +48,7 @@ class StubImporter:
 
 
 class StubViews:
-    def list_items(self) -> tuple[LibraryItemView, ...]:
+    def list_items(self, today: date | None = None) -> tuple[LibraryItemView, ...]:
         return (
             LibraryItemView(
                 media_id="tvmaze:1",
@@ -58,6 +59,7 @@ class StubViews:
                 image_url="https://img.example/the-bear.jpg",
                 seen_episodes=1,
                 total_episodes=2,
+                next_episode=NextEpisodeView(1, 2, "Second Course"),
             ),
             LibraryItemView(
                 media_id="tvmaze:2",
@@ -163,6 +165,9 @@ def test_home_renders_tracking_upcoming_and_search_sections() -> None:
     assert "10/01/2027" in response.text
     assert "Future Episode" in response.text
     assert "Continua a guardare" in response.text
+    assert "S01E02" in response.text
+    assert "Second Course" in response.text
+    assert "Segna visto" in response.text
     assert "In pari" in response.text
     assert "La tua libreria" in response.text
     assert "The Bear" in response.text
@@ -170,6 +175,20 @@ def test_home_renders_tracking_upcoming_and_search_sections() -> None:
     assert "Breaking Bad" in response.text
     assert "https://img.example/the-bear.jpg" in response.text
     assert "Severance" in response.text
+
+
+def test_home_quick_action_marks_next_episode_seen_and_returns_home() -> None:
+    tracker = StubTracker()
+    client = TestClient(create_web_app(StubImporter(), StubViews(), tracker))
+
+    response = client.post(
+        "/series/tvmaze:1/episodes/1/2/seen/home",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/"
+    assert tracker.seen == [("tvmaze:1", EpisodeRef(1, 2))]
 
 
 def test_add_series_imports_selection_and_redirects_detail() -> None:
