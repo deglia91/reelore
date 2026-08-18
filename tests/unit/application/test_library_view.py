@@ -92,8 +92,8 @@ def test_library_view_combines_catalog_tracking_and_next_episode_data() -> None:
     assert detail.availability[0].source == "JustWatch"
 
 
-def test_library_view_lists_future_episodes_in_airdate_order() -> None:
-    service = LibraryViewService(StubViewStore())
+def test_library_view_lists_future_episodes_with_italian_availability() -> None:
+    service = LibraryViewService(StubViewStore(), StubAvailabilityProvider())
 
     upcoming = service.list_upcoming_episodes(date(2026, 8, 18))
 
@@ -103,3 +103,6 @@ def test_library_view_lists_future_episodes_in_airdate_order() -> None:
     assert upcoming[0].episode_number == 3
     assert upcoming[0].episode_title == "Future"
     assert upcoming[0].airdate == date(2026, 8, 20)
+    assert upcoming[0].availability is not None
+    assert upcoming[0].availability.providers[0].name == "Example Stream"
+    assert upcoming[0].availability.source == "JustWatch"
