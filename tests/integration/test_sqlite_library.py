@@ -35,6 +35,7 @@ def test_sqlite_repository_round_trips_media_and_personal_state(tmp_path: Path) 
         media_id=media.id,
         status=LibraryStatus.IN_PROGRESS,
         completion_count=2,
+        top_ten_rank=3,
     )
 
     repository.save_media(media)
