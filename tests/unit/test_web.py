@@ -104,9 +104,7 @@ class StubViews:
                 SeasonAvailability(
                     season_number=1,
                     region="IT",
-                    providers=(
-                        AvailabilityProvider("Apple TV Plus", AvailabilityType.STREAM),
-                    ),
+                    providers=(AvailabilityProvider("Apple TV Plus", AvailabilityType.STREAM),),
                     source="JustWatch",
                     source_url="https://example.test/watch",
                 ),
