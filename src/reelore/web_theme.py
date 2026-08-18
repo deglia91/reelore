@@ -162,6 +162,59 @@ COMPONENT_CSS = """
   min-width: 130px;
 }
 
+#top-ten .grid {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--space-5);
+}
+
+#top-ten .top-ten-card {
+  position: relative;
+  overflow: visible;
+  margin-left: 42px;
+  border: 0;
+  background: transparent;
+}
+
+#top-ten .top-ten-card:hover {
+  border-color: transparent;
+}
+
+#top-ten .poster {
+  position: relative;
+  z-index: 1;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-raised);
+}
+
+#top-ten .top-ten-rank {
+  position: absolute;
+  top: auto;
+  bottom: 26px;
+  left: -48px;
+  z-index: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-surface-raised);
+  font-size: clamp(5.8rem, 9vw, 8rem);
+  font-weight: 950;
+  line-height: .72;
+  letter-spacing: -.09em;
+  text-shadow: -1px -1px 0 var(--color-accent), 1px -1px 0 var(--color-accent),
+    -1px 1px 0 var(--color-accent), 1px 1px 0 var(--color-accent);
+  box-shadow: none;
+}
+
+#top-ten .content {
+  position: relative;
+  z-index: 2;
+  padding: var(--space-3) var(--space-1) 0;
+}
+
+#top-ten .title {
+  margin: 0;
+  font-size: .95rem;
+}
+
 @media (max-width: 720px) {
   #library .card:has(.quick-action) {
     grid-template-columns: 1fr;
@@ -186,6 +239,21 @@ COMPONENT_CSS = """
 
   #library .card:has(.quick-action) .quick-action button {
     width: 100%;
+  }
+
+  #top-ten .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-3);
+  }
+
+  #top-ten .top-ten-card {
+    margin-left: 30px;
+  }
+
+  #top-ten .top-ten-rank {
+    bottom: 24px;
+    left: -34px;
+    font-size: clamp(4.5rem, 22vw, 6.2rem);
   }
 }
 
