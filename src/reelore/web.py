@@ -109,7 +109,10 @@ def _render_home(
 
 def _render_library_sections(items: tuple[LibraryItemView, ...]) -> str:
     if not items:
-        return '<section><h2>La tua libreria</h2><p class="empty">La tua libreria è ancora vuota.</p></section>'
+        return (
+            '<section><h2>La tua libreria</h2>'
+            '<p class="empty">La tua libreria è ancora vuota.</p></section>'
+        )
 
     sections = (
         (
