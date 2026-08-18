@@ -50,6 +50,26 @@ class StubViews:
                 seen_episodes=1,
                 total_episodes=2,
             ),
+            LibraryItemView(
+                media_id="tvmaze:2",
+                title="Severance",
+                status=LibraryStatus.UP_TO_DATE,
+                completion_count=0,
+                rewatch_count=0,
+                image_url="https://img.example/severance.jpg",
+                seen_episodes=2,
+                total_episodes=2,
+            ),
+            LibraryItemView(
+                media_id="tvmaze:3",
+                title="Breaking Bad",
+                status=LibraryStatus.COMPLETED,
+                completion_count=1,
+                rewatch_count=0,
+                image_url="https://img.example/breaking-bad.jpg",
+                seen_episodes=62,
+                total_episodes=62,
+            ),
         )
 
     def get_tv_series(self, media_id: str) -> TVSeriesDetailView | None:
@@ -101,15 +121,18 @@ def _catalog(provider_id: str) -> TVSeriesCatalog:
     )
 
 
-def test_home_renders_library_metadata_and_search_results() -> None:
+def test_home_renders_tracking_sections_and_search_results() -> None:
     client = TestClient(create_web_app(StubImporter(), StubViews(), StubTracker()))
 
     response = client.get("/?q=Severance")
 
     assert response.status_code == 200
+    assert "Continua a guardare" in response.text
+    assert "In pari" in response.text
+    assert "La tua libreria" in response.text
     assert "The Bear" in response.text
-    assert "In corso" in response.text
     assert "1/2 episodi" in response.text
+    assert "Breaking Bad" in response.text
     assert "https://img.example/the-bear.jpg" in response.text
     assert "Severance" in response.text
 
