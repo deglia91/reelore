@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS personal_media_states (
     media_id TEXT PRIMARY KEY,
     status TEXT NOT NULL,
     completion_count INTEGER NOT NULL CHECK (completion_count >= 0),
+    top_ten_rank INTEGER CHECK (top_ten_rank BETWEEN 1 AND 10),
     FOREIGN KEY (media_id) REFERENCES media_items(id) ON DELETE CASCADE
 );
 
@@ -105,6 +106,14 @@ class SQLiteLibraryRepository:
     def initialize(self) -> None:
         with self._connection() as connection:
             connection.executescript(_SCHEMA)
+            columns = {
+                str(row[1])
+                for row in connection.execute("PRAGMA table_info(personal_media_states)")
+            }
+            if "top_ten_rank" not in columns:
+                connection.execute(
+                    "ALTER TABLE personal_media_states ADD COLUMN top_ten_rank INTEGER"
+                )
 
     def save_media(self, media: MediaItem) -> None:
         with self._connection() as connection:
@@ -145,20 +154,27 @@ class SQLiteLibraryRepository:
         with self._connection() as connection:
             connection.execute(
                 """
-                INSERT INTO personal_media_states (media_id, status, completion_count)
-                VALUES (?, ?, ?)
+                INSERT INTO personal_media_states
+                    (media_id, status, completion_count, top_ten_rank)
+                VALUES (?, ?, ?, ?)
                 ON CONFLICT(media_id) DO UPDATE SET
                     status = excluded.status,
-                    completion_count = excluded.completion_count
+                    completion_count = excluded.completion_count,
+                    top_ten_rank = excluded.top_ten_rank
                 """,
-                (state.media_id, state.status.value, state.completion_count),
+                (
+                    state.media_id,
+                    state.status.value,
+                    state.completion_count,
+                    state.top_ten_rank,
+                ),
             )
 
     def get_personal_state(self, media_id: str) -> PersonalMediaState | None:
         with self._connection() as connection:
             row = connection.execute(
                 """
-                SELECT media_id, status, completion_count
+                SELECT media_id, status, completion_count, top_ten_rank
                 FROM personal_media_states
                 WHERE media_id = ?
                 """,
@@ -171,6 +187,7 @@ class SQLiteLibraryRepository:
             media_id=str(row[0]),
             status=LibraryStatus(str(row[1])),
             completion_count=int(row[2]),
+            top_ten_rank=int(row[3]) if row[3] is not None else None,
         )
 
     def save_episode_progress(self, progress: EpisodeProgress) -> None:
@@ -260,10 +277,6 @@ class SQLiteLibraryRepository:
                 "DELETE FROM tv_episode_catalog WHERE series_provider_id = ?",
                 (catalog.provider_id,),
             )
-            connection.execute(
-                "DELETE FROM tv_cast_catalog WHERE series_provider_id = ?",
-                (catalog.provider_id,),
-            )
             connection.executemany(
                 """
                 INSERT INTO tv_episode_catalog
@@ -272,6 +285,10 @@ class SQLiteLibraryRepository:
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 episode_rows,
+            )
+            connection.execute(
+                "DELETE FROM tv_cast_catalog WHERE series_provider_id = ?",
+                (catalog.provider_id,),
             )
             connection.executemany(
                 """
@@ -297,13 +314,8 @@ class SQLiteLibraryRepository:
             episode_rows = connection.execute(
                 """
                 SELECT
-                    provider_id,
-                    season_number,
-                    episode_number,
-                    title,
-                    airdate,
-                    summary,
-                    image_url
+                    provider_id, season_number, episode_number, title,
+                    airdate, summary, image_url
                 FROM tv_episode_catalog
                 WHERE series_provider_id = ?
                 ORDER BY season_number, episode_number
