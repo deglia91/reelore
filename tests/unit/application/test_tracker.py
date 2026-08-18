@@ -3,7 +3,7 @@ from datetime import date
 
 import pytest
 
-from reelore.application import MediaNotFoundError, MediaTracker
+from reelore.application import MediaNotFoundError, MediaTracker, TopTenService
 from reelore.application.catalog import TVEpisodeMetadata, TVSeriesCatalog
 from reelore.application.tracker import TVProgressTracker
 from reelore.domain import (
@@ -28,6 +28,9 @@ class FakeLibraryRepository:
 
     def get_media(self, media_id: str) -> MediaItem | None:
         return self.media.get(media_id)
+
+    def list_media(self) -> tuple[MediaItem, ...]:
+        return tuple(self.media.values())
 
     def save_personal_state(self, state: PersonalMediaState) -> None:
         self.states[state.media_id] = state
@@ -116,6 +119,55 @@ def test_tracking_unknown_media_fails_explicitly() -> None:
 
     with pytest.raises(MediaNotFoundError, match="missing"):
         tracker.mark_episode_seen("missing", EpisodeRef(1, 1))
+
+
+def test_top_ten_assigns_unique_rank_and_swaps_existing_occupant() -> None:
+    repository = FakeLibraryRepository()
+    tracker = MediaTracker(repository)
+    first = MediaItem("first", "First", MediaType.TV_SERIES)
+    second = MediaItem("second", "Second", MediaType.TV_SERIES)
+    tracker.add_media(first)
+    tracker.add_media(second)
+    top_ten = TopTenService(repository)
+
+    top_ten.assign(first.id, 2)
+    top_ten.assign(second.id, 5)
+    top_ten.assign(first.id, 5)
+
+    assert repository.states[first.id].top_ten_rank == 5
+    assert repository.states[second.id].top_ten_rank == 2
+
+
+def test_top_ten_assigning_unranked_media_releases_occupied_rank() -> None:
+    repository = FakeLibraryRepository()
+    tracker = MediaTracker(repository)
+    first = MediaItem("first", "First", MediaType.TV_SERIES)
+    second = MediaItem("second", "Second", MediaType.TV_SERIES)
+    tracker.add_media(first)
+    tracker.add_media(second)
+    top_ten = TopTenService(repository)
+
+    top_ten.assign(first.id, 1)
+    top_ten.assign(second.id, 1)
+
+    assert repository.states[first.id].top_ten_rank is None
+    assert repository.states[second.id].top_ten_rank == 1
+
+
+def test_top_ten_remove_clears_rank_without_affecting_other_tracking() -> None:
+    repository = FakeLibraryRepository()
+    tracker = MediaTracker(repository)
+    media = _severance()
+    tracker.add_media(media, LibraryStatus.COMPLETED)
+    tracker.record_completion(media.id)
+    top_ten = TopTenService(repository)
+    top_ten.assign(media.id, 3)
+
+    removed = top_ten.remove(media.id)
+
+    assert removed.top_ten_rank is None
+    assert removed.status is LibraryStatus.COMPLETED
+    assert removed.completion_count == 1
 
 
 def test_tv_progress_starts_series_after_first_seen_episode() -> None:
