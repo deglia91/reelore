@@ -178,6 +178,7 @@ def _status_label(status: LibraryStatus) -> str:
     labels = {
         LibraryStatus.PLANNED: "Da vedere",
         LibraryStatus.IN_PROGRESS: "In corso",
+        LibraryStatus.UP_TO_DATE: "In pari",
         LibraryStatus.PAUSED: "In pausa",
         LibraryStatus.DROPPED: "Non più seguita",
         LibraryStatus.COMPLETED: "Completata",
