@@ -9,6 +9,7 @@ from reelore.application import MediaTracker, TVCatalogImporter
 from reelore.application.catalog import TVCatalogProvider
 from reelore.application.library_view import LibraryViewService
 from reelore.application.localization import LocalizedTVCatalogProvider
+from reelore.application.tracker import TVProgressTracker
 from reelore.infrastructure import SQLiteLibraryRepository, TMDBItalianLocalizer, TVMazeProvider
 from reelore.web import create_web_app
 
@@ -35,7 +36,8 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
         provider_name="tvmaze",
     )
     views = LibraryViewService(repository)
-    return create_web_app(importer, views, tracker)
+    tv_progress = TVProgressTracker(tracker, repository)
+    return create_web_app(importer, views, tv_progress)
 
 
 def build_default_app() -> FastAPI:
