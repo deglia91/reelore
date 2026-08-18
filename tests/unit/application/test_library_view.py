@@ -44,9 +44,10 @@ class StubViewStore:
                     1,
                     2,
                     "Second",
-                    airdate=date(2026, 8, 20),
+                    airdate=date(2026, 8, 17),
                     image_url="https://img.example/episode.jpg",
                 ),
+                TVEpisodeMetadata("13", 1, 3, "Future", airdate=date(2026, 8, 20)),
             ),
         )
 
@@ -69,17 +70,21 @@ class StubAvailabilityProvider:
         )
 
 
-def test_library_view_combines_catalog_tracking_and_rewatch_data() -> None:
+def test_library_view_combines_catalog_tracking_and_next_episode_data() -> None:
     service = LibraryViewService(StubViewStore(), StubAvailabilityProvider())
 
-    item = service.list_items()[0]
+    item = service.list_items(date(2026, 8, 18))[0]
     detail = service.get_tv_series("tvmaze:1")
 
     assert item.image_url == "https://img.example/poster.jpg"
     assert item.status is LibraryStatus.IN_PROGRESS
     assert item.seen_episodes == 1
-    assert item.total_episodes == 2
+    assert item.total_episodes == 3
     assert item.rewatch_count == 1
+    assert item.next_episode is not None
+    assert item.next_episode.season_number == 1
+    assert item.next_episode.episode_number == 2
+    assert item.next_episode.title == "Second"
     assert detail is not None
     assert detail.catalog.title == "Example"
     assert detail.progress.has_seen(EpisodeRef(1, 1))
@@ -95,7 +100,6 @@ def test_library_view_lists_future_episodes_in_airdate_order() -> None:
     assert len(upcoming) == 1
     assert upcoming[0].series_title == "Example"
     assert upcoming[0].season_number == 1
-    assert upcoming[0].episode_number == 2
-    assert upcoming[0].episode_title == "Second"
+    assert upcoming[0].episode_number == 3
+    assert upcoming[0].episode_title == "Future"
     assert upcoming[0].airdate == date(2026, 8, 20)
-    assert upcoming[0].image_url == "https://img.example/episode.jpg"
