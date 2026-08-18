@@ -104,7 +104,10 @@ class TVProgressTracker:
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> EpisodeProgress:
         progress = self._tracker.mark_episode_unseen(media_id, episode)
         state = self._store.get_personal_state(media_id)
-        if state is not None and state.status is LibraryStatus.COMPLETED:
+        if state is not None and state.status in {
+            LibraryStatus.UP_TO_DATE,
+            LibraryStatus.COMPLETED,
+        }:
             self._tracker.change_status(media_id, LibraryStatus.IN_PROGRESS)
         return progress
 
@@ -129,9 +132,18 @@ class TVProgressTracker:
             progress.has_seen(EpisodeRef(episode.season_number, episode.episode_number))
             for episode in available
         )
+        if not all_seen:
+            if state.status is LibraryStatus.UP_TO_DATE:
+                self._tracker.change_status(media_id, LibraryStatus.IN_PROGRESS)
+            return
+
         series_ended = (catalog.status or "").casefold() == "ended"
-        if all_seen and series_ended and len(available) == len(catalog.episodes):
+        all_catalog_episodes_available = len(available) == len(catalog.episodes)
+        if series_ended and all_catalog_episodes_available:
             self._tracker.record_completion(media_id)
+            return
+        if not series_ended:
+            self._tracker.change_status(media_id, LibraryStatus.UP_TO_DATE)
 
     def _catalog_for(self, media_id: str) -> TVSeriesCatalog | None:
         _prefix, separator, provider_id = media_id.partition(":")
