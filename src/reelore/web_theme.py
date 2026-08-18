@@ -100,6 +100,95 @@ COMPONENT_CSS = """
   opacity: .72;
 }
 
+#library .card:has(.quick-action) {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 260px;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-raised);
+}
+
+#library .card:has(.quick-action) .card-link {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(220px, 42%) minmax(0, 1fr);
+  min-width: 0;
+}
+
+#library .card:has(.quick-action) .poster {
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  aspect-ratio: auto;
+  object-fit: cover;
+}
+
+#library .card:has(.quick-action) .content {
+  display: grid;
+  align-content: end;
+  gap: var(--space-3);
+  padding: var(--space-6);
+}
+
+#library .card:has(.quick-action) .title {
+  margin: 0;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+}
+
+#library .card:has(.quick-action) .meta {
+  margin: 0;
+}
+
+#library .card:has(.quick-action) .next-episode {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+#library .card:has(.quick-action) .next-episode strong {
+  color: var(--color-accent-strong);
+}
+
+#library .card:has(.quick-action) .quick-action {
+  display: flex;
+  align-items: end;
+  padding: var(--space-5);
+}
+
+#library .card:has(.quick-action) .quick-action button {
+  min-width: 130px;
+}
+
+@media (max-width: 720px) {
+  #library .card:has(.quick-action) {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  #library .card:has(.quick-action) .card-link {
+    grid-template-columns: 118px minmax(0, 1fr);
+  }
+
+  #library .card:has(.quick-action) .poster {
+    min-height: 190px;
+  }
+
+  #library .card:has(.quick-action) .content {
+    padding: var(--space-4);
+  }
+
+  #library .card:has(.quick-action) .quick-action {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  #library .card:has(.quick-action) .quick-action button {
+    width: 100%;
+  }
+}
+
 @media (max-width: 560px) {
   #upcoming .card {
     grid-template-columns: 82px minmax(0, 1fr);
