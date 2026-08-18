@@ -16,6 +16,7 @@ from reelore.application.availability import (
 from reelore.application.library_view import (
     LibraryItemView,
     NextEpisodeView,
+    TopTenItemView,
     TVSeriesDetailView,
     UpcomingEpisodeView,
 )
@@ -60,6 +61,7 @@ class StubViews:
                 seen_episodes=1,
                 total_episodes=2,
                 next_episode=NextEpisodeView(1, 2, "Second Course"),
+                top_ten_rank=2,
             ),
             LibraryItemView(
                 media_id="tvmaze:2",
@@ -83,6 +85,16 @@ class StubViews:
             ),
         )
 
+    def list_top_ten(self) -> tuple[TopTenItemView, ...]:
+        return (
+            TopTenItemView(
+                rank=2,
+                media_id="tvmaze:1",
+                title="The Bear",
+                image_url="https://img.example/the-bear.jpg",
+            ),
+        )
+
     def list_upcoming_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]:
         return (
             UpcomingEpisodeView(
@@ -99,7 +111,11 @@ class StubViews:
     def get_tv_series(self, media_id: str) -> TVSeriesDetailView | None:
         return TVSeriesDetailView(
             media_id=media_id,
-            state=PersonalMediaState(media_id, LibraryStatus.IN_PROGRESS),
+            state=PersonalMediaState(
+                media_id,
+                LibraryStatus.IN_PROGRESS,
+                top_ten_rank=2,
+            ),
             progress=EpisodeProgress(media_id).mark_seen(EpisodeRef(1, 1)),
             catalog=_catalog("1"),
             availability=(
@@ -138,6 +154,36 @@ class StubTracker:
         return object()
 
 
+class StubTopTen:
+    def __init__(self) -> None:
+        self.assigned: list[tuple[str, int]] = []
+        self.removed: list[str] = []
+
+    def assign(self, media_id: str, rank: int) -> object:
+        self.assigned.append((media_id, rank))
+        return object()
+
+    def remove(self, media_id: str) -> object:
+        self.removed.append(media_id)
+        return object()
+
+
+def _client(
+    *,
+    importer: StubImporter | None = None,
+    tracker: StubTracker | None = None,
+    top_ten: StubTopTen | None = None,
+) -> TestClient:
+    return TestClient(
+        create_web_app(
+            importer or StubImporter(),
+            StubViews(),
+            tracker or StubTracker(),
+            top_ten or StubTopTen(),
+        )
+    )
+
+
 def _catalog(provider_id: str) -> TVSeriesCatalog:
     return TVSeriesCatalog(
         provider_id=provider_id,
@@ -154,16 +200,16 @@ def _catalog(provider_id: str) -> TVSeriesCatalog:
     )
 
 
-def test_home_renders_tracking_upcoming_and_search_sections() -> None:
-    client = TestClient(create_web_app(StubImporter(), StubViews(), StubTracker()))
-
-    response = client.get("/?q=Severance")
+def test_home_renders_tracking_top_ten_upcoming_and_search_sections() -> None:
+    response = _client().get("/?q=Severance")
 
     assert response.status_code == 200
     assert "Prossime uscite" in response.text
     assert "S03E01" in response.text
     assert "10/01/2027" in response.text
     assert "Future Episode" in response.text
+    assert "La tua Top 10" in response.text
+    assert "#2" in response.text
     assert "Continua a guardare" in response.text
     assert "S01E02" in response.text
     assert "Second Course" in response.text
@@ -179,7 +225,7 @@ def test_home_renders_tracking_upcoming_and_search_sections() -> None:
 
 def test_home_quick_action_marks_next_episode_seen_and_returns_home() -> None:
     tracker = StubTracker()
-    client = TestClient(create_web_app(StubImporter(), StubViews(), tracker))
+    client = _client(tracker=tracker)
 
     response = client.post(
         "/series/tvmaze:1/episodes/1/2/seen/home",
@@ -193,7 +239,7 @@ def test_home_quick_action_marks_next_episode_seen_and_returns_home() -> None:
 
 def test_add_series_imports_selection_and_redirects_detail() -> None:
     importer = StubImporter()
-    client = TestClient(create_web_app(importer, StubViews(), StubTracker()))
+    client = _client(importer=importer)
 
     response = client.post("/series/16740/add", follow_redirects=False)
 
@@ -202,15 +248,8 @@ def test_add_series_imports_selection_and_redirects_detail() -> None:
     assert importer.imported_ids == ["16740"]
 
 
-def test_series_detail_renders_episodes_availability_and_updates_progress() -> None:
-    tracker = StubTracker()
-    client = TestClient(create_web_app(StubImporter(), StubViews(), tracker))
-
-    detail = client.get("/series/tvmaze:1")
-    marked = client.post(
-        "/series/tvmaze:1/episodes/1/2/seen",
-        follow_redirects=False,
-    )
+def test_series_detail_renders_episodes_availability_and_top_ten_controls() -> None:
+    detail = _client().get("/series/tvmaze:1")
 
     assert detail.status_code == 200
     assert "Stagione 1" in detail.text
@@ -220,13 +259,27 @@ def test_series_detail_renders_episodes_availability_and_updates_progress() -> N
     assert "JustWatch" in detail.text
     assert "Good News About Hell" in detail.text
     assert "Visto ✓" in detail.text
-    assert marked.status_code == 303
+    assert "Posizione attuale: #2" in detail.text
+    assert "Salva posizione" in detail.text
+    assert "Rimuovi dalla Top 10" in detail.text
+
+
+def test_series_detail_updates_episode_progress() -> None:
+    tracker = StubTracker()
+    client = _client(tracker=tracker)
+
+    response = client.post(
+        "/series/tvmaze:1/episodes/1/2/seen",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
     assert tracker.seen == [("tvmaze:1", EpisodeRef(1, 2))]
 
 
 def test_series_detail_changes_personal_status_and_records_completion() -> None:
     tracker = StubTracker()
-    client = TestClient(create_web_app(StubImporter(), StubViews(), tracker))
+    client = _client(tracker=tracker)
 
     status_response = client.post(
         "/series/tvmaze:1/status",
@@ -242,3 +295,23 @@ def test_series_detail_changes_personal_status_and_records_completion() -> None:
     assert completion_response.status_code == 303
     assert tracker.statuses == [("tvmaze:1", LibraryStatus.DROPPED)]
     assert tracker.completions == ["tvmaze:1"]
+
+
+def test_series_detail_assigns_and_removes_top_ten_rank() -> None:
+    top_ten = StubTopTen()
+    client = _client(top_ten=top_ten)
+
+    assigned = client.post(
+        "/series/tvmaze:1/top-ten",
+        data={"rank": "4"},
+        follow_redirects=False,
+    )
+    removed = client.post(
+        "/series/tvmaze:1/top-ten/remove",
+        follow_redirects=False,
+    )
+
+    assert assigned.status_code == 303
+    assert removed.status_code == 303
+    assert top_ten.assigned == [("tvmaze:1", 4)]
+    assert top_ten.removed == ["tvmaze:1"]
