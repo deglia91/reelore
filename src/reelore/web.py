@@ -129,7 +129,9 @@ def _render_library_sections(items: tuple[LibraryItemView, ...]) -> str:
             ),
         ),
     )
-    return "".join(_render_library_section(title, section_items) for title, section_items in sections)
+    return "".join(
+        _render_library_section(title, section_items) for title, section_items in sections
+    )
 
 
 def _render_library_section(title: str, items: tuple[LibraryItemView, ...]) -> str:
