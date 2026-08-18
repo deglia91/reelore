@@ -17,6 +17,7 @@ from reelore.application.library_view import (
     UpcomingEpisodeView,
 )
 from reelore.domain import EpisodeRef, LibraryStatus
+from reelore.web_theme import render_theme_css
 
 
 class TVImportService(Protocol):
@@ -480,6 +481,7 @@ def _render_image(image_url: str | None, title: str) -> str:
 
 
 def _page(content: str) -> str:
+    theme = render_theme_css()
     return f"""<!doctype html>
 <html lang="it">
 <head>
@@ -487,29 +489,44 @@ def _page(content: str) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Reelore</title>
 <style>
-:root {{ color-scheme: dark; font-family: Inter, system-ui, sans-serif; }}
+{theme}
 * {{ box-sizing: border-box; }}
-body {{ margin: 0; background: #101114; color: #f4f4f5; }}
-main {{ width: min(1100px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 64px; }}
-h1 {{ margin: 0 0 8px; font-size: clamp(2rem, 8vw, 4rem); }}
-h2 {{ font-size: 1.25rem; margin-bottom: 16px; }}
+body {{
+  margin: 0; background: var(--color-bg); color: var(--color-text);
+  font-family: var(--font-sans);
+}}
+main {{
+  width: min(var(--content-max), calc(100% - 32px));
+  margin: 0 auto; padding: var(--space-7) 0 64px;
+}}
+h1 {{ margin: 0 0 var(--space-2); font-size: clamp(2rem, 8vw, 4rem); }}
+h2 {{ font-size: 1.25rem; margin-bottom: var(--space-4); }}
 section {{ margin-top: 34px; }}
 a {{ color: inherit; }}
-.sub, .meta, .summary, .empty {{ color: #a1a1aa; }}
-.search, .status-form {{ display: flex; gap: 10px; margin: 24px 0; }}
+.sub, .meta, .summary, .empty {{ color: var(--color-text-muted); }}
+.search, .status-form {{ display: flex; gap: 10px; margin: var(--space-5) 0; }}
 input, select {{
-  flex: 1; min-width: 0; border: 1px solid #3f3f46; border-radius: 14px;
-  background: #18181b; color: inherit; padding: 12px 14px; font-size: 1rem;
+  flex: 1; min-width: 0; border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  background: var(--color-surface); color: inherit; padding: 12px 14px; font-size: 1rem;
 }}
 button {{
-  border: 0; border-radius: 12px; padding: 10px 14px; font-weight: 700;
-  background: #f4f4f5; color: #18181b; cursor: pointer;
+  border: 0; border-radius: var(--radius-sm); padding: 10px 14px; font-weight: 700;
+  background: var(--color-accent); color: var(--color-accent-contrast); cursor: pointer;
+  transition: background var(--motion-fast) ease, transform var(--motion-fast) ease;
 }}
+button:hover {{ background: var(--color-accent-strong); }}
+button:active {{ transform: translateY(1px); }}
 .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }}
-.card {{ background: #18181b; border: 1px solid #27272a; border-radius: 16px; overflow: hidden; }}
+.card {{
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); overflow: hidden;
+}}
 .card-link {{ display: block; text-decoration: none; }}
-.poster {{ width: 100%; aspect-ratio: 2 / 3; object-fit: cover; background: #27272a; }}
-.placeholder {{ display: grid; place-items: center; color: #71717a; }}
+.poster {{
+  width: 100%; aspect-ratio: 2 / 3; object-fit: cover;
+  background: var(--color-surface-raised);
+}}
+.placeholder {{ display: grid; place-items: center; color: var(--color-text-muted); }}
 .content {{ padding: 14px; }}
 .title {{ margin: 0 0 6px; font-weight: 750; }}
 .meta {{ font-size: .86rem; margin-bottom: 12px; }}
@@ -520,32 +537,34 @@ button {{
 .top-ten-card {{ position: relative; }}
 .top-ten-rank {{
   position: absolute; top: 10px; left: 10px; z-index: 1; padding: 6px 9px;
-  border-radius: 999px; background: #f4f4f5; color: #18181b; font-weight: 800;
+  border-radius: 999px; background: var(--color-accent); color: var(--color-accent-contrast);
+  font-weight: 800; box-shadow: var(--shadow-raised);
 }}
 .top-ten-controls {{ margin-top: 18px; }}
 .back {{ display: inline-block; margin-bottom: 26px; text-decoration: none; }}
 .hero {{ display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }}
-.hero-poster .poster {{ border-radius: 16px; }}
+.hero-poster .poster {{ border-radius: var(--radius-md); }}
 .summary {{ line-height: 1.6; max-width: 720px; }}
 .tracking-controls {{ margin-top: 22px; }}
 .status-form {{ align-items: center; flex-wrap: wrap; }}
 .status-form label {{ font-weight: 700; }}
 .availability {{
-  margin: 0 0 14px; padding: 12px 14px; border: 1px solid #3f3f46;
-  border-radius: 12px; background: #18181b;
+  margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm); background: var(--color-surface);
 }}
 .availability-provider {{ display: inline-block; margin: 4px 8px 4px 0; }}
-.availability-source {{ margin-top: 8px; color: #71717a; font-size: .78rem; }}
-.episodes {{ display: grid; gap: 8px; }}
+.availability-source {{ margin-top: 8px; color: var(--color-text-muted); font-size: .78rem; }}
+.episodes {{ display: grid; gap: var(--space-2); }}
 .episode {{
-  display: flex; justify-content: space-between; gap: 16px; align-items: center;
-  padding: 12px 14px; background: #18181b; border: 1px solid #27272a; border-radius: 12px;
+  display: flex; justify-content: space-between; gap: var(--space-4); align-items: center;
+  padding: 12px 14px; background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
 }}
 @media (max-width: 560px) {{
-  main {{ width: min(100% - 24px, 1100px); padding-top: 28px; }}
+  main {{ width: min(100% - 24px, var(--content-max)); padding-top: 28px; }}
   .search {{ flex-direction: column; }}
   .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
-  .hero {{ grid-template-columns: 110px 1fr; gap: 16px; }}
+  .hero {{ grid-template-columns: 110px 1fr; gap: var(--space-4); }}
   .episode {{ align-items: flex-start; flex-direction: column; }}
 }}
 </style>
