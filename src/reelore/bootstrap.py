@@ -5,9 +5,10 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-from reelore.application import LocalizedTVCatalogProvider, MediaTracker, TVCatalogImporter
+from reelore.application import MediaTracker, TVCatalogImporter
 from reelore.application.catalog import TVCatalogProvider
 from reelore.application.library_view import LibraryViewService
+from reelore.application.localization import LocalizedTVCatalogProvider
 from reelore.infrastructure import SQLiteLibraryRepository, TMDBItalianLocalizer, TVMazeProvider
 from reelore.web import create_web_app
 
