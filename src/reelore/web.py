@@ -19,6 +19,8 @@ from reelore.application.library_view import (
 from reelore.domain import EpisodeRef, LibraryStatus
 from reelore.web_theme import render_theme_css
 
+_HOME_PREVIEW_LIMIT = 8
+
 
 class TVImportService(Protocol):
     def search(self, query: str) -> tuple[TVSearchResult, ...]: ...
@@ -74,6 +76,13 @@ def create_web_app(
                 views.list_upcoming_episodes(today),
             )
         )
+
+    @app.get("/library", response_class=HTMLResponse)
+    def library(status: LibraryStatus | None = Query(default=None)) -> HTMLResponse:
+        items = views.list_items(date.today())
+        if status is not None:
+            items = tuple(item for item in items if item.status is status)
+        return HTMLResponse(_render_library_page(items, status))
 
     @app.post("/series/{provider_id}/add")
     def add_series(provider_id: str) -> RedirectResponse:
@@ -142,7 +151,7 @@ def _render_home(
     results_section = _render_results_section(query, search_results)
     upcoming_section = _render_upcoming_section(upcoming_episodes)
     top_ten_section = _render_top_ten_section(top_ten_items)
-    library_sections = _render_library_sections(library_items)
+    library_sections = _render_home_library_sections(library_items)
     return _page(
         f"""<section class="home-hero" aria-labelledby="home-title">
 <p class="eyebrow">La tua raccolta personale</p>
@@ -226,7 +235,7 @@ def _render_top_ten_item(item: TopTenItemView) -> str:
 </a>"""
 
 
-def _render_library_sections(items: tuple[LibraryItemView, ...]) -> str:
+def _render_home_library_sections(items: tuple[LibraryItemView, ...]) -> str:
     if not items:
         return (
             "<section><h2>La tua libreria</h2>"
@@ -238,11 +247,13 @@ def _render_library_sections(items: tuple[LibraryItemView, ...]) -> str:
             "Continua a guardare",
             tuple(item for item in items if item.status is LibraryStatus.IN_PROGRESS),
             True,
+            "/library?status=in_progress",
         ),
         (
             "In pari",
             tuple(item for item in items if item.status is LibraryStatus.UP_TO_DATE),
             False,
+            "/library?status=up_to_date",
         ),
         (
             "La tua libreria",
@@ -252,27 +263,71 @@ def _render_library_sections(items: tuple[LibraryItemView, ...]) -> str:
                 if item.status not in {LibraryStatus.IN_PROGRESS, LibraryStatus.UP_TO_DATE}
             ),
             False,
+            "/library",
         ),
     )
     return "".join(
-        _render_library_section(title, section_items, quick_action)
-        for title, section_items, quick_action in sections
+        _render_home_library_section(title, section_items, quick_action, href)
+        for title, section_items, quick_action, href in sections
     )
 
 
-def _render_library_section(
+def _render_home_library_section(
     title: str,
     items: tuple[LibraryItemView, ...],
     quick_action: bool,
+    href: str,
 ) -> str:
     if not items:
         return ""
-    cards = "".join(_render_library_item(item, quick_action) for item in items)
+    preview = items[:_HOME_PREVIEW_LIMIT]
+    cards = "".join(_render_library_item(item, quick_action) for item in preview)
     return (
         '<section><div class="section-heading">'
         f"<h2>{escape(title)}</h2>"
-        f'</div><div class="grid">{cards}</div></section>'
+        f'<a class="section-link" href="{escape(href, quote=True)}">Vedi tutte</a>'
+        f'</div><div class="home-rail">{cards}</div></section>'
     )
+
+
+def _render_library_page(
+    items: tuple[LibraryItemView, ...],
+    status: LibraryStatus | None,
+) -> str:
+    selected_label = _status_label(status) if status is not None else "Tutte"
+    cards = "".join(_render_library_item(item, False) for item in items)
+    if not cards:
+        cards = '<p class="empty">Nessuna serie in questa sezione.</p>'
+    filters = _render_library_filters(status)
+    return _page(
+        f"""<section class="library-page-heading">
+<p class="eyebrow">Raccolta</p>
+<h1>La tua libreria</h1>
+<p class="sub">{escape(selected_label)} · {len(items)} serie</p>
+</section>
+{filters}
+<div class="library-grid">{cards}</div>""",
+        page_class="library-page",
+    )
+
+
+def _render_library_filters(selected: LibraryStatus | None) -> str:
+    options: tuple[tuple[str, LibraryStatus | None], ...] = (
+        ("Tutte", None),
+        ("In corso", LibraryStatus.IN_PROGRESS),
+        ("In pari", LibraryStatus.UP_TO_DATE),
+        ("Da vedere", LibraryStatus.PLANNED),
+        ("Completate", LibraryStatus.COMPLETED),
+        ("In pausa", LibraryStatus.PAUSED),
+    )
+    links: list[str] = []
+    for label, status in options:
+        href = "/library" if status is None else f"/library?status={status.value}"
+        active = " active" if status is selected else ""
+        links.append(
+            f'<a class="filter-chip{active}" href="{href}">{escape(label)}</a>'
+        )
+    return f'<nav class="library-filters" aria-label="Filtri libreria">{"".join(links)}</nav>'
 
 
 def _render_series_detail(detail: TVSeriesDetailView) -> str:
@@ -314,7 +369,7 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     top_ten_controls = _render_top_ten_controls(detail)
     media_id = escape(detail.media_id, quote=True)
     return _page(
-        f"""<a class="back" href="/">← Libreria</a>
+        f"""<a class="back" href="/library">← Libreria</a>
 <section class="series-hero" aria-labelledby="series-title">
 <div class="hero-poster">{poster}</div>
 <div class="series-hero-content">
@@ -517,7 +572,7 @@ def _render_app_header() -> str:
     return """<header class="app-header">
 <a class="brand" href="/" aria-label="Reelore Home"><span class="brand-mark">R</span>Reelore</a>
 <nav class="desktop-nav" aria-label="Navigazione principale">
-<a href="/">Home</a><a href="/#library">Libreria</a><a href="/#upcoming">Calendario</a>
+<a href="/">Home</a><a href="/library">Libreria</a><a href="/#upcoming">Calendario</a>
 <a href="/#top-ten">Top 10</a><a href="/#search">Cerca</a>
 </nav>
 </header>"""
@@ -525,14 +580,19 @@ def _render_app_header() -> str:
 
 def _render_mobile_nav() -> str:
     return """<nav class="mobile-nav" aria-label="Navigazione mobile">
-<a href="/">Home</a><a href="/#library">Libreria</a><a href="/#upcoming">Calendario</a>
+<a href="/">Home</a><a href="/library">Libreria</a><a href="/#upcoming">Calendario</a>
 <a href="/#top-ten">Top 10</a><a href="/#search">Cerca</a>
 </nav>"""
 
 
-def _page(content: str, *, home: bool = False) -> str:
+def _page(
+    content: str,
+    *,
+    home: bool = False,
+    page_class: str | None = None,
+) -> str:
     theme = render_theme_css()
-    body_class = "home-page" if home else "detail-page"
+    body_class = page_class or ("home-page" if home else "detail-page")
     return f"""<!doctype html>
 <html lang="it">
 <head>
