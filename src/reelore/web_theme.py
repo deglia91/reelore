@@ -242,6 +242,15 @@ a:focus-visible {
   opacity: .72;
 }
 
+.home-page #upcoming .upcoming-platform:not(:first-child),
+.home-page #upcoming .upcoming-platform > span {
+  display: none;
+}
+
+.home-page #upcoming .upcoming-platform {
+  gap: 0;
+}
+
 #library .card:has(.quick-action) {
   position: relative;
   display: grid;
