@@ -145,6 +145,7 @@ class StubTracker:
         self.unseen: list[tuple[str, EpisodeRef]] = []
         self.statuses: list[tuple[str, LibraryStatus]] = []
         self.completions: list[str] = []
+        self.removed_media: list[str] = []
 
     def change_status(self, media_id: str, status: LibraryStatus) -> object:
         self.statuses.append((media_id, status))
@@ -164,6 +165,10 @@ class StubTracker:
 
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> object:
         self.unseen.append((media_id, episode))
+        return object()
+
+    def remove_media(self, media_id: str) -> object:
+        self.removed_media.append(media_id)
         return object()
 
 
@@ -324,6 +329,9 @@ def test_series_detail_renders_cinematic_tracking_and_episode_structure() -> Non
     assert "Posizione attuale: #2" in detail.text
     assert ">Salva<" in detail.text
     assert ">Rimuovi<" in detail.text
+    assert 'action="/series/tvmaze:1/remove"' in detail.text
+    assert "Rimuovi dalla libreria" in detail.text
+    assert "return confirm(" in detail.text
 
 
 def test_series_detail_updates_episode_progress() -> None:
@@ -371,6 +379,17 @@ def test_series_detail_changes_personal_status_and_records_completion() -> None:
     assert completion_response.status_code == 303
     assert tracker.statuses == [("tvmaze:1", LibraryStatus.DROPPED)]
     assert tracker.completions == ["tvmaze:1"]
+
+
+def test_series_detail_removes_series_and_returns_library() -> None:
+    tracker = StubTracker()
+    client = _client(tracker=tracker)
+
+    response = client.post("/series/tvmaze:1/remove", follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/library"
+    assert tracker.removed_media == ["tvmaze:1"]
 
 
 def test_series_detail_assigns_and_removes_top_ten_rank() -> None:
