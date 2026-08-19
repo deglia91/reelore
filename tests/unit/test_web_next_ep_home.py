@@ -1,3 +1,4 @@
+from reelore.web import _page
 from reelore.web_navigation_theme import NAVIGATION_CSS
 
 
@@ -10,25 +11,25 @@ def test_mobile_shell_moves_primary_actions_to_header() -> None:
     assert "display: none !important" in NAVIGATION_CSS
 
 
-def test_mobile_shell_uses_safari_safe_vector_icons() -> None:
-    assert "--next-ep-logo-icon" in NAVIGATION_CSS
-    assert "--next-ep-calendar-icon" in NAVIGATION_CSS
-    assert "--next-ep-library-icon" in NAVIGATION_CSS
-    assert "--next-ep-search-icon" in NAVIGATION_CSS
-    assert "background-image: var(--next-ep-logo-icon)" in NAVIGATION_CSS
-    assert "background-image: var(--next-ep-calendar-icon)" in NAVIGATION_CSS
-    assert "background-image: var(--next-ep-library-icon)" in NAVIGATION_CSS
-    assert "background-image: var(--next-ep-search-icon)" in NAVIGATION_CSS
-    assert "mask-image:" not in NAVIGATION_CSS
-    assert "-webkit-mask-image:" not in NAVIGATION_CSS
+def test_app_shell_renders_inline_next_ep_brand_and_navigation_icons() -> None:
+    page = _page("<p>Content</p>", home=True)
+
+    assert 'class="brand-icon"' in page
+    assert 'data-icon="next-episode"' in page
+    assert 'class="nav-icon"' in page
+    assert 'data-icon="calendar"' in page
+    assert 'data-icon="library"' in page
+    assert 'data-icon="search"' in page
+    assert "<svg" in page
 
 
-def test_mobile_search_is_compact_single_row_with_icon_button() -> None:
+def test_mobile_search_is_compact_single_row_with_inline_icon_button() -> None:
+    page = _page("<p>Content</p>", home=True)
+
     assert ".home-page .search" in NAVIGATION_CSS
     assert "flex-direction: row" in NAVIGATION_CSS
-    assert ".home-page .search button" in NAVIGATION_CSS
-    assert ".home-page .search button::before" in NAVIGATION_CSS
-    assert "background-image: var(--next-ep-search-icon)" in NAVIGATION_CSS
+    assert 'class="search-icon"' in page
+    assert 'data-icon="search"' in page
 
 
 def test_mobile_home_prioritizes_continue_watching_after_search() -> None:
