@@ -156,15 +156,64 @@ def test_tmdb_maps_italian_season_watch_providers_with_justwatch_attribution() -
     assert availability.providers[1].availability_type is AvailabilityType.BUY
 
 
+def test_tmdb_falls_back_to_series_watch_providers_for_future_season() -> None:
+    search_url = (
+        "https://api.themoviedb.org/3/search/tv?query=Ted+Lasso&language=it-IT&include_adult=false"
+    )
+    season_url = "https://api.themoviedb.org/3/tv/97546/season/4/watch/providers"
+    series_url = "https://api.themoviedb.org/3/tv/97546/watch/providers"
+    client = StubAuthorizedJsonHttpClient(
+        {
+            search_url: {"results": [{"id": 97546, "first_air_date": "2020-08-14"}]},
+            season_url: {"results": {}},
+            series_url: {
+                "results": {
+                    "IT": {
+                        "link": "https://www.themoviedb.org/tv/97546/watch?locale=IT",
+                        "flatrate": [
+                            {
+                                "provider_name": "Apple TV Plus",
+                                "logo_path": "/apple.jpg",
+                            }
+                        ],
+                    }
+                }
+            },
+        }
+    )
+    catalog = TVSeriesCatalog(
+        provider_id="52",
+        title="Ted Lasso",
+        summary=None,
+        status="Running",
+        premiered=date(2020, 8, 14),
+        ended=None,
+        image_url=None,
+    )
+
+    availability = TMDBItalianAvailabilityProvider("secret-token", client).season_availability(
+        catalog,
+        4,
+        "IT",
+    )
+
+    assert availability is not None
+    assert availability.season_number == 4
+    assert availability.providers[0].name == "Apple TV Plus"
+    assert availability.providers[0].availability_type is AvailabilityType.STREAM
+
+
 def test_tmdb_returns_no_availability_when_region_is_missing() -> None:
     search_url = (
         "https://api.themoviedb.org/3/search/tv?query=Severance&language=it-IT&include_adult=false"
     )
-    providers_url = "https://api.themoviedb.org/3/tv/95396/season/1/watch/providers"
+    season_url = "https://api.themoviedb.org/3/tv/95396/season/1/watch/providers"
+    series_url = "https://api.themoviedb.org/3/tv/95396/watch/providers"
     client = StubAuthorizedJsonHttpClient(
         {
             search_url: {"results": [{"id": 95396}]},
-            providers_url: {"results": {"US": {"flatrate": []}}},
+            season_url: {"results": {"US": {"flatrate": []}}},
+            series_url: {"results": {"US": {"flatrate": []}}},
         }
     )
     catalog = TVSeriesCatalog(
