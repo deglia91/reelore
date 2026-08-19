@@ -139,6 +139,7 @@ def _render_home(
     if query and not results:
         search_results = '<p class="empty">Nessuna serie trovata.</p>'
 
+    results_section = _render_results_section(query, search_results)
     upcoming_section = _render_upcoming_section(upcoming_episodes)
     top_ten_section = _render_top_ten_section(top_ten_items)
     library_sections = _render_library_sections(library_items)
@@ -152,10 +153,10 @@ def _render_home(
 <input name="q" value="{escape(query, quote=True)}" placeholder="Cerca una serie TV...">
 <button type="submit">Cerca</button>
 </form>
+{results_section}
 {upcoming_section}
 {top_ten_section}
-<div id="library">{library_sections}</div>
-{_render_results_section(query, search_results)}""",
+<div id="library">{library_sections}</div>""",
         home=True,
     )
 
@@ -387,7 +388,7 @@ def _render_season_availability(availability: SeasonAvailability | None) -> str:
         source_link = f' · <a href="{url}" rel="noreferrer">{source}</a>'
     return (
         '<div class="availability">'
-        f"<strong>Disponibile in Italia</strong><div>{providers}</div>"
+        f"<strong>Disponibile in Italia:</strong> {providers}"
         f'<div class="availability-source">Dati disponibilità: {source}{source_link}</div>'
         "</div>"
     )
@@ -446,7 +447,7 @@ def _render_results_section(query: str, content: str) -> str:
     if not query:
         return ""
     heading = f'Risultati per "{escape(query)}"'
-    return f'<section><h2>{heading}</h2><div class="grid">{content}</div></section>'
+    return f'<section class="search-results"><h2>{heading}</h2><div class="grid">{content}</div></section>'
 
 
 def _render_search_result(result: TVSearchResult) -> str:
@@ -599,10 +600,6 @@ button {{
 }}
 button:hover {{ background: var(--color-accent-strong); }}
 button:active {{ transform: translateY(1px); }}
-.secondary-button {{
-  border: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted);
-}}
-.secondary-button:hover {{ background: var(--color-surface-raised); color: var(--color-text); }}
 .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }}
 .card {{
   background: var(--color-surface); border: 1px solid var(--color-border);
@@ -629,11 +626,26 @@ button:active {{ transform: translateY(1px); }}
   border-radius: 999px; background: var(--color-accent); color: var(--color-accent-contrast);
   font-weight: 800; box-shadow: var(--shadow-raised);
 }}
+.top-ten-controls {{ margin-top: 18px; }}
 .back {{ display: inline-block; margin-bottom: 26px; text-decoration: none; }}
+.hero {{ display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }}
+.hero-poster .poster {{ border-radius: var(--radius-md); }}
 .summary {{ line-height: 1.6; max-width: 720px; }}
+.tracking-controls {{ margin-top: 22px; }}
 .status-form {{ align-items: center; flex-wrap: wrap; }}
+.status-form label {{ font-weight: 700; }}
+.availability {{
+  margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm); background: var(--color-surface);
+}}
 .availability-provider {{ display: inline-block; margin: 4px 8px 4px 0; }}
 .availability-source {{ margin-top: 8px; color: var(--color-text-muted); font-size: .78rem; }}
+.episodes {{ display: grid; gap: var(--space-2); }}
+.episode {{
+  display: flex; justify-content: space-between; gap: var(--space-4); align-items: center;
+  padding: 12px 14px; background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}}
 .mobile-nav {{ display: none; }}
 @media (max-width: 720px) {{
   .app-header {{ min-height: 62px; padding: 0 16px; }}
@@ -645,6 +657,7 @@ button:active {{ transform: translateY(1px); }}
   .home-hero {{ padding-top: 10px; }}
   .search {{ flex-direction: row; }}
   .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
+  .hero {{ grid-template-columns: 110px 1fr; gap: var(--space-4); }}
   .episode {{ align-items: flex-start; flex-direction: column; }}
   .mobile-nav {{
     position: fixed; right: 12px; bottom: 12px; left: 12px; z-index: 30; display: grid;
