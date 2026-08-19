@@ -46,7 +46,11 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
         tracker,
         provider_name="tvmaze",
     )
-    views = LibraryViewService(repository, availability_provider)
+    views = LibraryViewService(
+        repository,
+        availability_provider,
+        watch_history,
+    )
     tv_progress = TVProgressTracker(tracker, repository)
     top_ten = TopTenService(repository)
     return create_web_app(importer, views, tv_progress, top_ten)
