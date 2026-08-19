@@ -53,6 +53,14 @@ class FakeRepository:
     def list_episode_watches(self, media_id: str) -> tuple[EpisodeWatch, ...]:
         return tuple(watch for watch in self.watches if watch.media_id == media_id)
 
+    def retract_latest_episode_watch(self, media_id: str, episode: EpisodeRef) -> bool:
+        for index in range(len(self.watches) - 1, -1, -1):
+            watch = self.watches[index]
+            if watch.media_id == media_id and watch.episode == episode:
+                del self.watches[index]
+                return True
+        return False
+
 
 def test_explicit_rewatch_appends_another_watch_without_changing_progress() -> None:
     repository = FakeRepository()
@@ -97,3 +105,38 @@ def test_tv_progress_rewatch_records_current_timestamp() -> None:
     progress_tracker.record_episode_rewatch(media.id, episode)
 
     assert repository.watches[-1] == EpisodeWatch(media.id, episode, rewatch)
+
+
+def test_mark_episode_unseen_retracts_one_watch_at_a_time() -> None:
+    repository = FakeRepository()
+    tracker = MediaTracker(repository, repository)
+    media = MediaItem("tvmaze:1", "Example", MediaType.TV_SERIES)
+    episode = EpisodeRef(1, 1)
+    tracker.add_media(media, LibraryStatus.IN_PROGRESS)
+    tracker.mark_episode_seen(media.id, episode)
+    tracker.record_episode_rewatch(media.id, episode)
+    tracker.record_episode_rewatch(media.id, episode)
+
+    first_step = tracker.mark_episode_unseen(media.id, episode)
+    second_step = tracker.mark_episode_unseen(media.id, episode)
+    final_step = tracker.mark_episode_unseen(media.id, episode)
+
+    assert first_step.has_seen(episode)
+    assert second_step.has_seen(episode)
+    assert not final_step.has_seen(episode)
+    assert repository.list_episode_watches(media.id) == ()
+
+
+def test_unseen_episode_can_be_marked_seen_again_after_retraction() -> None:
+    repository = FakeRepository()
+    tracker = MediaTracker(repository, repository)
+    media = MediaItem("tvmaze:1", "Example", MediaType.TV_SERIES)
+    episode = EpisodeRef(1, 1)
+    tracker.add_media(media, LibraryStatus.IN_PROGRESS)
+    tracker.mark_episode_seen(media.id, episode)
+    tracker.mark_episode_unseen(media.id, episode)
+
+    tracker.mark_episode_seen(media.id, episode)
+
+    assert tracker.get_episode_progress(media.id).has_seen(episode)
+    assert len(repository.list_episode_watches(media.id)) == 1

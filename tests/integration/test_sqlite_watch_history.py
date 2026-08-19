@@ -1,3 +1,4 @@
+import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -52,3 +53,28 @@ def test_sqlite_watch_history_migrates_legacy_seen_episode_without_fake_timestam
     history = _history(database_path)
 
     assert history.list_episode_watches(media.id) == (EpisodeWatch(media.id, episode),)
+
+
+def test_sqlite_watch_history_retracts_latest_watch_without_deleting_history(tmp_path: Path) -> None:
+    database_path = tmp_path / "reelore.db"
+    library = _library(database_path)
+    media = MediaItem("tvmaze:1", "Severance", MediaType.TV_SERIES)
+    library.save_media(media)
+    history = _history(database_path)
+    episode = EpisodeRef(1, 1)
+    first = EpisodeWatch(media.id, episode, datetime(2026, 8, 18, 20, 0, tzinfo=UTC))
+    second = EpisodeWatch(media.id, episode, datetime(2026, 8, 19, 20, 0, tzinfo=UTC))
+    history.record_episode_watch(first)
+    history.record_episode_watch(second)
+
+    retracted = history.retract_latest_episode_watch(media.id, episode)
+
+    assert retracted
+    assert history.list_episode_watches(media.id) == (first,)
+    with sqlite3.connect(database_path) as connection:
+        watch_rows = connection.execute("SELECT COUNT(*) FROM episode_watches").fetchone()[0]
+        retraction_rows = connection.execute(
+            "SELECT COUNT(*) FROM episode_watch_retractions"
+        ).fetchone()[0]
+    assert watch_rows == 2
+    assert retraction_rows == 1
