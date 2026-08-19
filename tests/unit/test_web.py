@@ -239,7 +239,7 @@ def test_catalog_preview_shows_metadata_without_importing_series() -> None:
     response = _client(importer=importer).get("/catalog/series/16740")
 
     assert response.status_code == 200
-    assert 'class="catalog-preview"' in response.text
+    assert 'class="catalog-preview series-hero"' in response.text
     assert "Severance" in response.text
     assert "Office workers have divided memories." in response.text
     assert "2022" in response.text
