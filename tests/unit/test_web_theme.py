@@ -27,6 +27,6 @@ def test_rendered_theme_exposes_compact_reversible_episode_controls() -> None:
 
     assert 'form[action$="/unseen"] button::before' in rendered
     assert 'form[action$="/rewatch"] button::before' in rendered
-    assert 'content: "−"' in rendered
+    assert 'content: "-"' in rendered
     assert 'content: "+"' in rendered
     assert ".episode-watch-count" in rendered
