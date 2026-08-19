@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 
 from reelore.application import (
     ImportedTVSeries,
+    TVCastMember,
     TVEpisodeMetadata,
     TVSearchResult,
     TVSeriesCatalog,
@@ -27,6 +28,7 @@ from reelore.web import create_web_app
 class StubImporter:
     def __init__(self) -> None:
         self.imported_ids: list[str] = []
+        self.previewed_ids: list[str] = []
 
     def search(self, query: str) -> tuple[TVSearchResult, ...]:
         assert query == "Severance"
@@ -39,6 +41,10 @@ class StubImporter:
                 image_url="https://img.example/severance.jpg",
             ),
         )
+
+    def preview_series(self, provider_id: str) -> TVSeriesCatalog:
+        self.previewed_ids.append(provider_id)
+        return _catalog(provider_id)
 
     def import_series(self, provider_id: str) -> ImportedTVSeries:
         self.imported_ids.append(provider_id)
@@ -190,13 +196,14 @@ def _catalog(provider_id: str) -> TVSeriesCatalog:
         title="Severance",
         summary="Office workers have divided memories.",
         status="Running",
-        premiered=None,
+        premiered=date(2022, 2, 18),
         ended=None,
         image_url="https://img.example/poster.jpg",
         episodes=(
             TVEpisodeMetadata("11", 1, 1, "Good News About Hell"),
             TVEpisodeMetadata("12", 1, 2, "Half Loop"),
         ),
+        cast=(TVCastMember("Adam Scott", "Mark Scout"),),
     )
 
 
@@ -224,6 +231,26 @@ def test_home_renders_tracking_top_ten_upcoming_and_library_previews() -> None:
     assert "Breaking Bad" in response.text
     assert "https://img.example/the-bear.jpg" in response.text
     assert "Severance" in response.text
+    assert 'href="/catalog/series/16740"' in response.text
+
+
+def test_catalog_preview_shows_metadata_without_importing_series() -> None:
+    importer = StubImporter()
+    response = _client(importer=importer).get("/catalog/series/16740")
+
+    assert response.status_code == 200
+    assert 'class="catalog-preview"' in response.text
+    assert "Severance" in response.text
+    assert "Office workers have divided memories." in response.text
+    assert "2022" in response.text
+    assert "1 stagione" in response.text
+    assert "2 episodi" in response.text
+    assert "Adam Scott" in response.text
+    assert "Mark Scout" in response.text
+    assert 'action="/series/16740/add"' in response.text
+    assert "Aggiungi alla libreria" in response.text
+    assert importer.previewed_ids == ["16740"]
+    assert importer.imported_ids == []
 
 
 def test_library_page_renders_complete_collection_and_status_filter() -> None:
