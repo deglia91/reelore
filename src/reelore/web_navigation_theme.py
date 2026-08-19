@@ -388,12 +388,13 @@ body {
   }
 
   .home-page #library {
-    order: 4;
-    width: 100%;
-    max-width: 100%;
+    display: contents;
   }
 
   .home-page #library > section:first-child {
+    order: 4;
+    width: 100%;
+    max-width: 100%;
     margin-top: var(--space-4);
   }
 
