@@ -10,11 +10,23 @@ def test_mobile_shell_moves_primary_actions_to_header() -> None:
     assert "display: none !important" in NAVIGATION_CSS
 
 
+def test_mobile_shell_uses_vector_brand_and_navigation_icons() -> None:
+    assert ".app-header .brand-mark::before" in NAVIGATION_CSS
+    assert "mask-image:" in NAVIGATION_CSS
+    assert "-webkit-mask-image:" in NAVIGATION_CSS
+    assert ".app-header .desktop-nav a::before" in NAVIGATION_CSS
+    assert 'content: "≫|"' not in NAVIGATION_CSS
+    assert 'content: "▦"' not in NAVIGATION_CSS
+    assert 'content: "▥"' not in NAVIGATION_CSS
+    assert 'content: "⌕"' not in NAVIGATION_CSS
+
+
 def test_mobile_search_is_compact_single_row_with_icon_button() -> None:
     assert ".home-page .search" in NAVIGATION_CSS
     assert "flex-direction: row" in NAVIGATION_CSS
     assert ".home-page .search button" in NAVIGATION_CSS
-    assert 'content: "⌕"' in NAVIGATION_CSS
+    assert ".home-page .search button::before" in NAVIGATION_CSS
+    assert "mask-image:" in NAVIGATION_CSS
 
 
 def test_mobile_home_prioritizes_continue_watching_after_search() -> None:
