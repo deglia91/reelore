@@ -190,6 +190,7 @@ def _render_home(
     upcoming_section = _render_upcoming_section(upcoming_episodes)
     top_ten_section = _render_top_ten_section(top_ten_items)
     library_sections = _render_home_library_sections(library_items)
+    search_icon = _render_icon("search", "search-icon")
     return _page(
         f"""<section class="home-hero" aria-labelledby="home-title">
 <p class="eyebrow">La tua raccolta personale</p>
@@ -198,7 +199,7 @@ def _render_home(
 </section>
 <form id="search" class="search" method="get" action="/">
 <input name="q" value="{escape(query, quote=True)}" placeholder="Cerca una serie TV...">
-<button type="submit">Cerca</button>
+<button type="submit"><span class="search-label">Cerca</span>{search_icon}</button>
 </form>
 {results_section}
 {upcoming_section}
@@ -714,12 +715,45 @@ def _render_image(image_url: str | None, title: str) -> str:
     return f'<img class="poster" src="{source}" alt="{alt}" loading="lazy">'
 
 
+def _render_icon(name: str, css_class: str) -> str:
+    paths = {
+        "next-episode": (
+            '<path d="M3 5l7 7-7 7"/>'
+            '<path d="M10 5l7 7-7 7"/>'
+            '<path d="M20 5v14"/>'
+        ),
+        "calendar": (
+            '<rect x="4" y="5" width="16" height="15" rx="2"/>'
+            '<path d="M7 3v4M17 3v4M4 9h16"/>'
+            '<path d="M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01"/>'
+        ),
+        "library": (
+            '<rect x="4" y="5" width="4" height="15" rx="1"/>'
+            '<rect x="10" y="3" width="4" height="17" rx="1"/>'
+            '<rect x="16" y="6" width="4" height="14" rx="1"/>'
+        ),
+        "search": '<circle cx="11" cy="11" r="6"/><path d="M16 16l5 5"/>',
+    }
+    path = paths[name]
+    return (
+        f'<svg class="{css_class}" data-icon="{name}" viewBox="0 0 24 24" '
+        f'aria-hidden="true">{path}</svg>'
+    )
+
+
 def _render_app_header() -> str:
-    return """<header class="app-header">
-<a class="brand" href="/" aria-label="Reelore Home"><span class="brand-mark">R</span>Reelore</a>
+    brand_icon = _render_icon("next-episode", "brand-icon")
+    calendar_icon = _render_icon("calendar", "nav-icon")
+    library_icon = _render_icon("library", "nav-icon")
+    search_icon = _render_icon("search", "nav-icon")
+    return f"""<header class="app-header">
+<a class="brand" href="/" aria-label="NextEp Home"><span class="brand-mark">{brand_icon}</span>NextEp</a>
 <nav class="desktop-nav" aria-label="Navigazione principale">
-<a href="/">Home</a><a href="/library">Libreria</a><a href="/calendar">Calendario</a>
-<a href="/#top-ten">Top 10</a><a href="/#search">Cerca</a>
+<a href="/">Home</a>
+<a href="/library">{library_icon}<span class="nav-label">Libreria</span></a>
+<a href="/calendar">{calendar_icon}<span class="nav-label">Calendario</span></a>
+<a href="/#top-ten">Top 10</a>
+<a href="/#search">{search_icon}<span class="nav-label">Cerca</span></a>
 </nav>
 </header>"""
 
@@ -770,6 +804,13 @@ body {{
   background: var(--color-accent); color: var(--color-accent-contrast);
   box-shadow: var(--shadow-raised);
 }}
+.brand-icon, .nav-icon, .search-icon {{
+  fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+}}
+.brand-icon {{ width: 22px; height: 22px; }}
+.nav-icon {{ display: none; width: 23px; height: 23px; }}
+.search-icon {{ display: none; width: 23px; height: 23px; }}
 .desktop-nav {{ display: flex; align-items: center; gap: 24px; }}
 .desktop-nav a {{ color: var(--color-text-muted); font-size: .92rem; text-decoration: none; }}
 .desktop-nav a:hover {{ color: var(--color-text); }}
@@ -864,6 +905,16 @@ button:active {{ transform: translateY(1px); }}
 @media (max-width: 720px) {{
   .app-header {{ min-height: 62px; padding: 0 16px; }}
   .desktop-nav {{ display: none; }}
+  .app-header .brand-mark::before,
+  .app-header .desktop-nav a::before,
+  .home-page .search button::before {{ display: none !important; }}
+  .app-header .brand::after {{ display: none; }}
+  .app-header .brand {{ font-size: 1.15rem; }}
+  .app-header .brand-mark {{ color: var(--color-accent-strong); }}
+  .app-header .desktop-nav .nav-icon {{ display: block; }}
+  .app-header .desktop-nav .nav-label {{ display: none; }}
+  .home-page .search .search-label {{ display: none; }}
+  .home-page .search .search-icon {{ display: block; }}
   main {{
     width: min(100% - 24px, var(--content-max)); padding-top: 24px;
     padding-bottom: 110px;
