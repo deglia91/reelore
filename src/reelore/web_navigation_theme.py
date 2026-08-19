@@ -1,6 +1,39 @@
 """Mobile-first layout for home rails, library browsing, calendar, and ranking."""
 
-NAVIGATION_CSS = """
+_LOGO_ICON = (
+    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "%3Cpath%20d=%27M3%205l7%207-7%207M10%205l7%207-7%207M20%205v14%27"
+    "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%272%27"
+    "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
+)
+_CALENDAR_ICON = (
+    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "%3Cpath%20d=%27M7%203v4M17%203v4M4%209h16M5%205h14a2%202%200%200%201%202%202v12"
+    "%20a2%202%200%200%201-2%202H5a2%202%200%200%201-2-2V7a2%202%200%200%201%202-2%27"
+    "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
+    "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
+)
+_LIBRARY_ICON = (
+    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "%3Cpath%20d=%27M4%205h4v15H4zM10%203h4v17h-4zM16%206h4v14h-4z%27"
+    "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
+    "%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
+)
+_SEARCH_ICON = (
+    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "%3Cpath%20d=%27M11%204a7%207%200%201%200%200%2014%207%207%200%200%200%200-14z"
+    "%20M16%2016l5%205%27%20fill=%27none%27%20stroke=%27black%27"
+    "%20stroke-width=%272%27%20stroke-linecap=%27round%27/%3E%3C/svg%3E"
+)
+
+NAVIGATION_CSS = (
+    ":root {\n"
+    f'  --next-ep-logo-icon: url("{_LOGO_ICON}");\n'
+    f'  --next-ep-calendar-icon: url("{_CALENDAR_ICON}");\n'
+    f'  --next-ep-library-icon: url("{_LIBRARY_ICON}");\n'
+    f'  --next-ep-search-icon: url("{_SEARCH_ICON}");\n'
+    "}\n"
+    + """
 html,
 body {
   width: 100%;
@@ -224,11 +257,18 @@ body {
   }
 
   .app-header .brand-mark::before {
-    content: "≫|";
-    color: var(--color-accent-strong);
-    font-size: 1.2rem;
-    font-weight: 850;
-    letter-spacing: -.18em;
+    width: 25px;
+    height: 25px;
+    content: "";
+    background: var(--color-accent-strong);
+    mask-image: var(--next-ep-logo-icon);
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    -webkit-mask-image: var(--next-ep-logo-icon);
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
   }
 
   .app-header .desktop-nav {
@@ -253,19 +293,32 @@ body {
     display: none;
   }
 
+  .app-header .desktop-nav a::before {
+    width: 23px;
+    height: 23px;
+    content: "";
+    background: currentcolor;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+  }
+
   .app-header .desktop-nav a[href="/calendar"]::before {
-    content: "▦";
-    font-size: 1.5rem;
+    mask-image: var(--next-ep-calendar-icon);
+    -webkit-mask-image: var(--next-ep-calendar-icon);
   }
 
   .app-header .desktop-nav a[href="/library"]::before {
-    content: "▥";
-    font-size: 1.55rem;
+    mask-image: var(--next-ep-library-icon);
+    -webkit-mask-image: var(--next-ep-library-icon);
   }
 
   .app-header .desktop-nav a[href="/#search"]::before {
-    content: "⌕";
-    font-size: 1.8rem;
+    mask-image: var(--next-ep-search-icon);
+    -webkit-mask-image: var(--next-ep-search-icon);
   }
 
   body .mobile-nav {
@@ -314,9 +367,18 @@ body {
   }
 
   .home-page .search button::before {
-    content: "⌕";
-    font-size: 1.7rem;
-    line-height: 1;
+    width: 23px;
+    height: 23px;
+    content: "";
+    background: currentcolor;
+    mask-image: var(--next-ep-search-icon);
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    -webkit-mask-image: var(--next-ep-search-icon);
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
   }
 
   .home-page .search-results {
@@ -541,3 +603,4 @@ body {
   }
 }
 """
+)
