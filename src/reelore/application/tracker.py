@@ -1,11 +1,19 @@
 """Application use cases for the personal media tracker."""
 
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import ClassVar, Protocol
 
 from reelore.application.catalog import TVSeriesCatalog
 from reelore.application.library import LibraryRepository
-from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus, MediaItem, PersonalMediaState
+from reelore.application.watch_history import WatchHistoryRepository
+from reelore.domain import (
+    EpisodeProgress,
+    EpisodeRef,
+    EpisodeWatch,
+    LibraryStatus,
+    MediaItem,
+    PersonalMediaState,
+)
 
 
 class MediaNotFoundError(LookupError):
@@ -15,8 +23,13 @@ class MediaNotFoundError(LookupError):
 class MediaTracker:
     """Coordinate personal tracking use cases through the library repository port."""
 
-    def __init__(self, repository: LibraryRepository) -> None:
+    def __init__(
+        self,
+        repository: LibraryRepository,
+        watch_history: WatchHistoryRepository | None = None,
+    ) -> None:
         self._repository = repository
+        self._watch_history = watch_history
 
     def add_media(self, media: MediaItem, status: LibraryStatus = LibraryStatus.PLANNED) -> None:
         self._repository.save_media(media)
@@ -35,8 +48,15 @@ class MediaTracker:
         self._repository.save_personal_state(state)
         return state
 
-    def mark_episode_seen(self, media_id: str, episode: EpisodeRef) -> EpisodeProgress:
+    def mark_episode_seen(
+        self,
+        media_id: str,
+        episode: EpisodeRef,
+        *,
+        watched_at: datetime | None = None,
+    ) -> EpisodeProgress:
         self._require_media(media_id)
+        self._record_first_watch(media_id, episode, watched_at)
         progress = self._repository.get_episode_progress(media_id).mark_seen(episode)
         self._repository.save_episode_progress(progress)
         return progress
@@ -50,6 +70,21 @@ class MediaTracker:
     def get_episode_progress(self, media_id: str) -> EpisodeProgress:
         self._require_media(media_id)
         return self._repository.get_episode_progress(media_id)
+
+    def _record_first_watch(
+        self,
+        media_id: str,
+        episode: EpisodeRef,
+        watched_at: datetime | None,
+    ) -> None:
+        if self._watch_history is None:
+            return
+        existing = self._watch_history.list_episode_watches(media_id)
+        if any(watch.episode == episode for watch in existing):
+            return
+        self._watch_history.record_episode_watch(
+            EpisodeWatch(media_id=media_id, episode=episode, watched_at=watched_at)
+        )
 
     def _require_media(self, media_id: str) -> MediaItem:
         media = self._repository.get_media(media_id)
@@ -135,10 +170,12 @@ class TVProgressTracker:
         store: TVProgressStore,
         *,
         today: date | None = None,
+        now: datetime | None = None,
     ) -> None:
         self._tracker = tracker
         self._store = store
         self._today = today
+        self._now = now
 
     def change_status(self, media_id: str, status: LibraryStatus) -> PersonalMediaState:
         if status is LibraryStatus.COMPLETED:
@@ -155,7 +192,8 @@ class TVProgressTracker:
         return self._tracker.record_completion(media_id)
 
     def mark_episode_seen(self, media_id: str, episode: EpisodeRef) -> EpisodeProgress:
-        progress = self._tracker.mark_episode_seen(media_id, episode)
+        watched_at = self._now or datetime.now(UTC)
+        progress = self._tracker.mark_episode_seen(media_id, episode, watched_at=watched_at)
         self._sync_after_seen(media_id, progress)
         return progress
 
