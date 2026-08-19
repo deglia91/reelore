@@ -28,6 +28,14 @@ def test_mobile_continue_watching_matches_compact_library_cards() -> None:
     assert "min-height: 44px" in NAVIGATION_CSS
 
 
+def test_mobile_continue_watching_aligns_episode_copy_and_actions() -> None:
+    assert "min-height: 92px" in NAVIGATION_CSS
+    assert ".next-episode strong" in NAVIGATION_CSS
+    assert "text-overflow: ellipsis" in NAVIGATION_CSS
+    assert "white-space: nowrap" in NAVIGATION_CSS
+    assert "margin-top: auto" in NAVIGATION_CSS
+
+
 def test_mobile_top_ten_is_visible_compact_poster_rail() -> None:
     assert ".home-page #top-ten" in NAVIGATION_CSS
     assert "display: block !important" in NAVIGATION_CSS
