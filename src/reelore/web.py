@@ -96,6 +96,8 @@ class TrackingService(Protocol):
 
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> object: ...
 
+    def remove_media(self, media_id: str) -> object: ...
+
 
 class TopTenTrackingService(Protocol):
     def assign(self, media_id: str, rank: int) -> object: ...
@@ -156,6 +158,11 @@ def create_web_app(
         if detail is None:
             return HTMLResponse("Serie non trovata", status_code=404)
         return HTMLResponse(_render_series_detail(detail))
+
+    @app.post("/series/{media_id}/remove")
+    def remove_series(media_id: str) -> RedirectResponse:
+        tracker.remove_media(media_id)
+        return RedirectResponse(url="/library", status_code=303)
 
     @app.post("/series/{media_id}/status")
     def change_status(
@@ -599,6 +606,10 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
 </div>
 {top_ten_controls}
 </div>
+<form class="status-form" method="post" action="/series/{media_id}/remove"
+      onsubmit="return confirm('Rimuovere questa serie dalla libreria e cancellare i dati personali di visione?')">
+<button class="secondary-button" type="submit">Rimuovi dalla libreria</button>
+</form>
 </div>
 </section>
 <div class="series-seasons">{season_html}</div>"""
