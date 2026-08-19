@@ -10,7 +10,12 @@ from reelore.application.catalog import TVCatalogProvider
 from reelore.application.library_view import LibraryViewService
 from reelore.application.localization import LocalizedTVCatalogProvider
 from reelore.application.tracker import TVProgressTracker
-from reelore.infrastructure import SQLiteLibraryRepository, TMDBItalianLocalizer, TVMazeProvider
+from reelore.infrastructure import (
+    SQLiteLibraryRepository,
+    SQLiteWatchHistoryRepository,
+    TMDBItalianLocalizer,
+    TVMazeProvider,
+)
 from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProvider
 from reelore.web import create_web_app
 
@@ -24,6 +29,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
 
     repository = SQLiteLibraryRepository(path)
     repository.initialize()
+    SQLiteWatchHistoryRepository(path).initialize()
     tracker = MediaTracker(repository)
     catalog_provider: TVCatalogProvider = TVMazeProvider()
     availability_provider = None
