@@ -4,7 +4,6 @@ NAVIGATION_CSS = """
 html,
 body {
   max-width: 100%;
-  overflow-x: clip;
 }
 
 .home-page main,
@@ -40,6 +39,8 @@ body {
   padding: var(--space-1) var(--space-1) var(--space-3);
   scroll-snap-type: x proximity;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 
 .home-rail::-webkit-scrollbar {
@@ -68,6 +69,8 @@ body {
   margin: var(--space-5) 0 var(--space-6);
   padding-bottom: var(--space-2);
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 
 .library-filters::-webkit-scrollbar {
@@ -117,6 +120,10 @@ body {
   .detail-page main {
     width: calc(100% - 24px);
     max-width: calc(100% - 24px);
+  }
+
+  .home-page .home-hero {
+    overflow: hidden;
   }
 
   .home-page .home-hero,
@@ -216,6 +223,8 @@ body {
     overscroll-behavior-inline: contain;
     padding: var(--space-1) 0 var(--space-3);
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
   }
 
   #top-ten .grid::-webkit-scrollbar {
