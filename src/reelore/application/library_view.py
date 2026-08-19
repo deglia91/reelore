@@ -46,6 +46,14 @@ class CurrentSeasonProgressView:
 
 
 @dataclass(frozen=True, slots=True)
+class RewatchProgressView:
+    pass_number: int
+    watched_episodes: int
+    total_episodes: int
+    next_episode: EpisodeRef | None
+
+
+@dataclass(frozen=True, slots=True)
 class LibraryItemView:
     media_id: str
     title: str
@@ -88,6 +96,7 @@ class TVSeriesDetailView:
     catalog: TVSeriesCatalog
     availability: tuple[SeasonAvailability, ...] = ()
     episode_watch_counts: tuple[tuple[EpisodeRef, int], ...] = ()
+    rewatch_progress: RewatchProgressView | None = None
 
     def watch_count(self, episode: EpisodeRef) -> int:
         for reference, count in self.episode_watch_counts:
@@ -189,13 +198,15 @@ class LibraryViewService:
         if state is None or catalog is None:
             return None
         progress = self._store.get_episode_progress(media_id)
+        episode_watch_counts = self._episode_watch_counts(media_id, progress)
         return TVSeriesDetailView(
             media_id=media_id,
             state=state,
             progress=progress,
             catalog=catalog,
             availability=self._availability_for(catalog),
-            episode_watch_counts=self._episode_watch_counts(media_id, progress),
+            episode_watch_counts=episode_watch_counts,
+            rewatch_progress=self._rewatch_progress(catalog, episode_watch_counts),
         )
 
     def _next_episode(
@@ -265,6 +276,39 @@ class LibraryViewService:
         for watch in self._watch_history.list_episode_watches(media_id):
             counts[watch.episode] = counts.get(watch.episode, 0) + 1
         return tuple(sorted(counts.items()))
+
+    def _rewatch_progress(
+        self,
+        catalog: TVSeriesCatalog,
+        episode_watch_counts: tuple[tuple[EpisodeRef, int], ...],
+    ) -> RewatchProgressView | None:
+        references = tuple(
+            EpisodeRef(episode.season_number, episode.episode_number)
+            for episode in sorted(
+                catalog.episodes,
+                key=lambda episode: (episode.season_number, episode.episode_number),
+            )
+        )
+        if not references:
+            return None
+        counts = dict(episode_watch_counts)
+        pass_number = counts.get(references[0], 0)
+        if pass_number < 2:
+            return None
+        watched_episodes = 0
+        next_episode: EpisodeRef | None = None
+        for reference in references:
+            if counts.get(reference, 0) >= pass_number:
+                watched_episodes += 1
+                continue
+            next_episode = reference
+            break
+        return RewatchProgressView(
+            pass_number=pass_number,
+            watched_episodes=watched_episodes,
+            total_episodes=len(references),
+            next_episode=next_episode,
+        )
 
     def _availability_for(self, catalog: TVSeriesCatalog) -> tuple[SeasonAvailability, ...]:
         availability = (
