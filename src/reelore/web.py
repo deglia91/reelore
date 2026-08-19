@@ -278,27 +278,19 @@ def _render_upcoming_episode(episode: UpcomingEpisodeView) -> str:
 def _render_home_platforms(availability: SeasonAvailability | None) -> str:
     if availability is None:
         return ""
-    seen_names: set[str] = set()
-    providers: list[str] = []
     for provider in availability.providers:
         if provider.availability_type not in _HOME_PLATFORM_TYPES:
             continue
-        if provider.name in seen_names:
+        if provider.logo_url is None:
             continue
-        seen_names.add(provider.name)
-        name = escape(provider.name)
-        if provider.logo_url is not None:
-            logo_url = escape(provider.logo_url, quote=True)
-            providers.append(
-                '<span class="upcoming-platform">'
-                f'<img src="{logo_url}" alt="" loading="lazy">'
-                f"<span>{name}</span></span>"
-            )
-        else:
-            providers.append(f'<span class="upcoming-platform">{name}</span>')
-    if not providers:
-        return ""
-    return f'<div class="upcoming-platforms">{"".join(providers)}</div>'
+        logo_url = escape(provider.logo_url, quote=True)
+        name = escape(provider.name, quote=True)
+        return (
+            '<div class="upcoming-platforms">'
+            f'<span class="upcoming-platform"><img src="{logo_url}" alt="{name}" loading="lazy">'
+            "</span></div>"
+        )
+    return ""
 
 
 def _render_calendar_page(
@@ -705,10 +697,7 @@ def _render_episode(
     )
     rewatch_action = ""
     if seen:
-        rewatch_url = (
-            f"/series/{media}/episodes/{reference.season_number}/"
-            f"{reference.episode_number}/rewatch"
-        )
+        rewatch_url = f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/rewatch"
         rewatch_action = f"""<form method="post" action="{rewatch_url}">
 <button class="secondary-button" type="submit">Rivisto +1</button>
 </form>"""
@@ -1008,10 +997,10 @@ button:active {{ transform: translateY(1px); }}
   padding: 12px 14px; background: var(--color-surface); border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
 }}
-.episode-actions {{ display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }}
 .episode-watch-count {{
   flex: 0 0 auto; color: var(--color-accent-strong); font-size: .76rem; font-weight: 800;
 }}
+.episode-actions {{ display: flex; align-items: center; gap: var(--space-2); }}
 .mobile-nav {{ display: none; }}
 @media (max-width: 720px) {{
   .app-header {{ min-height: 62px; padding: 0 16px; }}
@@ -1035,6 +1024,7 @@ button:active {{ transform: translateY(1px); }}
   .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
   .hero {{ grid-template-columns: 110px 1fr; gap: var(--space-4); }}
   .episode {{ align-items: flex-start; flex-direction: column; }}
+  .episode-actions {{ width: 100%; flex-wrap: wrap; }}
   .preview-page .series-hero {{ grid-template-columns: 104px minmax(0, 1fr); }}
   .preview-page .preview-add button {{ width: 100%; }}
   .home-page #upcoming .upcoming-card-content {{
