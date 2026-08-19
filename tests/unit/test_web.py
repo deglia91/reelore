@@ -200,7 +200,7 @@ def _catalog(provider_id: str) -> TVSeriesCatalog:
     )
 
 
-def test_home_renders_tracking_top_ten_upcoming_and_search_sections() -> None:
+def test_home_renders_tracking_top_ten_upcoming_and_library_previews() -> None:
     response = _client().get("/?q=Severance")
 
     assert response.status_code == 200
@@ -216,11 +216,32 @@ def test_home_renders_tracking_top_ten_upcoming_and_search_sections() -> None:
     assert "Segna visto" in response.text
     assert "In pari" in response.text
     assert "La tua libreria" in response.text
+    assert 'class="home-rail"' in response.text
+    assert 'href="/library"' in response.text
+    assert 'href="/library?status=in_progress"' in response.text
     assert "The Bear" in response.text
     assert "1/2 episodi" in response.text
     assert "Breaking Bad" in response.text
     assert "https://img.example/the-bear.jpg" in response.text
     assert "Severance" in response.text
+
+
+def test_library_page_renders_complete_collection_and_status_filter() -> None:
+    complete = _client().get("/library")
+    filtered = _client().get("/library?status=in_progress")
+
+    assert complete.status_code == 200
+    assert "La tua libreria" in complete.text
+    assert "The Bear" in complete.text
+    assert "Severance" in complete.text
+    assert "Breaking Bad" in complete.text
+    assert 'class="library-grid"' in complete.text
+    assert 'href="/library?status=in_progress"' in complete.text
+
+    assert filtered.status_code == 200
+    assert "The Bear" in filtered.text
+    assert "Severance" not in filtered.text
+    assert "Breaking Bad" not in filtered.text
 
 
 def test_home_quick_action_marks_next_episode_seen_and_returns_home() -> None:
