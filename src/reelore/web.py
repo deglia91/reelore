@@ -246,8 +246,8 @@ def _render_calendar_page(
     if not episodes:
         content = (
             '<div class="calendar-empty empty">'
-            '<h2>Nessuna uscita in programma</h2>'
-            '<p>Le nuove puntate delle serie che segui appariranno qui.</p>'
+            "<h2>Nessuna uscita in programma</h2>"
+            "<p>Le nuove puntate delle serie che segui appariranno qui.</p>"
             "</div>"
         )
     else:
@@ -744,8 +744,7 @@ def _render_app_header() -> str:
     search_icon = _render_icon("search", "nav-icon")
     return f"""<header class="app-header">
 <a class="brand" href="/" aria-label="NextEp Home">
-<span class="brand-mark">{brand_icon}</span>NextEp
-</a>
+<span class="brand-mark">{brand_icon}</span>NextEp</a>
 <nav class="desktop-nav" aria-label="Navigazione principale">
 <a href="/">Home</a>
 <a href="/library">{library_icon}<span class="nav-label">Libreria</span></a>
