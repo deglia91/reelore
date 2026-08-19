@@ -3,7 +3,9 @@
 NAVIGATION_CSS = """
 html,
 body {
+  width: 100%;
   max-width: 100%;
+  overflow-x: hidden;
 }
 
 .home-page main,
@@ -27,20 +29,18 @@ body {
 }
 
 .home-rail {
-  display: grid;
+  display: flex;
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(150px, 190px);
   gap: var(--space-3);
   overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior-inline: contain;
   padding: var(--space-1) var(--space-1) var(--space-3);
   scroll-snap-type: x proximity;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x;
 }
 
 .home-rail::-webkit-scrollbar {
@@ -48,6 +48,7 @@ body {
 }
 
 .home-rail > * {
+  flex: 0 0 180px;
   min-width: 0;
   scroll-snap-align: start;
 }
@@ -65,12 +66,12 @@ body {
   max-width: 100%;
   gap: var(--space-2);
   overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior-inline: contain;
   margin: var(--space-5) 0 var(--space-6);
   padding-bottom: var(--space-2);
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x;
 }
 
 .library-filters::-webkit-scrollbar {
@@ -138,9 +139,8 @@ body {
     overflow-wrap: anywhere;
   }
 
-  .home-rail {
-    grid-auto-columns: 40vw;
-    padding-right: var(--space-3);
+  .home-rail > * {
+    flex: 0 0 40vw;
   }
 
   .home-rail .content {
@@ -220,11 +220,11 @@ body {
     max-width: 100%;
     gap: var(--space-3);
     overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior-inline: contain;
     padding: var(--space-1) 0 var(--space-3);
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-x;
   }
 
   #top-ten .grid::-webkit-scrollbar {
