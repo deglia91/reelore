@@ -20,7 +20,7 @@ from reelore.infrastructure.tmdb import (
 
 
 class TMDBItalianAvailabilityProvider(TMDBAdapter):
-    """Resolve season-level Italian availability supplied by TMDB/JustWatch."""
+    """Resolve Italian availability supplied by TMDB/JustWatch."""
 
     _PROVIDER_GROUPS: ClassVar[tuple[tuple[str, AvailabilityType], ...]] = (
         ("flatrate", AvailabilityType.STREAM),
@@ -51,20 +51,38 @@ class TMDBItalianAvailabilityProvider(TMDBAdapter):
         if match is None:
             return None
         tmdb_id = required_int(match, "id")
-        payload = self._get(f"/tv/{tmdb_id}/season/{season_number}/watch/providers")
-        regions = as_mapping(payload.get("results", {}))
         region_code = region.upper()
-        region_payload_raw = regions.get(region_code)
-        if region_payload_raw is None:
+        season_payload = self._get(f"/tv/{tmdb_id}/season/{season_number}/watch/providers")
+        region_payload = self._region_payload(season_payload, region_code)
+        providers = self._providers(region_payload) if region_payload is not None else ()
+
+        if not providers:
+            series_payload = self._get(f"/tv/{tmdb_id}/watch/providers")
+            region_payload = self._region_payload(series_payload, region_code)
+            if region_payload is None:
+                return None
+            providers = self._providers(region_payload)
+
+        if not providers:
             return None
-        region_payload = as_mapping(region_payload_raw)
         return SeasonAvailability(
             season_number=season_number,
             region=region_code,
-            providers=self._providers(region_payload),
+            providers=providers,
             source="JustWatch",
             source_url=text_or_none(region_payload.get("link")),
         )
+
+    def _region_payload(
+        self,
+        payload: Mapping[str, object],
+        region: str,
+    ) -> Mapping[str, object] | None:
+        regions = as_mapping(payload.get("results", {}))
+        region_payload = regions.get(region)
+        if region_payload is None:
+            return None
+        return as_mapping(region_payload)
 
     def _providers(
         self,
