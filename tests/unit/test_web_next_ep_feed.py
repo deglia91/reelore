@@ -20,6 +20,17 @@ def test_mobile_upcoming_is_visible_compact_episode_list() -> None:
     assert "grid-template-columns: 68px minmax(0, 1fr)" in NAVIGATION_CSS
 
 
+def test_home_upcoming_limits_visible_preview_to_three_cards() -> None:
+    assert ".home-page #upcoming .card:nth-child(n + 4)" in NAVIGATION_CSS
+    assert "display: none" in NAVIGATION_CSS
+
+
+def test_mobile_upcoming_shows_italian_platform_availability() -> None:
+    assert ".home-page #upcoming .upcoming-availability" in NAVIGATION_CSS
+    assert "display: flex" in NAVIGATION_CSS
+    assert ".home-page #upcoming .availability-source" in NAVIGATION_CSS
+
+
 def test_mobile_continue_watching_matches_compact_library_cards() -> None:
     assert "#library .home-rail .card:has(.quick-action)" in NAVIGATION_CSS
     assert "flex: 0 0 40vw" in NAVIGATION_CSS

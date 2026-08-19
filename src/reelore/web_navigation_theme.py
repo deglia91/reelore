@@ -220,6 +220,10 @@ body {
   margin-bottom: 0;
 }
 
+.home-page #upcoming .card:nth-child(n + 4) {
+  display: none;
+}
+
 #top-ten .top-ten-rank {
   z-index: 3;
 }
@@ -592,6 +596,18 @@ body {
   }
 
   .home-page #upcoming .upcoming-availability {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 3px 6px;
+    margin-top: 4px;
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: .68rem;
+    line-height: 1.25;
+  }
+
+  .home-page #upcoming .availability-source {
     display: none;
   }
 
