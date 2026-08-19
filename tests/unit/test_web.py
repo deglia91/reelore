@@ -215,7 +215,7 @@ def test_home_renders_tracking_top_ten_upcoming_and_library_previews() -> None:
     assert response.status_code == 200
     assert "Prossime uscite" in response.text
     assert "S03E01" in response.text
-    assert "10/01/2027" in response.text
+    assert "10 gen" in response.text
     assert "Future Episode" in response.text
     assert "La tua Top 10" in response.text
     assert "#2" in response.text
