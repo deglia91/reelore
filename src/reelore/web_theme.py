@@ -13,6 +13,7 @@ FOUNDATION_CSS = """
   --radius-md: 14px;
   --radius-lg: 22px;
   --content-max: 1180px;
+  --mobile-nav-height: 62px;
   --motion-fast: 150ms;
   --motion-base: 250ms;
   --font-sans: Inter, ui-sans-serif, system-ui, -apple-system,
@@ -141,6 +142,11 @@ a:focus-visible {
 .home-page .section-heading {
   padding-bottom: var(--space-2);
   border-bottom: 1px solid color-mix(in srgb, var(--color-border) 62%, transparent);
+}
+
+.search-results {
+  margin-top: 0;
+  margin-bottom: var(--space-6);
 }
 
 #library {
@@ -524,12 +530,22 @@ a:focus-visible {
 
 @media (max-width: 720px) {
   .home-page .home-hero {
-    padding-top: var(--space-5);
-    padding-bottom: var(--space-3);
+    margin-bottom: 0;
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-2);
+  }
+
+  .home-page .home-hero .sub {
+    margin-bottom: 0;
+    line-height: 1.45;
   }
 
   .home-page .search {
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-5);
+  }
+
+  .search-results {
+    margin-bottom: var(--space-5);
   }
 
   #library > section {
@@ -577,7 +593,7 @@ a:focus-visible {
   }
 
   .series-hero {
-    grid-template-columns: 112px minmax(0, 1fr);
+    grid-template-columns: 104px minmax(0, 1fr);
     gap: var(--space-4);
     padding: var(--space-4);
   }
@@ -586,13 +602,30 @@ a:focus-visible {
     display: none;
   }
 
+  .series-hero-content {
+    gap: var(--space-3);
+  }
+
+  .series-hero-content h1 {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+
   .series-hero .summary {
     grid-column: 1 / -1;
+    margin: 0;
+    font-size: .94rem;
+    line-height: 1.5;
   }
 
   .tracking-panel {
     grid-column: 1 / -1;
     grid-template-columns: 1fr;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .tracking-panel > div {
+    padding: var(--space-3);
   }
 
   .tracking-panel .top-ten-controls {
@@ -600,24 +633,43 @@ a:focus-visible {
   }
 
   .season-section {
-    margin-top: var(--space-6);
+    margin-top: var(--space-5);
   }
 
   .episode {
-    align-items: stretch;
+    min-height: 68px;
+    align-items: center;
+    flex-direction: row;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
   }
 
   .episode-copy {
-    align-items: flex-start;
+    align-items: center;
+    flex: 1;
+    gap: var(--space-2);
   }
 
   .episode-copy span {
-    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .episode form,
+  .episode form {
+    flex: 0 0 auto;
+  }
+
   .episode button {
-    width: 100%;
+    width: auto;
+    min-width: 92px;
+    padding: 8px 10px;
+    font-size: .78rem;
+  }
+
+  .mobile-nav {
+    min-height: var(--mobile-nav-height);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
@@ -646,7 +698,7 @@ a:focus-visible {
   }
 
   .series-hero {
-    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-columns: 88px minmax(0, 1fr);
   }
 
   .series-stats span {
