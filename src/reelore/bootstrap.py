@@ -29,8 +29,9 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
 
     repository = SQLiteLibraryRepository(path)
     repository.initialize()
-    SQLiteWatchHistoryRepository(path).initialize()
-    tracker = MediaTracker(repository)
+    watch_history = SQLiteWatchHistoryRepository(path)
+    watch_history.initialize()
+    tracker = MediaTracker(repository, watch_history)
     catalog_provider: TVCatalogProvider = TVMazeProvider()
     availability_provider = None
     if tmdb_token:
