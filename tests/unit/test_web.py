@@ -220,10 +220,11 @@ def test_home_renders_tracking_top_ten_upcoming_and_library_previews() -> None:
     assert "La tua Top 10" in response.text
     assert "#2" in response.text
     assert "Continua a guardare" in response.text
-    assert "Stagione 01 · 01x01 di 2" in response.text
+    assert "Stagione 01 · 01x01 di 2" not in response.text
     assert "Prossimo: 01x02" in response.text
     assert "Second Course" in response.text
-    assert "Segna 01x02 visto" in response.text
+    assert ">Visto</button>" in response.text
+    assert "Segna 01x02 visto" not in response.text
     assert "In pari" in response.text
     assert "La tua libreria" in response.text
     assert 'class="home-rail"' in response.text
