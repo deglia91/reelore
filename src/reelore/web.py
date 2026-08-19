@@ -79,7 +79,9 @@ def create_web_app(
         )
 
     @app.get("/library", response_class=HTMLResponse)
-    def library(status: LibraryStatus | None = Query(default=None)) -> HTMLResponse:
+    def library(
+        status: Annotated[LibraryStatus | None, Query()] = None,
+    ) -> HTMLResponse:
         items = views.list_items(date.today())
         if status is not None:
             items = tuple(item for item in items if item.status is status)
