@@ -348,13 +348,14 @@ def _render_catalog_preview(catalog: TVSeriesCatalog) -> str:
     season_label = "stagione" if season_count == 1 else "stagioni"
     episode_label = "episodio" if episode_count == 1 else "episodi"
     cast = "".join(
-        '<li><strong>'
-        f"{escape(member.person_name)}</strong> · {escape(member.character_name)}</li>"
+        f"<li><strong>{escape(member.person_name)}</strong> · {escape(member.character_name)}</li>"
         for member in catalog.cast[:8]
     )
     cast_section = ""
     if cast:
-        cast_section = f'<section class="preview-cast"><h2>Cast principale</h2><ul>{cast}</ul></section>'
+        cast_section = (
+            f'<section class="preview-cast"><h2>Cast principale</h2><ul>{cast}</ul></section>'
+        )
     provider_id = escape(catalog.provider_id, quote=True)
     return _page(
         f"""<a class="back" href="/#search">← Ricerca</a>
@@ -580,11 +581,20 @@ def _render_library_item(item: LibraryItemView, quick_action: bool) -> str:
     image = _render_image(item.image_url, item.title)
     media_id = escape(item.media_id, quote=True)
     status = _status_label(item.status)
-    progress = f"{item.seen_episodes}/{item.total_episodes} episodi"
+    overall_progress = f"{item.seen_episodes}/{item.total_episodes} episodi"
     rewatch = f" · Rivista {item.rewatch_count}x" if item.rewatch_count else ""
     next_episode = item.next_episode
+    season_progress = item.current_season_progress
     if quick_action and next_episode is not None:
-        reference = f"S{next_episode.season_number:02}E{next_episode.episode_number:02}"
+        reference = f"{next_episode.season_number:02}x{next_episode.episode_number:02}"
+        progress = overall_progress
+        if season_progress is not None:
+            progress = (
+                f"Stagione {season_progress.season_number:02} · "
+                f"{season_progress.season_number:02}x"
+                f"{season_progress.last_seen_episode_number:02} di "
+                f"{season_progress.total_episodes}"
+            )
         action_url = (
             f"/series/{media_id}/episodes/{next_episode.season_number}/"
             f"{next_episode.episode_number}/seen/home"
@@ -594,19 +604,19 @@ def _render_library_item(item: LibraryItemView, quick_action: bool) -> str:
 {image}
 <div class="content">
 <p class="title">{escape(item.title)}</p>
-<div class="meta">{status} · {progress}{rewatch}</div>
-<p class="next-episode"><strong>{reference}</strong> {escape(next_episode.title)}</p>
+<div class="meta">{progress}{rewatch}</div>
+<p class="next-episode"><strong>Prossimo: {reference}</strong> {escape(next_episode.title)}</p>
 </div>
 </a>
 <form class="quick-action" method="post" action="{action_url}">
-<button type="submit">Segna visto</button>
+<button type="submit">Segna {reference} visto</button>
 </form>
 </article>"""
     return f"""<a class="card card-link" href="/series/{media_id}">
 {image}
 <div class="content">
 <p class="title">{escape(item.title)}</p>
-<div class="meta">{status} · {progress}{rewatch}</div>
+<div class="meta">{status} · {overall_progress}{rewatch}</div>
 </div>
 </a>"""
 
