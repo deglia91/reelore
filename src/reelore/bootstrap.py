@@ -15,6 +15,7 @@ from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProv
 from reelore.web import create_web_app
 
 _DEFAULT_DATABASE_PATH = "data/reelore.db"
+_DEFAULT_ENV_PATH = Path(".env")
 
 
 def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> FastAPI:
@@ -45,6 +46,24 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
 
 
 def build_default_app() -> FastAPI:
+    _load_env_file(_DEFAULT_ENV_PATH)
     database_path = os.environ.get("REELORE_DB_PATH", _DEFAULT_DATABASE_PATH)
     tmdb_token = os.environ.get("TMDB_API_TOKEN")
     return build_app(database_path, tmdb_token=tmdb_token)
+
+
+def _load_env_file(path: Path) -> None:
+    if not path.is_file():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, raw_value = line.split("=", 1)
+        key = key.strip()
+        if not key:
+            continue
+        value = raw_value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+            value = value[1:-1]
+        os.environ.setdefault(key, value)
