@@ -447,7 +447,10 @@ def _render_results_section(query: str, content: str) -> str:
     if not query:
         return ""
     heading = f'Risultati per "{escape(query)}"'
-    return f'<section class="search-results"><h2>{heading}</h2><div class="grid">{content}</div></section>'
+    return (
+        f'<section class="search-results"><h2>{heading}</h2>'
+        f'<div class="grid">{content}</div></section>'
+    )
 
 
 def _render_search_result(result: TVSearchResult) -> str:
