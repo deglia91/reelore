@@ -55,6 +55,14 @@ class FakeLibraryRepository:
     def list_episode_watches(self, media_id: str) -> tuple[EpisodeWatch, ...]:
         return tuple(watch for watch in self.watches if watch.media_id == media_id)
 
+    def retract_latest_episode_watch(self, media_id: str, episode: EpisodeRef) -> bool:
+        for index in range(len(self.watches) - 1, -1, -1):
+            watch = self.watches[index]
+            if watch.media_id == media_id and watch.episode == episode:
+                del self.watches[index]
+                return True
+        return False
+
 
 def _severance(media_id: str = "severance") -> MediaItem:
     return MediaItem(id=media_id, title="Severance", media_type=MediaType.TV_SERIES)
