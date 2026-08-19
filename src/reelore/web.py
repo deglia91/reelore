@@ -92,6 +92,8 @@ class TrackingService(Protocol):
 
     def mark_episode_seen(self, media_id: str, episode: EpisodeRef) -> object: ...
 
+    def record_episode_rewatch(self, media_id: str, episode: EpisodeRef) -> object: ...
+
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> object: ...
 
 
@@ -181,6 +183,11 @@ def create_web_app(
     @app.post("/series/{media_id}/episodes/{season}/{episode}/seen")
     def mark_seen(media_id: str, season: int, episode: int) -> RedirectResponse:
         tracker.mark_episode_seen(media_id, EpisodeRef(season, episode))
+        return RedirectResponse(url=f"/series/{media_id}", status_code=303)
+
+    @app.post("/series/{media_id}/episodes/{season}/{episode}/rewatch")
+    def record_rewatch(media_id: str, season: int, episode: int) -> RedirectResponse:
+        tracker.record_episode_rewatch(media_id, EpisodeRef(season, episode))
         return RedirectResponse(url=f"/series/{media_id}", status_code=303)
 
     @app.post("/series/{media_id}/episodes/{season}/{episode}/seen/home")
@@ -696,13 +703,25 @@ def _render_episode(
     action_url = (
         f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
     )
+    rewatch_action = ""
+    if seen:
+        rewatch_url = (
+            f"/series/{media}/episodes/{reference.season_number}/"
+            f"{reference.episode_number}/rewatch"
+        )
+        rewatch_action = f"""<form method="post" action="{rewatch_url}">
+<button class="secondary-button" type="submit">Rivisto +1</button>
+</form>"""
     return f"""<div class="episode">
 <div class="episode-copy">
 <strong>{display_ref}</strong><span>{escape(title)}</span>{watch_badge}
 </div>
+<div class="episode-actions">
 <form method="post" action="{action_url}">
 <button type="submit">{label}</button>
 </form>
+{rewatch_action}
+</div>
 </div>"""
 
 
@@ -989,6 +1008,7 @@ button:active {{ transform: translateY(1px); }}
   padding: 12px 14px; background: var(--color-surface); border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
 }}
+.episode-actions {{ display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }}
 .episode-watch-count {{
   flex: 0 0 auto; color: var(--color-accent-strong); font-size: .76rem; font-weight: 800;
 }}
