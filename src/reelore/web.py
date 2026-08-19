@@ -548,6 +548,7 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
                 episode.title,
                 reference,
                 progress.has_seen(reference),
+                detail.watch_count(reference),
             )
         )
     season_sections: list[str] = []
@@ -683,16 +684,20 @@ def _render_episode(
     title: str,
     reference: EpisodeRef,
     seen: bool,
+    watch_count: int,
 ) -> str:
     action = "unseen" if seen else "seen"
     label = "Visto ✓" if seen else "Segna visto"
+    watch_badge = (
+        f'<small class="episode-watch-count">{watch_count}x</small>' if watch_count > 0 else ""
+    )
     media = escape(media_id, quote=True)
     display_ref = f"S{reference.season_number:02}E{reference.episode_number:02}"
     action_url = (
         f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
     )
     return f"""<div class="episode">
-<div class="episode-copy"><strong>{display_ref}</strong><span>{escape(title)}</span></div>
+<div class="episode-copy"><strong>{display_ref}</strong><span>{escape(title)}</span>{watch_badge}</div>
 <form method="post" action="{action_url}">
 <button type="submit">{label}</button>
 </form>
@@ -981,6 +986,9 @@ button:active {{ transform: translateY(1px); }}
   display: flex; justify-content: space-between; gap: var(--space-4); align-items: center;
   padding: 12px 14px; background: var(--color-surface); border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
+}}
+.episode-watch-count {{
+  flex: 0 0 auto; color: var(--color-accent-strong); font-size: .76rem; font-weight: 800;
 }}
 .mobile-nav {{ display: none; }}
 @media (max-width: 720px) {{
