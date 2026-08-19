@@ -21,5 +21,6 @@ def test_home_rails_use_flex_scrolling_inside_the_viewport() -> None:
 def test_mobile_top_ten_is_a_compact_horizontal_rail() -> None:
     assert "#top-ten .grid" in NAVIGATION_CSS
     assert "display: flex" in NAVIGATION_CSS
-    assert "flex: 0 0 26vw" in NAVIGATION_CSS
-    assert "font-size: .8rem" in NAVIGATION_CSS
+    assert "flex: 0 0 118px" in NAVIGATION_CSS
+    assert "width: 118px" in NAVIGATION_CSS
+    assert "font-size: .74rem" in NAVIGATION_CSS
