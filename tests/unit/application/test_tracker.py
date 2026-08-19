@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import UTC, date, datetime
 
 import pytest
 
@@ -9,6 +9,7 @@ from reelore.application.tracker import TVProgressTracker
 from reelore.domain import (
     EpisodeProgress,
     EpisodeRef,
+    EpisodeWatch,
     LibraryStatus,
     MediaItem,
     MediaType,
@@ -22,6 +23,7 @@ class FakeLibraryRepository:
     states: dict[str, PersonalMediaState] = field(default_factory=dict)
     progress: dict[str, EpisodeProgress] = field(default_factory=dict)
     catalogs: dict[str, TVSeriesCatalog] = field(default_factory=dict)
+    watches: list[EpisodeWatch] = field(default_factory=list)
 
     def save_media(self, media: MediaItem) -> None:
         self.media[media.id] = media
@@ -46,6 +48,12 @@ class FakeLibraryRepository:
 
     def get_tv_series_catalog(self, provider_id: str) -> TVSeriesCatalog | None:
         return self.catalogs.get(provider_id)
+
+    def record_episode_watch(self, watch: EpisodeWatch) -> None:
+        self.watches.append(watch)
+
+    def list_episode_watches(self, media_id: str) -> tuple[EpisodeWatch, ...]:
+        return tuple(watch for watch in self.watches if watch.media_id == media_id)
 
 
 def _severance(media_id: str = "severance") -> MediaItem:
@@ -109,6 +117,20 @@ def test_episode_seen_and_unseen_are_idempotent() -> None:
     progress = tracker.mark_episode_unseen(media.id, episode)
 
     assert progress.seen_count == 0
+
+
+def test_episode_seen_records_only_first_watch_in_history() -> None:
+    repository = FakeLibraryRepository()
+    tracker = MediaTracker(repository, repository)
+    media = _severance()
+    episode = EpisodeRef(1, 1)
+    watched_at = datetime(2026, 8, 19, 20, 30, tzinfo=UTC)
+    tracker.add_media(media)
+
+    tracker.mark_episode_seen(media.id, episode, watched_at=watched_at)
+    tracker.mark_episode_seen(media.id, episode, watched_at=watched_at)
+
+    assert repository.watches == [EpisodeWatch(media.id, episode, watched_at)]
 
 
 def test_tracking_unknown_media_fails_explicitly() -> None:
@@ -183,6 +205,25 @@ def test_tv_progress_starts_series_after_first_seen_episode() -> None:
     assert repository.states[media.id].status is LibraryStatus.IN_PROGRESS
 
 
+def test_tv_progress_records_timestamp_for_real_episode_watch() -> None:
+    repository = FakeLibraryRepository()
+    media = _severance("tvmaze:1")
+    tracker = MediaTracker(repository, repository)
+    tracker.add_media(media)
+    repository.catalogs["1"] = _catalog()
+    watched_at = datetime(2026, 8, 19, 21, 15, tzinfo=UTC)
+    progress_tracker = TVProgressTracker(
+        tracker,
+        repository,
+        today=date(2026, 8, 19),
+        now=watched_at,
+    )
+
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 1))
+
+    assert repository.watches == [EpisodeWatch(media.id, EpisodeRef(1, 1), watched_at)]
+
+
 def test_tv_progress_marks_running_series_up_to_date_when_available_episodes_are_seen() -> None:
     repository = FakeLibraryRepository()
     media = _severance("tvmaze:1")
@@ -216,7 +257,7 @@ def test_tv_progress_completes_ended_series_when_all_episodes_are_seen() -> None
 def test_tv_progress_marking_completed_marks_all_catalog_episodes_seen() -> None:
     repository = FakeLibraryRepository()
     media = _severance("tvmaze:1")
-    tracker = MediaTracker(repository)
+    tracker = MediaTracker(repository, repository)
     tracker.add_media(media)
     repository.catalogs["1"] = _catalog("Ended")
     progress_tracker = TVProgressTracker(tracker, repository)
@@ -226,6 +267,7 @@ def test_tv_progress_marking_completed_marks_all_catalog_episodes_seen() -> None
     progress = repository.get_episode_progress(media.id)
     assert state.status is LibraryStatus.COMPLETED
     assert progress.seen_episodes == frozenset({EpisodeRef(1, 1), EpisodeRef(1, 2)})
+    assert [watch.watched_at for watch in repository.watches] == [None, None]
 
 
 def test_tv_progress_does_not_override_paused_or_dropped_status() -> None:
