@@ -55,7 +55,9 @@ def test_sqlite_watch_history_migrates_legacy_seen_episode_without_fake_timestam
     assert history.list_episode_watches(media.id) == (EpisodeWatch(media.id, episode),)
 
 
-def test_sqlite_watch_history_retracts_latest_watch_without_deleting_history(tmp_path: Path) -> None:
+def test_sqlite_watch_history_retracts_latest_watch_without_deleting_history(
+    tmp_path: Path,
+) -> None:
     database_path = tmp_path / "reelore.db"
     library = _library(database_path)
     media = MediaItem("tvmaze:1", "Severance", MediaType.TV_SERIES)
