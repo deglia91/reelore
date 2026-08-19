@@ -1,4 +1,4 @@
-"""Mobile-first layout for home rails, library browsing, and ranking."""
+"""Mobile-first layout for home rails, library browsing, calendar, and ranking."""
 
 NAVIGATION_CSS = """
 html,
@@ -10,6 +10,7 @@ body {
 
 .home-page main,
 .library-page main,
+.calendar-page main,
 .detail-page main {
   max-width: 100%;
   min-width: 0;
@@ -17,6 +18,7 @@ body {
 
 .home-page main > *,
 .library-page main > *,
+.calendar-page main > *,
 .detail-page main > * {
   min-width: 0;
 }
@@ -57,7 +59,8 @@ body {
   aspect-ratio: 2 / 3;
 }
 
-.library-page-heading {
+.library-page-heading,
+.calendar-page-heading {
   margin-top: 0;
 }
 
@@ -103,6 +106,80 @@ body {
   gap: var(--space-4);
 }
 
+.calendar-agenda {
+  display: grid;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.calendar-day {
+  margin-top: 0;
+}
+
+.calendar-day-heading {
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.calendar-day-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.calendar-entry {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: var(--space-4);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-decoration: none;
+}
+
+.calendar-entry-poster .poster,
+.calendar-entry-poster .placeholder {
+  display: block;
+  width: 82px;
+  height: 122px;
+  aspect-ratio: auto;
+  object-fit: cover;
+}
+
+.calendar-entry-copy {
+  align-self: center;
+  min-width: 0;
+  padding: var(--space-3) var(--space-3) var(--space-3) 0;
+}
+
+.calendar-entry-copy .meta {
+  margin-bottom: var(--space-1);
+}
+
+.calendar-episode-title {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: .9rem;
+  line-height: 1.35;
+}
+
+.calendar-empty {
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.calendar-empty h2,
+.calendar-empty p {
+  margin-top: 0;
+}
+
+.calendar-empty p {
+  margin-bottom: 0;
+}
+
 #top-ten .top-ten-rank {
   z-index: 3;
 }
@@ -110,6 +187,7 @@ body {
 @media (max-width: 720px) {
   .home-page .app-header,
   .library-page .app-header,
+  .calendar-page .app-header,
   .detail-page .app-header {
     width: 100%;
     max-width: 100vw;
@@ -118,6 +196,7 @@ body {
 
   .home-page main,
   .library-page main,
+  .calendar-page main,
   .detail-page main {
     width: calc(100% - 24px);
     max-width: calc(100% - 24px);
@@ -224,6 +303,49 @@ body {
   .library-grid .meta {
     margin-bottom: 0;
     font-size: .74rem;
+  }
+
+  .calendar-page-heading h1 {
+    font-size: clamp(2.2rem, 12vw, 3.2rem);
+  }
+
+  .calendar-page-heading .sub {
+    font-size: .92rem;
+    line-height: 1.45;
+  }
+
+  .calendar-agenda {
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+  }
+
+  .calendar-entry {
+    grid-template-columns: 68px minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .calendar-entry-poster .poster,
+  .calendar-entry-poster .placeholder {
+    width: 68px;
+    height: 102px;
+  }
+
+  .calendar-entry-copy {
+    padding: var(--space-2) var(--space-3) var(--space-2) 0;
+  }
+
+  .calendar-entry-copy .title {
+    margin-bottom: var(--space-1);
+    font-size: .9rem;
+  }
+
+  .calendar-entry-copy .meta,
+  .calendar-entry-copy .upcoming-availability {
+    font-size: .74rem;
+  }
+
+  .calendar-episode-title {
+    font-size: .82rem;
   }
 
   #top-ten .grid {
