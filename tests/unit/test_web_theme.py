@@ -20,3 +20,13 @@ def test_rendered_theme_combines_foundation_and_skin() -> None:
 
     assert FOUNDATION_CSS in rendered
     assert REEL_ORE_SKIN_CSS in rendered
+
+
+def test_rendered_theme_exposes_compact_reversible_episode_controls() -> None:
+    rendered = render_theme_css()
+
+    assert 'form[action$="/unseen"] button::before' in rendered
+    assert 'form[action$="/rewatch"] button::before' in rendered
+    assert 'content: "−"' in rendered
+    assert 'content: "+"' in rendered
+    assert ".episode-watch-count" in rendered
