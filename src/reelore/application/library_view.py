@@ -27,6 +27,14 @@ class NextEpisodeView:
 
 
 @dataclass(frozen=True, slots=True)
+class CurrentSeasonProgressView:
+    season_number: int
+    last_seen_episode_number: int
+    seen_episodes: int
+    total_episodes: int
+
+
+@dataclass(frozen=True, slots=True)
 class LibraryItemView:
     media_id: str
     title: str
@@ -37,6 +45,7 @@ class LibraryItemView:
     seen_episodes: int
     total_episodes: int
     next_episode: NextEpisodeView | None = None
+    current_season_progress: CurrentSeasonProgressView | None = None
     top_ten_rank: int | None = None
 
 
@@ -100,6 +109,7 @@ class LibraryViewService:
                     seen_episodes=progress.seen_count,
                     total_episodes=len(catalog.episodes) if catalog is not None else 0,
                     next_episode=self._next_episode(catalog, progress, current_date),
+                    current_season_progress=self._current_season_progress(catalog, progress),
                     top_ten_rank=state.top_ten_rank,
                 )
             )
@@ -191,6 +201,36 @@ class LibraryViewService:
                     title=episode.title,
                 )
         return None
+
+    def _current_season_progress(
+        self,
+        catalog: TVSeriesCatalog | None,
+        progress: EpisodeProgress,
+    ) -> CurrentSeasonProgressView | None:
+        if catalog is None:
+            return None
+        seen_episodes = [
+            episode
+            for episode in catalog.episodes
+            if progress.has_seen(EpisodeRef(episode.season_number, episode.episode_number))
+        ]
+        if not seen_episodes:
+            return None
+        current_season = max(episode.season_number for episode in seen_episodes)
+        current_season_episodes = [
+            episode for episode in catalog.episodes if episode.season_number == current_season
+        ]
+        seen_in_season = [
+            episode
+            for episode in current_season_episodes
+            if progress.has_seen(EpisodeRef(episode.season_number, episode.episode_number))
+        ]
+        return CurrentSeasonProgressView(
+            season_number=current_season,
+            last_seen_episode_number=max(episode.episode_number for episode in seen_in_season),
+            seen_episodes=len(seen_in_season),
+            total_episodes=len(current_season_episodes),
+        )
 
     def _availability_for(self, catalog: TVSeriesCatalog) -> tuple[SeasonAvailability, ...]:
         availability = (
