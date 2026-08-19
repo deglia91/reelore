@@ -109,6 +109,16 @@ class StubWatchHistory:
         )
 
 
+class ScatteredRewatchHistory:
+    def list_episode_watches(self, media_id: str) -> tuple[EpisodeWatch, ...]:
+        watched_at = datetime(2026, 8, 18, 20, 30)
+        return (
+            EpisodeWatch(media_id, EpisodeRef(1, 1), watched_at),
+            EpisodeWatch(media_id, EpisodeRef(1, 2), watched_at),
+            EpisodeWatch(media_id, EpisodeRef(1, 2), watched_at),
+        )
+
+
 def test_library_view_combines_catalog_tracking_and_next_episode_data() -> None:
     service = LibraryViewService(StubViewStore(), StubAvailabilityProvider())
 
@@ -144,6 +154,36 @@ def test_library_view_exposes_episode_watch_counts_from_history() -> None:
     assert detail.watch_count(EpisodeRef(1, 1)) == 2
     assert detail.watch_count(EpisodeRef(1, 2)) == 1
     assert detail.watch_count(EpisodeRef(1, 3)) == 0
+
+
+def test_library_view_derives_coherent_rewatch_progress_from_series_start() -> None:
+    service = LibraryViewService(
+        StubViewStore(),
+        StubAvailabilityProvider(),
+        StubWatchHistory(),
+    )
+
+    detail = service.get_tv_series("tvmaze:1")
+
+    assert detail is not None
+    assert detail.rewatch_progress is not None
+    assert detail.rewatch_progress.pass_number == 2
+    assert detail.rewatch_progress.watched_episodes == 1
+    assert detail.rewatch_progress.total_episodes == 3
+    assert detail.rewatch_progress.next_episode == EpisodeRef(1, 2)
+
+
+def test_library_view_ignores_scattered_episode_rewatches() -> None:
+    service = LibraryViewService(
+        StubViewStore(),
+        StubAvailabilityProvider(),
+        ScatteredRewatchHistory(),
+    )
+
+    detail = service.get_tv_series("tvmaze:1")
+
+    assert detail is not None
+    assert detail.rewatch_progress is None
 
 
 def test_library_view_exposes_progress_for_the_season_being_watched() -> None:
