@@ -20,6 +20,12 @@ CREATE TABLE IF NOT EXISTS episode_watches (
 
 CREATE INDEX IF NOT EXISTS idx_episode_watches_media_episode
 ON episode_watches (media_id, season_number, episode_number, id);
+
+CREATE TABLE IF NOT EXISTS episode_watch_retractions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    watch_id INTEGER NOT NULL UNIQUE,
+    FOREIGN KEY (watch_id) REFERENCES episode_watches(id) ON DELETE CASCADE
+);
 """
 
 
@@ -95,10 +101,13 @@ class SQLiteWatchHistoryRepository:
         with self._connection() as connection:
             rows = connection.execute(
                 """
-                SELECT season_number, episode_number, watched_at
-                FROM episode_watches
-                WHERE media_id = ?
-                ORDER BY id
+                SELECT history.season_number, history.episode_number, history.watched_at
+                FROM episode_watches AS history
+                LEFT JOIN episode_watch_retractions AS retraction
+                  ON retraction.watch_id = history.id
+                WHERE history.media_id = ?
+                  AND retraction.watch_id IS NULL
+                ORDER BY history.id
                 """,
                 (media_id,),
             ).fetchall()
@@ -114,3 +123,28 @@ class SQLiteWatchHistoryRepository:
             )
             for row in rows
         )
+
+    def retract_latest_episode_watch(self, media_id: str, episode: EpisodeRef) -> bool:
+        with self._connection() as connection:
+            row = connection.execute(
+                """
+                SELECT history.id
+                FROM episode_watches AS history
+                LEFT JOIN episode_watch_retractions AS retraction
+                  ON retraction.watch_id = history.id
+                WHERE history.media_id = ?
+                  AND history.season_number = ?
+                  AND history.episode_number = ?
+                  AND retraction.watch_id IS NULL
+                ORDER BY history.id DESC
+                LIMIT 1
+                """,
+                (media_id, episode.season_number, episode.episode_number),
+            ).fetchone()
+            if row is None:
+                return False
+            connection.execute(
+                "INSERT INTO episode_watch_retractions (watch_id) VALUES (?)",
+                (int(row[0]),),
+            )
+            return True

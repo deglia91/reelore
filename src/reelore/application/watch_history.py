@@ -2,7 +2,7 @@
 
 from typing import Protocol
 
-from reelore.domain import EpisodeWatch
+from reelore.domain import EpisodeRef, EpisodeWatch
 
 
 class WatchHistoryRepository(Protocol):
@@ -11,3 +11,5 @@ class WatchHistoryRepository(Protocol):
     def record_episode_watch(self, watch: EpisodeWatch) -> None: ...
 
     def list_episode_watches(self, media_id: str) -> tuple[EpisodeWatch, ...]: ...
+
+    def retract_latest_episode_watch(self, media_id: str, episode: EpisodeRef) -> bool: ...

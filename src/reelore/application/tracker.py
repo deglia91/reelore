@@ -80,7 +80,20 @@ class MediaTracker:
 
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> EpisodeProgress:
         self._require_media(media_id)
-        progress = self._repository.get_episode_progress(media_id).mark_unseen(episode)
+        progress = self._repository.get_episode_progress(media_id)
+        if not progress.has_seen(episode):
+            return progress
+        if self._watch_history is not None:
+            watches = tuple(
+                watch
+                for watch in self._watch_history.list_episode_watches(media_id)
+                if watch.episode == episode
+            )
+            if watches:
+                self._watch_history.retract_latest_episode_watch(media_id, episode)
+                if len(watches) > 1:
+                    return progress
+        progress = progress.mark_unseen(episode)
         self._repository.save_episode_progress(progress)
         return progress
 
@@ -220,6 +233,8 @@ class TVProgressTracker:
 
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> EpisodeProgress:
         progress = self._tracker.mark_episode_unseen(media_id, episode)
+        if progress.has_seen(episode):
+            return progress
         state = self._store.get_personal_state(media_id)
         if state is not None and state.status in {
             LibraryStatus.UP_TO_DATE,
