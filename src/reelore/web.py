@@ -697,7 +697,9 @@ def _render_episode(
         f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
     )
     return f"""<div class="episode">
-<div class="episode-copy"><strong>{display_ref}</strong><span>{escape(title)}</span>{watch_badge}</div>
+<div class="episode-copy">
+<strong>{display_ref}</strong><span>{escape(title)}</span>{watch_badge}
+</div>
 <form method="post" action="{action_url}">
 <button type="submit">{label}</button>
 </form>
