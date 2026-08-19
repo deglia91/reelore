@@ -584,17 +584,8 @@ def _render_library_item(item: LibraryItemView, quick_action: bool) -> str:
     overall_progress = f"{item.seen_episodes}/{item.total_episodes} episodi"
     rewatch = f" · Rivista {item.rewatch_count}x" if item.rewatch_count else ""
     next_episode = item.next_episode
-    season_progress = item.current_season_progress
     if quick_action and next_episode is not None:
         reference = f"{next_episode.season_number:02}x{next_episode.episode_number:02}"
-        progress = overall_progress
-        if season_progress is not None:
-            progress = (
-                f"Stagione {season_progress.season_number:02} · "
-                f"{season_progress.season_number:02}x"
-                f"{season_progress.last_seen_episode_number:02} di "
-                f"{season_progress.total_episodes}"
-            )
         action_url = (
             f"/series/{media_id}/episodes/{next_episode.season_number}/"
             f"{next_episode.episode_number}/seen/home"
@@ -604,12 +595,11 @@ def _render_library_item(item: LibraryItemView, quick_action: bool) -> str:
 {image}
 <div class="content">
 <p class="title">{escape(item.title)}</p>
-<div class="meta">{progress}{rewatch}</div>
 <p class="next-episode"><strong>Prossimo: {reference}</strong> {escape(next_episode.title)}</p>
 </div>
 </a>
 <form class="quick-action" method="post" action="{action_url}">
-<button type="submit">Segna {reference} visto</button>
+<button type="submit">Visto</button>
 </form>
 </article>"""
     return f"""<a class="card card-link" href="/series/{media_id}">
