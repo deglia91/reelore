@@ -21,6 +21,13 @@ from reelore.web_navigation_theme import NAVIGATION_CSS
 from reelore.web_theme import render_theme_css
 
 _HOME_PREVIEW_LIMIT = 8
+_HOME_PLATFORM_TYPES = frozenset(
+    {
+        AvailabilityType.STREAM,
+        AvailabilityType.FREE,
+        AvailabilityType.ADS,
+    }
+)
 _MONTH_NAMES = (
     "gennaio",
     "febbraio",
@@ -34,6 +41,20 @@ _MONTH_NAMES = (
     "ottobre",
     "novembre",
     "dicembre",
+)
+_MONTH_ABBREVIATIONS = (
+    "gen",
+    "feb",
+    "mar",
+    "apr",
+    "mag",
+    "giu",
+    "lug",
+    "ago",
+    "set",
+    "ott",
+    "nov",
+    "dic",
 )
 _WEEKDAY_NAMES = (
     "Lunedì",
@@ -229,17 +250,48 @@ def _render_upcoming_episode(episode: UpcomingEpisodeView) -> str:
     image = _render_image(episode.image_url, episode.series_title)
     media_id = escape(episode.media_id, quote=True)
     reference = f"S{episode.season_number:02}E{episode.episode_number:02}"
-    airdate = episode.airdate.strftime("%d/%m/%Y")
-    availability = _render_upcoming_availability(episode.availability)
+    airdate = f"{episode.airdate.day} {_MONTH_ABBREVIATIONS[episode.airdate.month - 1]}"
+    platforms = _render_home_platforms(episode.availability)
     return f"""<a class="card card-link" href="/series/{media_id}">
 {image}
-<div class="content">
+<div class="content upcoming-card-content">
+<div class="upcoming-copy">
 <p class="title">{escape(episode.series_title)}</p>
-<div class="meta">{reference} · {airdate}</div>
-<p>{escape(episode.episode_title)}</p>
-{availability}
+<div class="meta">{reference}</div>
+<p class="upcoming-episode-title">{escape(episode.episode_title)}</p>
+</div>
+<div class="upcoming-side">
+<time class="upcoming-date" datetime="{episode.airdate.isoformat()}">{airdate}</time>
+{platforms}
+</div>
 </div>
 </a>"""
+
+
+def _render_home_platforms(availability: SeasonAvailability | None) -> str:
+    if availability is None:
+        return ""
+    seen_names: set[str] = set()
+    providers: list[str] = []
+    for provider in availability.providers:
+        if provider.availability_type not in _HOME_PLATFORM_TYPES:
+            continue
+        if provider.name in seen_names:
+            continue
+        seen_names.add(provider.name)
+        name = escape(provider.name)
+        if provider.logo_url is not None:
+            logo_url = escape(provider.logo_url, quote=True)
+            providers.append(
+                '<span class="upcoming-platform">'
+                f'<img src="{logo_url}" alt="" loading="lazy">'
+                f"<span>{name}</span></span>"
+            )
+        else:
+            providers.append(f'<span class="upcoming-platform">{name}</span>')
+    if not providers:
+        return ""
+    return f'<div class="upcoming-platforms">{"".join(providers)}</div>'
 
 
 def _render_calendar_page(
@@ -869,6 +921,34 @@ button:active {{ transform: translateY(1px); }}
 .meta {{ font-size: .86rem; margin-bottom: 12px; }}
 .next-episode {{ margin: 0; line-height: 1.35; }}
 .upcoming-availability {{ margin-top: 10px; font-size: .82rem; line-height: 1.35; }}
+.upcoming-card-content {{
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3);
+  align-items: start;
+}}
+.upcoming-copy {{ min-width: 0; }}
+.upcoming-episode-title {{
+  margin: 0; overflow: hidden; color: var(--color-text-muted); text-overflow: ellipsis;
+  white-space: nowrap;
+}}
+.upcoming-side {{
+  display: flex; min-width: 72px; flex-direction: column; align-items: flex-end;
+  gap: 8px; text-align: right;
+}}
+.upcoming-date {{
+  color: var(--color-accent-strong); font-size: .82rem; font-weight: 800;
+  white-space: nowrap;
+}}
+.upcoming-platforms {{
+  display: flex; max-width: 132px; flex-direction: column; align-items: flex-end; gap: 5px;
+}}
+.upcoming-platform {{
+  display: inline-flex; max-width: 132px; align-items: center; justify-content: flex-end;
+  gap: 5px; color: var(--color-text-muted); font-size: .68rem; line-height: 1.15;
+  text-align: right;
+}}
+.upcoming-platform img {{
+  width: 22px; height: 22px; flex: 0 0 22px; border-radius: 5px; object-fit: cover;
+}}
 .quick-action {{ padding: 0 14px 14px; }}
 .quick-action button {{ width: 100%; }}
 .search-result-action {{ padding: 0 14px 14px; }}
@@ -927,6 +1007,14 @@ button:active {{ transform: translateY(1px); }}
   .episode {{ align-items: flex-start; flex-direction: column; }}
   .preview-page .series-hero {{ grid-template-columns: 104px minmax(0, 1fr); }}
   .preview-page .preview-add button {{ width: 100%; }}
+  .home-page #upcoming .upcoming-card-content {{
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+  }}
+  .home-page #upcoming .upcoming-side {{ min-width: 76px; }}
+  .home-page #upcoming .upcoming-date {{ font-size: .74rem; }}
+  .home-page #upcoming .upcoming-platform {{ max-width: 92px; font-size: .62rem; }}
+  .home-page #upcoming .upcoming-platform img {{ width: 20px; height: 20px; flex-basis: 20px; }}
   .mobile-nav {{
     position: fixed; right: 12px; bottom: 12px; left: 12px; z-index: 30; display: grid;
     grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 8px;
