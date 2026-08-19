@@ -1,6 +1,25 @@
 """Mobile-first layout for home rails, library browsing, and ranking."""
 
 NAVIGATION_CSS = """
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.home-page main,
+.library-page main,
+.detail-page main {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.home-page main > *,
+.library-page main > *,
+.detail-page main > * {
+  min-width: 0;
+}
+
 .section-link {
   color: var(--color-accent-strong);
   font-size: .82rem;
@@ -10,10 +29,14 @@ NAVIGATION_CSS = """
 
 .home-rail {
   display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   grid-auto-flow: column;
   grid-auto-columns: minmax(150px, 190px);
   gap: var(--space-3);
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
   padding: var(--space-1) var(--space-1) var(--space-3);
   scroll-snap-type: x proximity;
   scrollbar-width: none;
@@ -38,8 +61,10 @@ NAVIGATION_CSS = """
 
 .library-filters {
   display: flex;
+  max-width: 100%;
   gap: var(--space-2);
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
   margin: var(--space-5) 0 var(--space-6);
   padding-bottom: var(--space-2);
   scrollbar-width: none;
@@ -69,6 +94,7 @@ NAVIGATION_CSS = """
 
 .library-grid {
   display: grid;
+  min-width: 0;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: var(--space-4);
 }
@@ -78,10 +104,36 @@ NAVIGATION_CSS = """
 }
 
 @media (max-width: 720px) {
+  .home-page .app-header,
+  .library-page .app-header,
+  .detail-page .app-header {
+    width: 100%;
+    max-width: 100vw;
+    min-height: 58px;
+  }
+
+  .home-page main,
+  .library-page main,
+  .detail-page main {
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
+  }
+
+  .home-page .home-hero,
+  .home-page .search,
+  .home-page section,
+  .home-page #library {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .home-page .home-hero .sub {
+    overflow-wrap: anywhere;
+  }
+
   .home-rail {
-    grid-auto-columns: 42vw;
-    margin-right: -12px;
-    padding-right: 12px;
+    grid-auto-columns: 40vw;
+    padding-right: var(--space-3);
   }
 
   .home-rail .content {
@@ -155,9 +207,25 @@ NAVIGATION_CSS = """
     font-size: .74rem;
   }
 
+  #top-ten .grid {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    gap: var(--space-3);
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding: var(--space-1) 0 var(--space-3);
+    scrollbar-width: none;
+  }
+
+  #top-ten .grid::-webkit-scrollbar {
+    display: none;
+  }
+
   #top-ten .top-ten-card {
     display: grid;
-    grid-template-columns: 40px minmax(0, 1fr);
+    flex: 0 0 46vw;
+    grid-template-columns: 30px minmax(0, 1fr);
     margin-left: 0;
   }
 
@@ -168,9 +236,9 @@ NAVIGATION_CSS = """
     left: auto;
     z-index: 2;
     align-self: end;
-    margin-right: -12px;
-    margin-bottom: 44px;
-    font-size: clamp(3.8rem, 17vw, 5.4rem);
+    margin-right: -8px;
+    margin-bottom: 38px;
+    font-size: clamp(3rem, 13vw, 4.2rem);
     text-align: right;
   }
 
