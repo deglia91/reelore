@@ -128,6 +128,10 @@ class SQLiteLibraryRepository:
                 (media.id, media.title, media.media_type.value),
             )
 
+    def remove_media(self, media_id: str) -> None:
+        with self._connection() as connection:
+            connection.execute("DELETE FROM media_items WHERE id = ?", (media_id,))
+
     def get_media(self, media_id: str) -> MediaItem | None:
         with self._connection() as connection:
             row = connection.execute(
