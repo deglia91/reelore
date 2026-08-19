@@ -92,6 +92,13 @@ body {
   aspect-ratio: 2 / 3;
 }
 
+.feed-empty {
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: .86rem;
+}
+
 .library-page-heading,
 .calendar-page-heading {
   margin-top: 0;
@@ -448,49 +455,51 @@ body {
   }
 
   #library .home-rail .card:has(.quick-action) {
-    display: grid;
-    flex: 0 0 82vw;
-    grid-template-columns: 44% minmax(0, 1fr);
+    display: block;
+    flex: 0 0 40vw;
     min-height: 0;
+    border-radius: var(--radius-md);
   }
 
   #library .home-rail .card:has(.quick-action) .card-link {
-    display: contents;
+    display: block;
   }
 
   #library .home-rail .card:has(.quick-action) .poster {
+    display: block;
     width: 100%;
-    height: 100%;
-    min-height: 190px;
-    aspect-ratio: auto;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 2 / 3;
     object-fit: cover;
   }
 
   #library .home-rail .card:has(.quick-action) .content {
-    display: flex;
+    display: block;
     min-width: 0;
-    flex-direction: column;
-    justify-content: center;
-    padding: var(--space-4);
+    padding: var(--space-3);
   }
 
   #library .home-rail .card:has(.quick-action) .title {
-    font-size: 1rem;
+    margin-bottom: var(--space-1);
+    font-size: .9rem;
   }
 
   #library .home-rail .card:has(.quick-action) .next-episode {
-    margin-top: var(--space-2);
-    font-size: .82rem;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: .74rem;
+    line-height: 1.35;
   }
 
   #library .home-rail .card:has(.quick-action) .quick-action {
-    grid-column: 2;
-    padding: 0 var(--space-4) var(--space-4);
+    padding: 0 var(--space-3) var(--space-3);
   }
 
   #library .home-rail .card:has(.quick-action) .quick-action button {
-    width: auto;
-    min-width: 72px;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
     font-size: .78rem;
   }
 
@@ -567,6 +576,12 @@ body {
 
   .home-page #upcoming .upcoming-availability {
     display: none;
+  }
+
+  .home-page #upcoming .feed-empty {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
   }
 
   .library-grid {
@@ -688,6 +703,13 @@ body {
     margin: 0;
     font-size: .74rem;
     line-height: 1.2;
+  }
+
+  .home-page #top-ten .feed-empty {
+    flex: 0 0 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
   }
 }
 """
