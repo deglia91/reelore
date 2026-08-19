@@ -8,7 +8,7 @@ from typing import Annotated, Protocol
 from fastapi import FastAPI, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from reelore.application import ImportedTVSeries, TVSearchResult
+from reelore.application import ImportedTVSeries, TVSearchResult, TVSeriesCatalog
 from reelore.application.availability import AvailabilityType, SeasonAvailability
 from reelore.application.library_view import (
     LibraryItemView,
@@ -25,6 +25,8 @@ _HOME_PREVIEW_LIMIT = 8
 
 class TVImportService(Protocol):
     def search(self, query: str) -> tuple[TVSearchResult, ...]: ...
+
+    def preview_series(self, provider_id: str) -> TVSeriesCatalog: ...
 
     def import_series(self, provider_id: str) -> ImportedTVSeries: ...
 
@@ -86,6 +88,11 @@ def create_web_app(
         if status is not None:
             items = tuple(item for item in items if item.status is status)
         return HTMLResponse(_render_library_page(items, status))
+
+    @app.get("/catalog/series/{provider_id}", response_class=HTMLResponse)
+    def catalog_preview(provider_id: str) -> HTMLResponse:
+        catalog = importer.preview_series(provider_id)
+        return HTMLResponse(_render_catalog_preview(catalog))
 
     @app.post("/series/{provider_id}/add")
     def add_series(provider_id: str) -> RedirectResponse:
@@ -331,6 +338,46 @@ def _render_library_filters(selected: LibraryStatus | None) -> str:
     return f'<nav class="library-filters" aria-label="Filtri libreria">{"".join(links)}</nav>'
 
 
+def _render_catalog_preview(catalog: TVSeriesCatalog) -> str:
+    poster = _render_image(catalog.image_url, catalog.title)
+    summary = escape(catalog.summary or "Nessuna trama disponibile.")
+    year = str(catalog.premiered.year) if catalog.premiered is not None else "Anno non disponibile"
+    status = escape(catalog.status or "Stato non disponibile")
+    season_count = len({episode.season_number for episode in catalog.episodes})
+    episode_count = len(catalog.episodes)
+    season_label = "stagione" if season_count == 1 else "stagioni"
+    episode_label = "episodio" if episode_count == 1 else "episodi"
+    cast = "".join(
+        '<li><strong>'
+        f"{escape(member.person_name)}</strong> · {escape(member.character_name)}</li>"
+        for member in catalog.cast[:8]
+    )
+    cast_section = ""
+    if cast:
+        cast_section = f'<section class="preview-cast"><h2>Cast principale</h2><ul>{cast}</ul></section>'
+    provider_id = escape(catalog.provider_id, quote=True)
+    return _page(
+        f"""<a class="back" href="/#search">← Ricerca</a>
+<section class="catalog-preview series-hero" aria-labelledby="preview-title">
+<div class="hero-poster">{poster}</div>
+<div class="series-hero-content">
+<p class="eyebrow">Anteprima catalogo</p>
+<h1 id="preview-title">{escape(catalog.title)}</h1>
+<div class="series-stats">
+<span>{year}</span><span>{status}</span>
+<span>{season_count} {season_label}</span><span>{episode_count} {episode_label}</span>
+</div>
+<p class="summary">{summary}</p>
+<form class="preview-add" method="post" action="/series/{provider_id}/add">
+<button type="submit">Aggiungi alla libreria</button>
+</form>
+</div>
+</section>
+{cast_section}""",
+        page_class="preview-page",
+    )
+
+
 def _render_series_detail(detail: TVSeriesDetailView) -> str:
     catalog = detail.catalog
     progress = detail.progress
@@ -514,15 +561,18 @@ def _render_search_result(result: TVSearchResult) -> str:
     year = str(result.premiered.year) if result.premiered is not None else "Anno non disponibile"
     status = f" / {escape(result.status)}" if result.status else ""
     provider_id = escape(result.provider_id, quote=True)
-    return f"""<article class="card">
+    preview_url = f"/catalog/series/{provider_id}"
+    return f"""<article class="card search-result-card">
+<a class="card-link" href="{preview_url}">
 {image}
 <div class="content">
 <p class="title">{escape(result.title)}</p>
 <div class="meta">{year}{status}</div>
-<form method="post" action="/series/{provider_id}/add">
+</div>
+</a>
+<form class="search-result-action" method="post" action="/series/{provider_id}/add">
 <button type="submit">Aggiungi</button>
 </form>
-</div>
 </article>"""
 
 
@@ -684,6 +734,11 @@ button:active {{ transform: translateY(1px); }}
 .upcoming-availability {{ margin-top: 10px; font-size: .82rem; line-height: 1.35; }}
 .quick-action {{ padding: 0 14px 14px; }}
 .quick-action button {{ width: 100%; }}
+.search-result-action {{ padding: 0 14px 14px; }}
+.search-result-action button {{ width: 100%; }}
+.preview-add {{ margin-top: var(--space-2); }}
+.preview-cast {{ margin-top: var(--space-6); }}
+.preview-cast ul {{ display: grid; gap: var(--space-2); padding-left: 20px; }}
 .top-ten-card {{ position: relative; }}
 .top-ten-rank {{
   position: absolute; top: 10px; left: 10px; z-index: 1; padding: 6px 9px;
@@ -723,6 +778,8 @@ button:active {{ transform: translateY(1px); }}
   .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
   .hero {{ grid-template-columns: 110px 1fr; gap: var(--space-4); }}
   .episode {{ align-items: flex-start; flex-direction: column; }}
+  .preview-page .series-hero {{ grid-template-columns: 104px minmax(0, 1fr); }}
+  .preview-page .preview-add button {{ width: 100%; }}
   .mobile-nav {{
     position: fixed; right: 12px; bottom: 12px; left: 12px; z-index: 30; display: grid;
     grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 8px;
