@@ -21,6 +21,29 @@ from reelore.web_navigation_theme import NAVIGATION_CSS
 from reelore.web_theme import render_theme_css
 
 _HOME_PREVIEW_LIMIT = 8
+_MONTH_NAMES = (
+    "gennaio",
+    "febbraio",
+    "marzo",
+    "aprile",
+    "maggio",
+    "giugno",
+    "luglio",
+    "agosto",
+    "settembre",
+    "ottobre",
+    "novembre",
+    "dicembre",
+)
+_WEEKDAY_NAMES = (
+    "Lunedì",
+    "Martedì",
+    "Mercoledì",
+    "Giovedì",
+    "Venerdì",
+    "Sabato",
+    "Domenica",
+)
 
 
 class TVImportService(Protocol):
@@ -88,6 +111,11 @@ def create_web_app(
         if status is not None:
             items = tuple(item for item in items if item.status is status)
         return HTMLResponse(_render_library_page(items, status))
+
+    @app.get("/calendar", response_class=HTMLResponse)
+    def calendar() -> HTMLResponse:
+        today = date.today()
+        return HTMLResponse(_render_calendar_page(views.list_upcoming_episodes(today), today))
 
     @app.get("/catalog/series/{provider_id}", response_class=HTMLResponse)
     def catalog_preview(provider_id: str) -> HTMLResponse:
@@ -183,10 +211,11 @@ def _render_home(
 def _render_upcoming_section(episodes: tuple[UpcomingEpisodeView, ...]) -> str:
     if not episodes:
         return ""
-    cards = "".join(_render_upcoming_episode(episode) for episode in episodes)
+    cards = "".join(_render_upcoming_episode(episode) for episode in episodes[:_HOME_PREVIEW_LIMIT])
     return (
         '<section id="upcoming"><div class="section-heading">'
         '<div><p class="eyebrow">Calendario</p><h2>Prossime uscite</h2></div>'
+        '<a class="section-link" href="/calendar">Vedi tutte</a>'
         '</div><div class="grid">'
         f"{cards}</div></section>"
     )
@@ -207,6 +236,72 @@ def _render_upcoming_episode(episode: UpcomingEpisodeView) -> str:
 {availability}
 </div>
 </a>"""
+
+
+def _render_calendar_page(
+    episodes: tuple[UpcomingEpisodeView, ...],
+    today: date,
+) -> str:
+    if not episodes:
+        content = (
+            '<div class="calendar-empty empty">'
+            '<h2>Nessuna uscita in programma</h2>'
+            '<p>Le nuove puntate delle serie che segui appariranno qui.</p>'
+            "</div>"
+        )
+    else:
+        grouped: dict[date, list[UpcomingEpisodeView]] = defaultdict(list)
+        for episode in sorted(episodes, key=lambda item: item.airdate):
+            grouped[episode.airdate].append(episode)
+        content = "".join(
+            _render_calendar_day(airdate, tuple(day_episodes), today)
+            for airdate, day_episodes in grouped.items()
+        )
+    return _page(
+        f"""<section class="calendar-page-heading">
+<p class="eyebrow">Prossime uscite</p>
+<h1>Calendario</h1>
+<p class="sub">Le nuove puntate delle serie che stai seguendo, ordinate per giorno.</p>
+</section>
+<div class="calendar-agenda">{content}</div>""",
+        page_class="calendar-page",
+    )
+
+
+def _render_calendar_day(
+    airdate: date,
+    episodes: tuple[UpcomingEpisodeView, ...],
+    today: date,
+) -> str:
+    cards = "".join(_render_calendar_episode(episode) for episode in episodes)
+    label = _calendar_date_label(airdate, today)
+    return f"""<section class="calendar-day">
+<div class="calendar-day-heading"><h2>{label}</h2></div>
+<div class="calendar-day-list">{cards}</div>
+</section>"""
+
+
+def _render_calendar_episode(episode: UpcomingEpisodeView) -> str:
+    image = _render_image(episode.image_url, episode.series_title)
+    media_id = escape(episode.media_id, quote=True)
+    reference = f"{episode.season_number:02}x{episode.episode_number:02}"
+    availability = _render_upcoming_availability(episode.availability)
+    return f"""<a class="calendar-entry" href="/series/{media_id}">
+<div class="calendar-entry-poster">{image}</div>
+<div class="calendar-entry-copy">
+<p class="title">{escape(episode.series_title)}</p>
+<div class="meta">{reference}</div>
+<p class="calendar-episode-title">{escape(episode.episode_title)}</p>
+{availability}
+</div>
+</a>"""
+
+
+def _calendar_date_label(airdate: date, today: date) -> str:
+    day_and_month = f"{airdate.day} {_MONTH_NAMES[airdate.month - 1]}"
+    if airdate == today:
+        return f"Oggi · {day_and_month}"
+    return f"{_WEEKDAY_NAMES[airdate.weekday()]} {day_and_month}"
 
 
 def _render_upcoming_availability(availability: SeasonAvailability | None) -> str:
@@ -623,7 +718,7 @@ def _render_app_header() -> str:
     return """<header class="app-header">
 <a class="brand" href="/" aria-label="Reelore Home"><span class="brand-mark">R</span>Reelore</a>
 <nav class="desktop-nav" aria-label="Navigazione principale">
-<a href="/">Home</a><a href="/library">Libreria</a><a href="/#upcoming">Calendario</a>
+<a href="/">Home</a><a href="/library">Libreria</a><a href="/calendar">Calendario</a>
 <a href="/#top-ten">Top 10</a><a href="/#search">Cerca</a>
 </nav>
 </header>"""
@@ -631,7 +726,7 @@ def _render_app_header() -> str:
 
 def _render_mobile_nav() -> str:
     return """<nav class="mobile-nav" aria-label="Navigazione mobile">
-<a href="/">Home</a><a href="/library">Libreria</a><a href="/#upcoming">Calendario</a>
+<a href="/">Home</a><a href="/library">Libreria</a><a href="/calendar">Calendario</a>
 <a href="/#top-ten">Top 10</a><a href="/#search">Cerca</a>
 </nav>"""
 
