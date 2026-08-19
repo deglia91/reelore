@@ -1,13 +1,13 @@
 from reelore.web_navigation_theme import NAVIGATION_CSS
 
 
-def test_mobile_hero_hides_redundant_title_and_subtitle() -> None:
-    assert ".home-page .home-hero h1" in NAVIGATION_CSS
-    assert ".home-page .home-hero .sub" in NAVIGATION_CSS
+def test_mobile_home_hides_redundant_intro_block() -> None:
+    assert ".home-page .home-hero" in NAVIGATION_CSS
     assert "display: none" in NAVIGATION_CSS
 
 
-def test_mobile_hero_keeps_personal_collection_eyebrow_compact() -> None:
-    assert ".home-page .home-hero .eyebrow" in NAVIGATION_CSS
-    assert "margin-bottom: 0" in NAVIGATION_CSS
-    assert "padding-top: var(--space-2)" in NAVIGATION_CSS
+def test_mobile_home_search_starts_close_to_header() -> None:
+    assert ".home-page main" in NAVIGATION_CSS
+    assert "padding-top: var(--space-4)" in NAVIGATION_CSS
+    assert ".home-page .search" in NAVIGATION_CSS
+    assert "margin: 0 0 var(--space-4)" in NAVIGATION_CSS
