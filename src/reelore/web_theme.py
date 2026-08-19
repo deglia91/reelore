@@ -527,6 +527,60 @@ a:focus-visible {
   white-space: nowrap;
 }
 
+.episode:has(.episode-actions form[action$="/rewatch"]) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 44px auto 44px;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.episode:has(.episode-actions form[action$="/rewatch"]) .episode-copy,
+.episode:has(.episode-actions form[action$="/rewatch"]) .episode-actions {
+  display: contents;
+}
+
+.episode:has(.episode-actions form[action$="/rewatch"]) .episode-copy strong {
+  grid-column: 1;
+}
+
+.episode:has(.episode-actions form[action$="/rewatch"]) .episode-copy span {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.episode:has(.episode-actions form[action$="/rewatch"]) .episode-watch-count {
+  grid-column: 4;
+  min-width: 34px;
+  text-align: center;
+}
+
+.episode:has(.episode-actions form[action$="/rewatch"]) form[action$="/unseen"] {
+  grid-column: 3;
+}
+
+.episode:has(.episode-actions form[action$="/rewatch"]) form[action$="/rewatch"] {
+  grid-column: 5;
+}
+
+.episode:has(.episode-actions form[action$="/rewatch"]) .episode-actions button {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  font-size: 0;
+}
+
+.episode:has(.episode-actions form[action$="/rewatch"])
+  form[action$="/unseen"] button::before {
+  content: "−";
+  font-size: 1.15rem;
+}
+
+.episode:has(.episode-actions form[action$="/rewatch"])
+  form[action$="/rewatch"] button::before {
+  content: "+";
+  font-size: 1.15rem;
+}
+
 @media (max-width: 900px) {
   .tracking-panel {
     grid-template-columns: 1fr 1fr;
@@ -674,6 +728,18 @@ a:focus-visible {
     min-width: 92px;
     padding: 8px 10px;
     font-size: .78rem;
+  }
+
+  .episode:has(.episode-actions form[action$="/rewatch"]) {
+    grid-template-columns: auto minmax(0, 1fr) 40px auto 40px;
+    gap: 6px;
+  }
+
+  .episode:has(.episode-actions form[action$="/rewatch"]) .episode-actions button {
+    width: 40px;
+    min-width: 40px;
+    padding: 0;
+    font-size: 0;
   }
 
   .mobile-nav {
