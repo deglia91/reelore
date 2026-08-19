@@ -16,9 +16,7 @@ def test_build_app_initializes_local_database(tmp_path: Path) -> None:
 def test_load_env_file_sets_values_without_overriding_environment(tmp_path: Path) -> None:
     env_path = tmp_path / ".env"
     env_path.write_text(
-        "# local configuration\n"
-        "TMDB_API_TOKEN=from-file\n"
-        "REELORE_DB_PATH='custom/reelore.db'\n",
+        "# local configuration\nTMDB_API_TOKEN=from-file\nREELORE_DB_PATH='custom/reelore.db'\n",
         encoding="utf-8",
     )
     previous_token = os.environ.get("TMDB_API_TOKEN")
