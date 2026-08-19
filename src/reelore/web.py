@@ -612,9 +612,7 @@ def _render_rewatch_progress(detail: TVSeriesDetailView) -> str:
     next_episode = ""
     if progress.next_episode is not None:
         reference = progress.next_episode
-        next_episode = (
-            f" · Prossimo S{reference.season_number:02}E{reference.episode_number:02}"
-        )
+        next_episode = f" · Prossimo S{reference.season_number:02}E{reference.episode_number:02}"
     return (
         '<div class="rewatch-progress">'
         f"<strong>Rewatch {progress.pass_number}</strong>"
