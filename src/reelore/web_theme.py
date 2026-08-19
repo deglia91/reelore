@@ -571,7 +571,7 @@ a:focus-visible {
 
 .episode:has(.episode-actions form[action$="/rewatch"])
   form[action$="/unseen"] button::before {
-  content: "−";
+  content: "-";
   font-size: 1.15rem;
 }
 
