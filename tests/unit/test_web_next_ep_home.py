@@ -2,12 +2,12 @@ from reelore.web_navigation_theme import NAVIGATION_CSS
 
 
 def test_mobile_shell_moves_primary_actions_to_header() -> None:
-    assert ".home-page .desktop-nav" in NAVIGATION_CSS
+    assert ".app-header .desktop-nav" in NAVIGATION_CSS
     assert 'a[href="/calendar"]' in NAVIGATION_CSS
     assert 'a[href="/library"]' in NAVIGATION_CSS
     assert 'a[href="/#search"]' in NAVIGATION_CSS
-    assert ".mobile-nav" in NAVIGATION_CSS
-    assert "display: none" in NAVIGATION_CSS
+    assert "body .mobile-nav" in NAVIGATION_CSS
+    assert "display: none !important" in NAVIGATION_CSS
 
 
 def test_mobile_search_is_compact_single_row_with_icon_button() -> None:
