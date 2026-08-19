@@ -57,16 +57,39 @@ class MemoryCatalogStore(TVCatalogStore):
         return self.catalogs.get(provider_id)
 
 
-def test_catalog_importer_imports_series_and_initializes_tracking_state() -> None:
-    catalog = TVSeriesCatalog(
+def _catalog() -> TVSeriesCatalog:
+    return TVSeriesCatalog(
         provider_id="16740",
         title="Severance",
-        summary=None,
+        summary="Office workers have divided memories.",
         status="Running",
         premiered=None,
         ended=None,
         image_url=None,
     )
+
+
+def test_catalog_importer_previews_series_without_persisting_personal_state() -> None:
+    catalog = _catalog()
+    repository = MemoryRepository()
+    store = MemoryCatalogStore()
+    importer = TVCatalogImporter(
+        StubProvider(catalog),
+        store,
+        MediaTracker(repository),
+        provider_name="TVMaze",
+    )
+
+    preview = importer.preview_series("16740")
+
+    assert preview == catalog
+    assert repository.media == {}
+    assert repository.states == {}
+    assert store.catalogs == {}
+
+
+def test_catalog_importer_imports_series_and_initializes_tracking_state() -> None:
+    catalog = _catalog()
     repository = MemoryRepository()
     store = MemoryCatalogStore()
     importer = TVCatalogImporter(
