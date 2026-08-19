@@ -697,7 +697,9 @@ def _render_episode(
     )
     rewatch_action = ""
     if seen:
-        rewatch_url = f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/rewatch"
+        rewatch_url = (
+            f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/rewatch"
+        )
         rewatch_action = f"""<form method="post" action="{rewatch_url}">
 <button class="secondary-button" type="submit">Rivisto +1</button>
 </form>"""
