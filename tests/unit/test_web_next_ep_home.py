@@ -1,4 +1,4 @@
-from reelore.web import _page
+from reelore.web import _page, _render_home
 from reelore.web_navigation_theme import NAVIGATION_CSS
 
 
@@ -24,7 +24,7 @@ def test_app_shell_renders_inline_next_ep_brand_and_navigation_icons() -> None:
 
 
 def test_mobile_search_is_compact_single_row_with_inline_icon_button() -> None:
-    page = _page("<p>Content</p>", home=True)
+    page = _render_home("", (), (), (), ())
 
     assert ".home-page .search" in NAVIGATION_CSS
     assert "flex-direction: row" in NAVIGATION_CSS
