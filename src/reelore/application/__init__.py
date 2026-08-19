@@ -10,6 +10,7 @@ from reelore.application.catalog import (
 from reelore.application.catalog_import import ImportedTVSeries, TVCatalogImporter, TVCatalogStore
 from reelore.application.library import LibraryRepository
 from reelore.application.tracker import MediaNotFoundError, MediaTracker, TopTenService
+from reelore.application.watch_history import WatchHistoryRepository
 
 __all__ = [
     "ImportedTVSeries",
@@ -24,4 +25,5 @@ __all__ = [
     "TVSearchResult",
     "TVSeriesCatalog",
     "TopTenService",
+    "WatchHistoryRepository",
 ]
