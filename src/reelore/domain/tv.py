@@ -1,6 +1,7 @@
 """TV-series-specific domain model."""
 
 from dataclasses import dataclass, replace
+from datetime import datetime
 
 from reelore.domain.media import MediaItem, MediaType
 
@@ -15,6 +16,17 @@ class EpisodeRef:
             raise ValueError("season number must be positive")
         if self.episode_number < 1:
             raise ValueError("episode number must be positive")
+
+
+@dataclass(frozen=True, slots=True)
+class EpisodeWatch:
+    media_id: str
+    episode: EpisodeRef
+    watched_at: datetime | None = None
+
+    def __post_init__(self) -> None:
+        if not self.media_id.strip():
+            raise ValueError("media id cannot be empty")
 
 
 @dataclass(frozen=True, slots=True)
