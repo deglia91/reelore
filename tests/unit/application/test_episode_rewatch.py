@@ -26,6 +26,12 @@ class FakeRepository:
     def save_media(self, media: MediaItem) -> None:
         self.media[media.id] = media
 
+    def remove_media(self, media_id: str) -> None:
+        self.media.pop(media_id, None)
+        self.states.pop(media_id, None)
+        self.progress.pop(media_id, None)
+        self.watches = [watch for watch in self.watches if watch.media_id != media_id]
+
     def get_media(self, media_id: str) -> MediaItem | None:
         return self.media.get(media_id)
 
