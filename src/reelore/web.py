@@ -607,7 +607,8 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
 {top_ten_controls}
 </div>
 <form class="status-form" method="post" action="/series/{media_id}/remove"
-      onsubmit="return confirm('Rimuovere questa serie dalla libreria e cancellare i dati personali di visione?')">
+      onsubmit="return confirm('Rimuovere questa serie dalla libreria e '
+                        + 'cancellare i dati personali di visione?')">
 <button class="secondary-button" type="submit">Rimuovi dalla libreria</button>
 </form>
 </div>
