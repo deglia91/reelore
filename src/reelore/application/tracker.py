@@ -61,6 +61,23 @@ class MediaTracker:
         self._repository.save_episode_progress(progress)
         return progress
 
+    def record_episode_rewatch(
+        self,
+        media_id: str,
+        episode: EpisodeRef,
+        *,
+        watched_at: datetime | None = None,
+    ) -> EpisodeWatch:
+        self._require_media(media_id)
+        progress = self._repository.get_episode_progress(media_id)
+        if not progress.has_seen(episode):
+            raise ValueError("cannot rewatch an unseen episode")
+        if self._watch_history is None:
+            raise RuntimeError("watch history is not configured")
+        watch = EpisodeWatch(media_id=media_id, episode=episode, watched_at=watched_at)
+        self._watch_history.record_episode_watch(watch)
+        return watch
+
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> EpisodeProgress:
         self._require_media(media_id)
         progress = self._repository.get_episode_progress(media_id).mark_unseen(episode)
@@ -196,6 +213,10 @@ class TVProgressTracker:
         progress = self._tracker.mark_episode_seen(media_id, episode, watched_at=watched_at)
         self._sync_after_seen(media_id, progress)
         return progress
+
+    def record_episode_rewatch(self, media_id: str, episode: EpisodeRef) -> EpisodeWatch:
+        watched_at = self._now or datetime.now(UTC)
+        return self._tracker.record_episode_rewatch(media_id, episode, watched_at=watched_at)
 
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> EpisodeProgress:
         progress = self._tracker.mark_episode_unseen(media_id, episode)
