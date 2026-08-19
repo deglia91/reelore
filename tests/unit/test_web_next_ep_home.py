@@ -32,15 +32,15 @@ def test_mobile_search_is_compact_single_row_with_inline_icon_button() -> None:
     assert 'data-icon="search"' in page
 
 
-def test_mobile_home_prioritizes_continue_watching_after_search() -> None:
-    assert ".home-page #library" in NAVIGATION_CSS
-    assert "order: 4" in NAVIGATION_CSS
+def test_mobile_home_uses_natural_document_flow_after_search() -> None:
+    assert ".home-page main" in NAVIGATION_CSS
+    assert "display: block" in NAVIGATION_CSS
     assert ".home-page #library > section:not(:first-child)" in NAVIGATION_CSS
     assert "display: none" in NAVIGATION_CSS
     assert ".home-page #upcoming" in NAVIGATION_CSS
-    assert "order: 5" in NAVIGATION_CSS
     assert ".home-page #top-ten" in NAVIGATION_CSS
-    assert "order: 6" in NAVIGATION_CSS
+    assert "order: 5" not in NAVIGATION_CSS
+    assert "order: 6" not in NAVIGATION_CSS
 
 
 def test_mobile_home_removes_redundant_intro_and_large_vertical_gap() -> None:
