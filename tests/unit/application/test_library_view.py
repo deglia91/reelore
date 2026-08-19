@@ -52,6 +52,34 @@ class StubViewStore:
         )
 
 
+class MultiSeasonViewStore(StubViewStore):
+    def get_episode_progress(self, media_id: str) -> EpisodeProgress:
+        progress = EpisodeProgress(media_id)
+        for episode_number in range(1, 4):
+            progress = progress.mark_seen(EpisodeRef(2, episode_number))
+        return progress
+
+    def get_tv_series_catalog(self, provider_id: str) -> TVSeriesCatalog | None:
+        assert provider_id == "1"
+        episodes = tuple(
+            TVEpisodeMetadata(f"1{number}", 1, number, f"S1 Episode {number}")
+            for number in range(1, 8)
+        ) + tuple(
+            TVEpisodeMetadata(f"2{number}", 2, number, f"S2 Episode {number}")
+            for number in range(1, 11)
+        )
+        return TVSeriesCatalog(
+            provider_id="1",
+            title="Example",
+            summary="Summary",
+            status="Running",
+            premiered=None,
+            ended=None,
+            image_url="https://img.example/poster.jpg",
+            episodes=episodes,
+        )
+
+
 class StubAvailabilityProvider:
     def season_availability(
         self,
@@ -90,6 +118,21 @@ def test_library_view_combines_catalog_tracking_and_next_episode_data() -> None:
     assert detail.progress.has_seen(EpisodeRef(1, 1))
     assert detail.availability[0].providers[0].name == "Example Stream"
     assert detail.availability[0].source == "JustWatch"
+
+
+def test_library_view_exposes_progress_for_the_season_being_watched() -> None:
+    service = LibraryViewService(MultiSeasonViewStore())
+
+    item = service.list_items(date(2026, 8, 18))[0]
+
+    assert item.current_season_progress is not None
+    assert item.current_season_progress.season_number == 2
+    assert item.current_season_progress.last_seen_episode_number == 3
+    assert item.current_season_progress.seen_episodes == 3
+    assert item.current_season_progress.total_episodes == 10
+    assert item.next_episode is not None
+    assert item.next_episode.season_number == 1
+    assert item.next_episode.episode_number == 1
 
 
 def test_library_view_lists_future_episodes_with_italian_availability() -> None:
