@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from reelore.application import TVEpisodeMetadata, TVSeriesCatalog
 from reelore.application.availability import (
@@ -10,6 +10,7 @@ from reelore.application.library_view import LibraryViewService
 from reelore.domain import (
     EpisodeProgress,
     EpisodeRef,
+    EpisodeWatch,
     LibraryStatus,
     MediaItem,
     MediaType,
@@ -98,6 +99,16 @@ class StubAvailabilityProvider:
         )
 
 
+class StubWatchHistory:
+    def list_episode_watches(self, media_id: str) -> tuple[EpisodeWatch, ...]:
+        watched_at = datetime(2026, 8, 18, 20, 30)
+        return (
+            EpisodeWatch(media_id, EpisodeRef(1, 1), watched_at),
+            EpisodeWatch(media_id, EpisodeRef(1, 1), watched_at),
+            EpisodeWatch(media_id, EpisodeRef(1, 2), watched_at),
+        )
+
+
 def test_library_view_combines_catalog_tracking_and_next_episode_data() -> None:
     service = LibraryViewService(StubViewStore(), StubAvailabilityProvider())
 
@@ -118,6 +129,21 @@ def test_library_view_combines_catalog_tracking_and_next_episode_data() -> None:
     assert detail.progress.has_seen(EpisodeRef(1, 1))
     assert detail.availability[0].providers[0].name == "Example Stream"
     assert detail.availability[0].source == "JustWatch"
+
+
+def test_library_view_exposes_episode_watch_counts_from_history() -> None:
+    service = LibraryViewService(
+        StubViewStore(),
+        StubAvailabilityProvider(),
+        StubWatchHistory(),
+    )
+
+    detail = service.get_tv_series("tvmaze:1")
+
+    assert detail is not None
+    assert detail.watch_count(EpisodeRef(1, 1)) == 2
+    assert detail.watch_count(EpisodeRef(1, 2)) == 1
+    assert detail.watch_count(EpisodeRef(1, 3)) == 0
 
 
 def test_library_view_exposes_progress_for_the_season_being_watched() -> None:
