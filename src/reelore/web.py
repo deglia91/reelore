@@ -780,9 +780,7 @@ def _render_image(image_url: str | None, title: str) -> str:
 
 def _render_icon(name: str, css_class: str) -> str:
     paths = {
-        "next-episode": (
-            '<path d="M3 5l7 7-7 7"/><path d="M10 5l7 7-7 7"/><path d="M20 5v14"/>'
-        ),
+        "next-episode": ('<path d="M3 5l7 7-7 7"/><path d="M10 5l7 7-7 7"/><path d="M20 5v14"/>'),
         "calendar": (
             '<rect x="4" y="5" width="16" height="15" rx="2"/>'
             '<path d="M7 3v4M17 3v4M4 9h16"/>'
