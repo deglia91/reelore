@@ -564,6 +564,7 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     state = _status_label(detail.state.status)
     completion = detail.state.completion_count
     rewatch = detail.state.rewatch_count
+    rewatch_progress = _render_rewatch_progress(detail)
     status_options = "".join(
         _render_status_option(status, detail.state.status) for status in LibraryStatus
     )
@@ -579,6 +580,7 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
 <div class="series-stats">
 <span>{state}</span><span>{seen}/{total} episodi</span><span>Rivista {rewatch}x</span>
 </div>
+{rewatch_progress}
 <p class="summary">{summary}</p>
 <div class="tracking-panel">
 <div>
@@ -600,6 +602,24 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
 </div>
 </section>
 <div class="series-seasons">{season_html}</div>"""
+    )
+
+
+def _render_rewatch_progress(detail: TVSeriesDetailView) -> str:
+    progress = detail.rewatch_progress
+    if progress is None:
+        return ""
+    next_episode = ""
+    if progress.next_episode is not None:
+        reference = progress.next_episode
+        next_episode = (
+            f" · Prossimo S{reference.season_number:02}E{reference.episode_number:02}"
+        )
+    return (
+        '<div class="rewatch-progress">'
+        f"<strong>Rewatch {progress.pass_number}</strong>"
+        f"<span>{progress.watched_episodes}/{progress.total_episodes} episodi{next_episode}</span>"
+        "</div>"
     )
 
 
