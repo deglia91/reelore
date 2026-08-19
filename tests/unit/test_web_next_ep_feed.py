@@ -21,7 +21,7 @@ def test_mobile_upcoming_is_visible_compact_episode_list() -> None:
 
 
 def test_mobile_continue_watching_matches_compact_library_cards() -> None:
-    assert '#library .home-rail .card:has(.quick-action)' in NAVIGATION_CSS
+    assert "#library .home-rail .card:has(.quick-action)" in NAVIGATION_CSS
     assert "flex: 0 0 40vw" in NAVIGATION_CSS
     assert "display: block" in NAVIGATION_CSS
     assert "aspect-ratio: 2 / 3" in NAVIGATION_CSS
