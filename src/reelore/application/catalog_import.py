@@ -43,6 +43,11 @@ class TVCatalogImporter:
     def search(self, query: str) -> tuple[TVSearchResult, ...]:
         return self._provider.search(query)
 
+    def preview_series(self, provider_id: str) -> TVSeriesCatalog:
+        """Load full provider metadata without changing the personal library."""
+
+        return self._provider.get_series(provider_id)
+
     def import_series(
         self,
         provider_id: str,
