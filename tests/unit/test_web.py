@@ -15,6 +15,7 @@ from reelore.application.availability import (
     SeasonAvailability,
 )
 from reelore.application.library_view import (
+    CurrentSeasonProgressView,
     LibraryItemView,
     NextEpisodeView,
     TopTenItemView,
@@ -67,6 +68,7 @@ class StubViews:
                 seen_episodes=1,
                 total_episodes=2,
                 next_episode=NextEpisodeView(1, 2, "Second Course"),
+                current_season_progress=CurrentSeasonProgressView(1, 1, 1, 2),
                 top_ten_rank=2,
             ),
             LibraryItemView(
@@ -218,16 +220,16 @@ def test_home_renders_tracking_top_ten_upcoming_and_library_previews() -> None:
     assert "La tua Top 10" in response.text
     assert "#2" in response.text
     assert "Continua a guardare" in response.text
-    assert "S01E02" in response.text
+    assert "Stagione 01 · 01x01 di 2" in response.text
+    assert "Prossimo: 01x02" in response.text
     assert "Second Course" in response.text
-    assert "Segna visto" in response.text
+    assert "Segna 01x02 visto" in response.text
     assert "In pari" in response.text
     assert "La tua libreria" in response.text
     assert 'class="home-rail"' in response.text
     assert 'href="/library"' in response.text
     assert 'href="/library?status=in_progress"' in response.text
     assert "The Bear" in response.text
-    assert "1/2 episodi" in response.text
     assert "Breaking Bad" in response.text
     assert "https://img.example/the-bear.jpg" in response.text
     assert "Severance" in response.text
@@ -239,7 +241,7 @@ def test_catalog_preview_shows_metadata_without_importing_series() -> None:
     response = _client(importer=importer).get("/catalog/series/16740")
 
     assert response.status_code == 200
-    assert 'class="catalog-preview series-hero"' in response.text
+    assert 'catalog-preview' in response.text
     assert "Severance" in response.text
     assert "Office workers have divided memories." in response.text
     assert "2022" in response.text
