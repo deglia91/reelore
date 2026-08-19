@@ -210,15 +210,18 @@ def _render_home(
 
 
 def _render_upcoming_section(episodes: tuple[UpcomingEpisodeView, ...]) -> str:
-    if not episodes:
-        return ""
-    cards = "".join(_render_upcoming_episode(episode) for episode in episodes[:_HOME_PREVIEW_LIMIT])
+    if episodes:
+        content = "".join(
+            _render_upcoming_episode(episode) for episode in episodes[:_HOME_PREVIEW_LIMIT]
+        )
+    else:
+        content = '<p class="feed-empty">Nessuna nuova uscita in programma.</p>'
     return (
         '<section id="upcoming"><div class="section-heading">'
         '<div><p class="eyebrow">Calendario</p><h2>Prossime uscite</h2></div>'
         '<a class="section-link" href="/calendar">Vedi tutte</a>'
         '</div><div class="grid">'
-        f"{cards}</div></section>"
+        f"{content}</div></section>"
     )
 
 
@@ -320,14 +323,15 @@ def _render_upcoming_availability(availability: SeasonAvailability | None) -> st
 
 
 def _render_top_ten_section(items: tuple[TopTenItemView, ...]) -> str:
-    if not items:
-        return ""
-    cards = "".join(_render_top_ten_item(item) for item in items)
+    if items:
+        content = "".join(_render_top_ten_item(item) for item in items)
+    else:
+        content = '<p class="feed-empty">Nessuna serie nella Top 10.</p>'
     return (
         '<section id="top-ten"><div class="section-heading">'
         '<div><p class="eyebrow">Preferite</p><h2>La tua Top 10</h2></div>'
         '</div><div class="grid">'
-        f"{cards}</div></section>"
+        f"{content}</div></section>"
     )
 
 
