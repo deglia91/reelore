@@ -141,6 +141,14 @@ class TVProgressTracker:
         self._today = today
 
     def change_status(self, media_id: str, status: LibraryStatus) -> PersonalMediaState:
+        if status is LibraryStatus.COMPLETED:
+            catalog = self._catalog_for(media_id)
+            if catalog is not None:
+                for episode in catalog.episodes:
+                    self._tracker.mark_episode_seen(
+                        media_id,
+                        EpisodeRef(episode.season_number, episode.episode_number),
+                    )
         return self._tracker.change_status(media_id, status)
 
     def record_completion(self, media_id: str) -> PersonalMediaState:

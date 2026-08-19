@@ -213,6 +213,21 @@ def test_tv_progress_completes_ended_series_when_all_episodes_are_seen() -> None
     assert state.completion_count == 1
 
 
+def test_tv_progress_marking_completed_marks_all_catalog_episodes_seen() -> None:
+    repository = FakeLibraryRepository()
+    media = _severance("tvmaze:1")
+    tracker = MediaTracker(repository)
+    tracker.add_media(media)
+    repository.catalogs["1"] = _catalog("Ended")
+    progress_tracker = TVProgressTracker(tracker, repository)
+
+    state = progress_tracker.change_status(media.id, LibraryStatus.COMPLETED)
+
+    progress = repository.get_episode_progress(media.id)
+    assert state.status is LibraryStatus.COMPLETED
+    assert progress.seen_episodes == frozenset({EpisodeRef(1, 1), EpisodeRef(1, 2)})
+
+
 def test_tv_progress_does_not_override_paused_or_dropped_status() -> None:
     for manual_status in (LibraryStatus.PAUSED, LibraryStatus.DROPPED):
         repository = FakeLibraryRepository()
