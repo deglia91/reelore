@@ -28,6 +28,12 @@ class FakeLibraryRepository:
     def save_media(self, media: MediaItem) -> None:
         self.media[media.id] = media
 
+    def remove_media(self, media_id: str) -> None:
+        self.media.pop(media_id, None)
+        self.states.pop(media_id, None)
+        self.progress.pop(media_id, None)
+        self.watches = [watch for watch in self.watches if watch.media_id != media_id]
+
     def get_media(self, media_id: str) -> MediaItem | None:
         return self.media.get(media_id)
 
@@ -95,6 +101,25 @@ def test_add_media_creates_personal_state_without_resetting_existing_tracking() 
 
     assert repository.states[media.id].status is LibraryStatus.COMPLETED
     assert repository.states[media.id].completion_count == 1
+
+
+def test_remove_media_clears_personal_tracking_but_keeps_catalog_metadata() -> None:
+    repository = FakeLibraryRepository()
+    tracker = MediaTracker(repository, repository)
+    media = _severance("tvmaze:1")
+    episode = EpisodeRef(1, 1)
+    repository.catalogs["1"] = _catalog()
+    tracker.add_media(media, LibraryStatus.IN_PROGRESS)
+    tracker.mark_episode_seen(media.id, episode)
+
+    removed = tracker.remove_media(media.id)
+
+    assert removed == media
+    assert repository.get_media(media.id) is None
+    assert repository.get_personal_state(media.id) is None
+    assert repository.get_episode_progress(media.id).seen_count == 0
+    assert repository.list_episode_watches(media.id) == ()
+    assert repository.get_tv_series_catalog("1") == _catalog()
 
 
 def test_change_status_and_record_completion_preserve_tracking_history() -> None:

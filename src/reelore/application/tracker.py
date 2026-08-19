@@ -38,6 +38,11 @@ class MediaTracker:
                 PersonalMediaState(media_id=media.id, status=status)
             )
 
+    def remove_media(self, media_id: str) -> MediaItem:
+        media = self._require_media(media_id)
+        self._repository.remove_media(media_id)
+        return media
+
     def change_status(self, media_id: str, status: LibraryStatus) -> PersonalMediaState:
         state = self._require_state(media_id).change_status(status)
         self._repository.save_personal_state(state)
@@ -206,6 +211,9 @@ class TVProgressTracker:
         self._store = store
         self._today = today
         self._now = now
+
+    def remove_media(self, media_id: str) -> MediaItem:
+        return self._tracker.remove_media(media_id)
 
     def change_status(self, media_id: str, status: LibraryStatus) -> PersonalMediaState:
         if status is LibraryStatus.COMPLETED:
