@@ -63,7 +63,7 @@ class TMDBItalianAvailabilityProvider(TMDBAdapter):
                 return None
             providers = self._providers(region_payload)
 
-        if not providers:
+        if not providers or region_payload is None:
             return None
         return SeasonAvailability(
             season_number=season_number,
