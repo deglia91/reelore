@@ -17,6 +17,7 @@ from reelore.application.library_view import (
     UpcomingEpisodeView,
 )
 from reelore.domain import EpisodeRef, LibraryStatus
+from reelore.web_navigation_theme import NAVIGATION_CSS
 from reelore.web_theme import render_theme_css
 
 _HOME_PREVIEW_LIMIT = 8
@@ -324,9 +325,7 @@ def _render_library_filters(selected: LibraryStatus | None) -> str:
     for label, status in options:
         href = "/library" if status is None else f"/library?status={status.value}"
         active = " active" if status is selected else ""
-        links.append(
-            f'<a class="filter-chip{active}" href="{href}">{escape(label)}</a>'
-        )
+        links.append(f'<a class="filter-chip{active}" href="{href}">{escape(label)}</a>')
     return f'<nav class="library-filters" aria-label="Filtri libreria">{"".join(links)}</nav>'
 
 
@@ -591,7 +590,7 @@ def _page(
     home: bool = False,
     page_class: str | None = None,
 ) -> str:
-    theme = render_theme_css()
+    theme = render_theme_css() + NAVIGATION_CSS
     body_class = page_class or ("home-page" if home else "detail-page")
     return f"""<!doctype html>
 <html lang="it">
