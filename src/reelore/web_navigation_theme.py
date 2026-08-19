@@ -125,6 +125,18 @@ body {
 
   .home-page .home-hero {
     overflow: hidden;
+    margin-bottom: 0;
+    padding-top: var(--space-2);
+    padding-bottom: 0;
+  }
+
+  .home-page .home-hero h1,
+  .home-page .home-hero .sub {
+    display: none;
+  }
+
+  .home-page .home-hero .eyebrow {
+    margin-bottom: 0;
   }
 
   .home-page .home-hero,
@@ -135,8 +147,8 @@ body {
     max-width: 100%;
   }
 
-  .home-page .home-hero .sub {
-    overflow-wrap: anywhere;
+  .home-page .search {
+    margin-top: var(--space-2);
   }
 
   .home-rail > * {
