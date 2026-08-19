@@ -141,6 +141,7 @@ class StubViews:
 class StubTracker:
     def __init__(self) -> None:
         self.seen: list[tuple[str, EpisodeRef]] = []
+        self.rewatched: list[tuple[str, EpisodeRef]] = []
         self.unseen: list[tuple[str, EpisodeRef]] = []
         self.statuses: list[tuple[str, LibraryStatus]] = []
         self.completions: list[str] = []
@@ -155,6 +156,10 @@ class StubTracker:
 
     def mark_episode_seen(self, media_id: str, episode: EpisodeRef) -> object:
         self.seen.append((media_id, episode))
+        return object()
+
+    def record_episode_rewatch(self, media_id: str, episode: EpisodeRef) -> object:
+        self.rewatched.append((media_id, episode))
         return object()
 
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> object:
@@ -315,6 +320,7 @@ def test_series_detail_renders_cinematic_tracking_and_episode_structure() -> Non
     assert "JustWatch" in detail.text
     assert "Good News About Hell" in detail.text
     assert "Visto ✓" in detail.text
+    assert "Rivisto +1" in detail.text
     assert "Posizione attuale: #2" in detail.text
     assert ">Salva<" in detail.text
     assert ">Rimuovi<" in detail.text
@@ -331,6 +337,20 @@ def test_series_detail_updates_episode_progress() -> None:
 
     assert response.status_code == 303
     assert tracker.seen == [("tvmaze:1", EpisodeRef(1, 2))]
+
+
+def test_series_detail_records_episode_rewatch() -> None:
+    tracker = StubTracker()
+    client = _client(tracker=tracker)
+
+    response = client.post(
+        "/series/tvmaze:1/episodes/1/1/rewatch",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/series/tvmaze:1"
+    assert tracker.rewatched == [("tvmaze:1", EpisodeRef(1, 1))]
 
 
 def test_series_detail_changes_personal_status_and_records_completion() -> None:
