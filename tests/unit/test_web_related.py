@@ -6,7 +6,6 @@ from fastapi.testclient import TestClient
 from pytest import MonkeyPatch
 
 import reelore.bootstrap as bootstrap
-from reelore.application import ImportedTVSeries, TVSearchResult
 from reelore.application.catalog import TVSeriesCatalog
 from reelore.application.library_view import (
     LibraryItemView,
