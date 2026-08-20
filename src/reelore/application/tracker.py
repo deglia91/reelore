@@ -252,6 +252,42 @@ class TVProgressTracker:
             progress = self.mark_episode_seen(media_id, reference)
         return progress
 
+    def mark_episodes_through(self, media_id: str, target: EpisodeRef) -> EpisodeProgress:
+        catalog = self._catalog_for(media_id)
+        if catalog is None:
+            return self._tracker.get_episode_progress(media_id)
+        today = self._today or date.today()
+        ordered = sorted(
+            catalog.episodes,
+            key=lambda episode: (episode.season_number, episode.episode_number),
+        )
+        target_episode = next(
+            (
+                episode
+                for episode in ordered
+                if episode.season_number == target.season_number
+                and episode.episode_number == target.episode_number
+            ),
+            None,
+        )
+        if target_episode is None:
+            raise ValueError("episode not found in catalog")
+        if target_episode.airdate is not None and target_episode.airdate > today:
+            raise ValueError("cannot correct progress through a future episode")
+
+        progress = self._tracker.get_episode_progress(media_id)
+        for episode in ordered:
+            reference = EpisodeRef(episode.season_number, episode.episode_number)
+            if reference > target:
+                break
+            if episode.airdate is not None and episode.airdate > today:
+                continue
+            if progress.has_seen(reference):
+                continue
+            progress = self._tracker.mark_episode_seen(media_id, reference, watched_at=None)
+        self._sync_after_seen(media_id, progress)
+        return progress
+
     def record_episode_rewatch(self, media_id: str, episode: EpisodeRef) -> EpisodeWatch:
         watched_at = self._now or datetime.now(UTC)
         return self._tracker.record_episode_rewatch(media_id, episode, watched_at=watched_at)
