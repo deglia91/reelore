@@ -10,6 +10,7 @@ from reelore.application.catalog import TVCatalogProvider
 from reelore.application.library_view import LibraryViewService
 from reelore.application.localization import LocalizedTVCatalogProvider
 from reelore.application.tracker import TVProgressTracker
+from reelore.application.watch_history_view import WatchHistoryViewService
 from reelore.infrastructure import (
     SQLiteLibraryRepository,
     SQLiteWatchHistoryRepository,
@@ -18,6 +19,7 @@ from reelore.infrastructure import (
 )
 from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProvider
 from reelore.web import create_web_app
+from reelore.web_history import install_history_routes
 
 _DEFAULT_DATABASE_PATH = "data/reelore.db"
 _DEFAULT_ENV_PATH = Path(".env")
@@ -51,9 +53,12 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
         availability_provider,
         watch_history,
     )
+    history_views = WatchHistoryViewService(repository, watch_history)
     tv_progress = TVProgressTracker(tracker, repository)
     top_ten = TopTenService(repository)
-    return create_web_app(importer, views, tv_progress, top_ten)
+    app = create_web_app(importer, views, tv_progress, top_ten)
+    install_history_routes(app, history_views)
+    return app
 
 
 def build_default_app() -> FastAPI:
