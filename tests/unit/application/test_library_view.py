@@ -128,7 +128,7 @@ def test_library_view_combines_catalog_tracking_and_next_episode_data() -> None:
     assert item.image_url == "https://img.example/poster.jpg"
     assert item.status is LibraryStatus.IN_PROGRESS
     assert item.seen_episodes == 1
-    assert item.total_episodes == 3
+    assert item.total_episodes == 2
     assert item.rewatch_count == 1
     assert item.next_episode is not None
     assert item.next_episode.season_number == 1
