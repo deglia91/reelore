@@ -2,7 +2,7 @@ import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 
-from reelore.application import WatchHistoryRepository
+from reelore.application import GlobalWatchHistoryReader, WatchHistoryRepository
 from reelore.domain import EpisodeProgress, EpisodeRef, EpisodeWatch, MediaItem, MediaType
 from reelore.infrastructure import SQLiteLibraryRepository, SQLiteWatchHistoryRepository
 
@@ -21,6 +21,10 @@ def _history(database_path: Path) -> SQLiteWatchHistoryRepository:
 
 def _accept_repository(repository: WatchHistoryRepository) -> None:
     assert repository is not None
+
+
+def _accept_global_reader(reader: GlobalWatchHistoryReader) -> None:
+    assert reader is not None
 
 
 def test_sqlite_watch_history_satisfies_port_and_preserves_multiple_watches(tmp_path: Path) -> None:
@@ -48,6 +52,7 @@ def test_sqlite_watch_history_lists_active_watches_across_library(tmp_path: Path
     library.save_media(severance)
     library.save_media(bear)
     history = _history(database_path)
+    _accept_global_reader(history)
     severance_episode = EpisodeRef(1, 1)
     bear_episode = EpisodeRef(2, 3)
     first = EpisodeWatch(
