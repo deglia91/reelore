@@ -3,7 +3,7 @@ from reelore.web_navigation_theme import NAVIGATION_CSS
 
 
 def test_home_keeps_upcoming_and_top_ten_sections_visible_when_empty() -> None:
-    page = _render_home("", (), (), (), ())
+    page = _render_home("", (), (), (), (), ())
 
     assert 'id="upcoming"' in page
     assert "Nessuna nuova uscita in programma" in page
