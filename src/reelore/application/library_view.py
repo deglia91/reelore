@@ -1,7 +1,7 @@
 """Read models for rendering the personal TV library."""
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from typing import Protocol
 
 from reelore.application.availability import SeasonAvailability, TVAvailabilityProvider
@@ -78,6 +78,18 @@ class TopTenItemView:
 
 @dataclass(frozen=True, slots=True)
 class UpcomingEpisodeView:
+    media_id: str
+    series_title: str
+    season_number: int
+    episode_number: int
+    episode_title: str
+    airdate: date
+    image_url: str | None
+    availability: SeasonAvailability | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class RecentEpisodeView:
     media_id: str
     series_title: str
     season_number: int
@@ -191,6 +203,52 @@ class LibraryViewService:
                     )
                 )
         return tuple(sorted(upcoming, key=lambda episode: episode.airdate))
+
+    def list_recent_episodes(
+        self,
+        today: date,
+        days: int = 90,
+    ) -> tuple[RecentEpisodeView, ...]:
+        earliest = today - timedelta(days=days)
+        recent: list[RecentEpisodeView] = []
+        for media in self._store.list_media():
+            state = self._store.get_personal_state(media.id)
+            catalog = self._catalog_for(media.id)
+            if state is None or catalog is None or state.status is LibraryStatus.DROPPED:
+                continue
+            availability_by_season: dict[int, SeasonAvailability | None] = {}
+            for episode in catalog.episodes:
+                if episode.airdate is None or not earliest <= episode.airdate <= today:
+                    continue
+                if episode.season_number not in availability_by_season:
+                    availability_by_season[episode.season_number] = self._season_availability(
+                        catalog,
+                        episode.season_number,
+                    )
+                recent.append(
+                    RecentEpisodeView(
+                        media_id=media.id,
+                        series_title=media.title,
+                        season_number=episode.season_number,
+                        episode_number=episode.episode_number,
+                        episode_title=episode.title,
+                        airdate=episode.airdate,
+                        image_url=episode.image_url or catalog.image_url,
+                        availability=availability_by_season[episode.season_number],
+                    )
+                )
+        return tuple(
+            sorted(
+                recent,
+                key=lambda episode: (
+                    episode.airdate,
+                    episode.series_title,
+                    episode.season_number,
+                    episode.episode_number,
+                ),
+                reverse=True,
+            )
+        )
 
     def get_tv_series(self, media_id: str) -> TVSeriesDetailView | None:
         state = self._store.get_personal_state(media_id)
