@@ -1,6 +1,6 @@
 from datetime import date
 from pathlib import Path
-from typing import cast
+from typing import ClassVar, cast
 
 from fastapi.testclient import TestClient
 from pytest import MonkeyPatch
@@ -17,9 +17,9 @@ from reelore.application.library_view import (
 from reelore.application.related import RelatedTVTitle
 from reelore.domain import EpisodeProgress, LibraryStatus, PersonalMediaState
 from reelore.web import (
-    TVImportService,
     TopTenTrackingService,
     TrackingService,
+    TVImportService,
     create_web_app,
 )
 from reelore.web_related import render_related_titles
@@ -57,7 +57,7 @@ class RecordingRelatedViews:
 
 
 class FakeRelatedProvider:
-    created_with: list[str] = []
+    created_with: ClassVar[list[str]] = []
 
     def __init__(self, token: str) -> None:
         self.created_with.append(token)
