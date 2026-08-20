@@ -16,7 +16,7 @@ from reelore.application.library_view import (
     TVSeriesDetailView,
     UpcomingEpisodeView,
 )
-from reelore.domain import EpisodeRef, LibraryStatus
+from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus
 from reelore.web_navigation_theme import NAVIGATION_CSS
 from reelore.web_theme import render_theme_css
 
@@ -664,17 +664,18 @@ def _render_season_controls(
     media_id: str,
     season_number: int,
     episodes: tuple[EpisodeRef, ...],
-    progress: object,
+    progress: EpisodeProgress,
 ) -> str:
-    has_seen = getattr(progress, "has_seen")
-    seen_count = sum(1 for episode in episodes if has_seen(episode))
+    seen_count = sum(1 for episode in episodes if progress.has_seen(episode))
     total = len(episodes)
     if total == 0:
         return ""
     media = escape(media_id, quote=True)
     seen_action = f"/series/{media}/seasons/{season_number}/seen"
     unseen_action = f"/series/{media}/seasons/{season_number}/unseen"
-    complete_label = '<span class="season-complete">✓ Stagione vista</span>' if seen_count == total else ""
+    complete_label = ""
+    if seen_count == total:
+        complete_label = '<span class="season-complete">✓ Stagione vista</span>'
     mark_seen = ""
     if seen_count < total:
         mark_seen = f"""<form method="post" action="{seen_action}">
