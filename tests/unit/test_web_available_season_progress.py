@@ -3,7 +3,7 @@ from datetime import date
 from reelore.application import TVEpisodeMetadata, TVSeriesCatalog
 from reelore.application.library_view import TVSeriesDetailView
 from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus, PersonalMediaState
-from reelore.web import _available_episode_refs, _render_series_detail
+from reelore.web import _available_episode_refs, _default_open_season, _render_series_detail
 
 
 def test_available_episode_refs_include_unknown_and_already_aired_episodes() -> None:
@@ -17,6 +17,24 @@ def test_available_episode_refs_include_unknown_and_already_aired_episodes() -> 
         EpisodeRef(1, 1),
         EpisodeRef(1, 2),
     )
+
+
+def test_default_open_season_ignores_future_only_seasons() -> None:
+    media_id = "tvmaze:1"
+    available_episode = EpisodeRef(1, 1)
+    progress = EpisodeProgress(media_id).mark_seen(available_episode)
+
+    assert _default_open_season(
+        {
+            1: (available_episode,),
+            2: (),
+        },
+        progress,
+    ) == 1
+
+
+def test_default_open_season_is_none_when_every_season_is_future_only() -> None:
+    assert _default_open_season({1: (), 2: ()}, EpisodeProgress("tvmaze:1")) is None
 
 
 def test_series_detail_counts_only_available_episodes_and_opens_next_incomplete_season() -> None:
