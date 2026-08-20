@@ -153,6 +153,7 @@ body {{
 
 def _render_history_entry(entry: WatchHistoryItemView) -> str:
     media_id = escape(entry.media_id, quote=True)
+    episode_title = escape(entry.episode_title)
     reference = f"S{entry.season_number:02}E{entry.episode_number:02}"
     watched_at = _format_watch_date(entry.watched_at)
     rewatch = ""
@@ -161,7 +162,7 @@ def _render_history_entry(entry: WatchHistoryItemView) -> str:
     return f"""<a class="history-entry" href="/series/{media_id}">
 <div>
 <p class="history-series">{escape(entry.series_title)}</p>
-<p class="history-episode"><span class="history-reference">{reference}</span> · {escape(entry.episode_title)}</p>
+<p class="history-episode"><span class="history-reference">{reference}</span> · {episode_title}</p>
 </div>
 <div class="history-meta"><time class="history-date">{watched_at}</time>{rewatch}</div>
 </a>"""
