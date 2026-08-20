@@ -23,10 +23,6 @@ def test_default_open_season_is_latest_when_every_season_is_complete() -> None:
         1: (EpisodeRef(1, 1),),
         2: (EpisodeRef(2, 1),),
     }
-    progress = (
-        EpisodeProgress("tvmaze:1")
-        .mark_seen(EpisodeRef(1, 1))
-        .mark_seen(EpisodeRef(2, 1))
-    )
+    progress = EpisodeProgress("tvmaze:1").mark_seen(EpisodeRef(1, 1)).mark_seen(EpisodeRef(2, 1))
 
     assert _default_open_season(seasons, progress) == 2
