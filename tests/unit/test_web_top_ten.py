@@ -1,6 +1,11 @@
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
 from reelore.application.library_view import LibraryItemView, TopTenItemView
 from reelore.domain import LibraryStatus
-from reelore.web_top_ten import render_top_ten_page
+from reelore.web import _render_app_header, _render_mobile_nav
+from reelore.web_history import render_history_page
+from reelore.web_top_ten import install_top_ten_routes, render_top_ten_page
 
 
 def _library_item(
@@ -8,6 +13,8 @@ def _library_item(
     title: str,
     status: LibraryStatus,
     image_url: str | None,
+    *,
+    top_ten_rank: int | None = None,
 ) -> LibraryItemView:
     return LibraryItemView(
         media_id=media_id,
@@ -18,7 +25,32 @@ def _library_item(
         image_url=image_url,
         seen_episodes=0,
         total_episodes=0,
+        top_ten_rank=top_ten_rank,
     )
+
+
+class StubViews:
+    def list_top_ten(self) -> tuple[TopTenItemView, ...]:
+        return ()
+
+    def list_items(self) -> tuple[LibraryItemView, ...]:
+        return (
+            _library_item("tvmaze:1", "The Bear", LibraryStatus.IN_PROGRESS, None),
+        )
+
+
+class StubTopTen:
+    def __init__(self) -> None:
+        self.assigned: list[tuple[str, int]] = []
+        self.removed: list[str] = []
+
+    def assign(self, media_id: str, rank: int) -> object:
+        self.assigned.append((media_id, rank))
+        return object()
+
+    def remove(self, media_id: str) -> object:
+        self.removed.append(media_id)
+        return object()
 
 
 def test_top_ten_page_renders_all_ten_positions_and_empty_slots() -> None:
@@ -36,6 +68,7 @@ def test_top_ten_page_renders_all_ten_positions_and_empty_slots() -> None:
             "The Bear",
             LibraryStatus.IN_PROGRESS,
             "https://img.example/the-bear.jpg",
+            top_ten_rank=2,
         ),
     )
 
@@ -63,6 +96,7 @@ def test_top_ten_page_links_ranked_series_to_detail() -> None:
             "Severance",
             LibraryStatus.UP_TO_DATE,
             None,
+            top_ten_rank=1,
         ),
     )
 
@@ -70,3 +104,53 @@ def test_top_ten_page_links_ranked_series_to_detail() -> None:
 
     assert 'href="/series/tvmaze:42"' in page
     assert "In pari" in page
+
+
+def test_top_ten_page_exposes_ranked_positions_in_management_selects() -> None:
+    ranked = (TopTenItemView(2, "tvmaze:1", "The Bear", None),)
+    library = (
+        _library_item(
+            "tvmaze:1",
+            "The Bear",
+            LibraryStatus.IN_PROGRESS,
+            None,
+            top_ten_rank=2,
+        ),
+        _library_item("tvmaze:2", "Severance", LibraryStatus.UP_TO_DATE, None),
+    )
+
+    page = render_top_ten_page(ranked, library)
+
+    assert "The Bear (#2)" in page
+    assert '<form method="post" action="/top-ten/2">' in page
+    assert 'name="media_id"' in page
+    assert 'action="/top-ten/tvmaze:1/remove"' in page
+
+
+def test_top_ten_routes_assign_and_remove_from_dedicated_page() -> None:
+    app = FastAPI()
+    top_ten = StubTopTen()
+    install_top_ten_routes(app, StubViews(), top_ten)
+    client = TestClient(app)
+
+    assigned = client.post(
+        "/top-ten/3",
+        data={"media_id": "tvmaze:1"},
+        follow_redirects=False,
+    )
+    removed = client.post("/top-ten/tvmaze:1/remove", follow_redirects=False)
+
+    assert assigned.status_code == 303
+    assert assigned.headers["location"] == "/top-ten"
+    assert top_ten.assigned == [("tvmaze:1", 3)]
+    assert removed.status_code == 303
+    assert removed.headers["location"] == "/top-ten"
+    assert top_ten.removed == ["tvmaze:1"]
+
+
+def test_global_navigation_links_to_dedicated_top_ten_page() -> None:
+    assert 'href="/top-ten">Top 10</a>' in _render_app_header()
+    assert 'href="/top-ten">Top 10</a>' in _render_mobile_nav()
+
+    history_page = render_history_page(())
+    assert history_page.count('href="/top-ten">Top 10</a>') == 2
