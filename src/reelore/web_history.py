@@ -130,7 +130,7 @@ body {{
 <a class="history-brand" href="/">NextEp</a>
 <nav class="history-nav" aria-label="Navigazione principale">
 <a href="/">Home</a><a href="/library">Libreria</a><a href="/calendar">Calendario</a>
-<a href="/history" aria-current="page">Cronologia</a><a href="/#top-ten">Top 10</a>
+<a href="/history" aria-current="page">Cronologia</a><a href="/top-ten">Top 10</a>
 <a href="/#search">Cerca</a>
 </nav>
 </div>
@@ -144,7 +144,7 @@ body {{
 </main>
 <nav class="history-mobile-nav" aria-label="Navigazione mobile">
 <a href="/">Home</a><a href="/library">Libreria</a><a href="/calendar">Calendario</a>
-<a href="/history" aria-current="page">Cronologia</a><a href="/#top-ten">Top 10</a>
+<a href="/history" aria-current="page">Cronologia</a><a href="/top-ten">Top 10</a>
 <a href="/#search">Cerca</a>
 </nav>
 </body>
