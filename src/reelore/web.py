@@ -99,6 +99,10 @@ class TrackingService(Protocol):
 
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> object: ...
 
+    def mark_season_seen(self, media_id: str, season_number: int) -> object: ...
+
+    def mark_season_unseen(self, media_id: str, season_number: int) -> object: ...
+
     def remove_media(self, media_id: str) -> object: ...
 
 
@@ -189,6 +193,16 @@ def create_web_app(
     @app.post("/series/{media_id}/top-ten/remove")
     def remove_top_ten(media_id: str) -> RedirectResponse:
         top_ten.remove(media_id)
+        return RedirectResponse(url=f"/series/{media_id}", status_code=303)
+
+    @app.post("/series/{media_id}/seasons/{season}/seen")
+    def mark_season_seen(media_id: str, season: int) -> RedirectResponse:
+        tracker.mark_season_seen(media_id, season)
+        return RedirectResponse(url=f"/series/{media_id}", status_code=303)
+
+    @app.post("/series/{media_id}/seasons/{season}/unseen")
+    def mark_season_unseen(media_id: str, season: int) -> RedirectResponse:
+        tracker.mark_season_unseen(media_id, season)
         return RedirectResponse(url=f"/series/{media_id}", status_code=303)
 
     @app.post("/series/{media_id}/episodes/{season}/{episode}/seen")
@@ -567,8 +581,10 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     summary = escape(catalog.summary or "Nessuna trama disponibile.")
     availability = {item.season_number: item for item in detail.availability}
     seasons: dict[int, list[str]] = defaultdict(list)
+    season_references: dict[int, list[EpisodeRef]] = defaultdict(list)
     for episode in catalog.episodes:
         reference = EpisodeRef(episode.season_number, episode.episode_number)
+        season_references[episode.season_number].append(reference)
         seasons[episode.season_number].append(
             _render_episode(
                 detail.media_id,
@@ -582,9 +598,15 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     for number, rows in sorted(seasons.items()):
         episode_rows = "".join(rows)
         availability_html = _render_season_availability(availability.get(number))
+        season_controls = _render_season_controls(
+            detail.media_id,
+            number,
+            tuple(season_references[number]),
+            progress,
+        )
         season_sections.append(
             '<section class="season-section">'
-            f'<div class="section-heading"><h2>Stagione {number}</h2></div>'
+            f'<div class="section-heading"><h2>Stagione {number}</h2>{season_controls}</div>'
             f"{availability_html}"
             f'<div class="episodes">{episode_rows}</div></section>'
         )
@@ -635,6 +657,39 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
 </div>
 </section>
 <div class="series-seasons">{season_html}</div>"""
+    )
+
+
+def _render_season_controls(
+    media_id: str,
+    season_number: int,
+    episodes: tuple[EpisodeRef, ...],
+    progress: object,
+) -> str:
+    has_seen = getattr(progress, "has_seen")
+    seen_count = sum(1 for episode in episodes if has_seen(episode))
+    total = len(episodes)
+    if total == 0:
+        return ""
+    media = escape(media_id, quote=True)
+    seen_action = f"/series/{media}/seasons/{season_number}/seen"
+    unseen_action = f"/series/{media}/seasons/{season_number}/unseen"
+    complete_label = '<span class="season-complete">✓ Stagione vista</span>' if seen_count == total else ""
+    mark_seen = ""
+    if seen_count < total:
+        mark_seen = f"""<form method="post" action="{seen_action}">
+<button type="submit">Segna stagione vista</button>
+</form>"""
+    mark_unseen = ""
+    if seen_count > 0:
+        mark_unseen = f"""<form method="post" action="{unseen_action}"
+onsubmit="return confirm('Segnare tutta la stagione come non vista?')">
+<button class="secondary-button" type="submit">Segna stagione non vista</button>
+</form>"""
+    return (
+        '<div class="season-actions">'
+        f'<span class="season-progress">{seen_count}/{total} visti</span>'
+        f"{complete_label}{mark_seen}{mark_unseen}</div>"
     )
 
 
@@ -1044,6 +1099,10 @@ button:active {{ transform: translateY(1px); }}
 }}
 .availability-provider {{ display: inline-block; margin: 4px 8px 4px 0; }}
 .availability-source {{ margin-top: 8px; color: var(--color-text-muted); font-size: .78rem; }}
+.season-actions {{ display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }}
+.season-actions form {{ margin: 0; }}
+.season-progress, .season-complete {{ color: var(--color-text-muted); font-size: .8rem; }}
+.season-complete {{ color: var(--color-accent-strong); font-weight: 800; }}
 .episodes {{ display: grid; gap: var(--space-2); }}
 .episode {{
   display: flex; justify-content: space-between; gap: var(--space-4); align-items: center;
@@ -1076,6 +1135,9 @@ button:active {{ transform: translateY(1px); }}
   .search {{ flex-direction: row; }}
   .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
   .hero {{ grid-template-columns: 110px 1fr; gap: var(--space-4); }}
+  .season-section .section-heading {{ align-items: flex-start; flex-direction: column; gap: 10px; }}
+  .season-actions {{ width: 100%; justify-content: flex-start; }}
+  .season-actions button {{ min-height: 40px; padding: 8px 10px; font-size: .78rem; }}
   .episode {{ align-items: flex-start; flex-direction: column; }}
   .episode-actions {{ width: 100%; flex-wrap: wrap; }}
   .preview-page .series-hero {{ grid-template-columns: 104px minmax(0, 1fr); }}
