@@ -20,6 +20,7 @@ from reelore.infrastructure import (
 from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProvider
 from reelore.web import create_web_app
 from reelore.web_history import install_history_routes
+from reelore.web_top_ten import install_top_ten_routes
 
 _DEFAULT_DATABASE_PATH = "data/reelore.db"
 _DEFAULT_ENV_PATH = Path(".env")
@@ -58,6 +59,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     top_ten = TopTenService(repository)
     app = create_web_app(importer, views, tv_progress, top_ten)
     install_history_routes(app, history_views)
+    install_top_ten_routes(app, views)
     return app
 
 
