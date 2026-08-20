@@ -81,6 +81,25 @@ class MultiSeasonViewStore(StubViewStore):
         )
 
 
+class FutureRewatchViewStore(StubViewStore):
+    def get_tv_series_catalog(self, provider_id: str) -> TVSeriesCatalog | None:
+        assert provider_id == "1"
+        return TVSeriesCatalog(
+            provider_id="1",
+            title="Example",
+            summary="Summary",
+            status="Running",
+            premiered=None,
+            ended=None,
+            image_url=None,
+            episodes=(
+                TVEpisodeMetadata("11", 1, 1, "One", airdate=date(2026, 1, 1)),
+                TVEpisodeMetadata("12", 1, 2, "Two", airdate=date(2026, 1, 8)),
+                TVEpisodeMetadata("13", 1, 3, "Future", airdate=date(2100, 1, 1)),
+            ),
+        )
+
+
 class StubAvailabilityProvider:
     def season_availability(
         self,
@@ -105,6 +124,17 @@ class StubWatchHistory:
         return (
             EpisodeWatch(media_id, EpisodeRef(1, 1), watched_at),
             EpisodeWatch(media_id, EpisodeRef(1, 1), watched_at),
+            EpisodeWatch(media_id, EpisodeRef(1, 2), watched_at),
+        )
+
+
+class CompleteAvailableRewatchHistory:
+    def list_episode_watches(self, media_id: str) -> tuple[EpisodeWatch, ...]:
+        watched_at = datetime(2026, 8, 18, 20, 30)
+        return (
+            EpisodeWatch(media_id, EpisodeRef(1, 1), watched_at),
+            EpisodeWatch(media_id, EpisodeRef(1, 1), watched_at),
+            EpisodeWatch(media_id, EpisodeRef(1, 2), watched_at),
             EpisodeWatch(media_id, EpisodeRef(1, 2), watched_at),
         )
 
@@ -171,6 +201,22 @@ def test_library_view_derives_coherent_rewatch_progress_from_series_start() -> N
     assert detail.rewatch_progress.watched_episodes == 1
     assert detail.rewatch_progress.total_episodes == 3
     assert detail.rewatch_progress.next_episode == EpisodeRef(1, 2)
+
+
+def test_library_view_rewatch_progress_ignores_future_episodes() -> None:
+    service = LibraryViewService(
+        FutureRewatchViewStore(),
+        watch_history=CompleteAvailableRewatchHistory(),
+    )
+
+    detail = service.get_tv_series("tvmaze:1")
+
+    assert detail is not None
+    assert detail.rewatch_progress is not None
+    assert detail.rewatch_progress.pass_number == 2
+    assert detail.rewatch_progress.watched_episodes == 2
+    assert detail.rewatch_progress.total_episodes == 2
+    assert detail.rewatch_progress.next_episode is None
 
 
 def test_library_view_ignores_scattered_episode_rewatches() -> None:
