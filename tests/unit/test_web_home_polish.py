@@ -1,3 +1,4 @@
+from reelore.web_navigation_theme import NAVIGATION_CSS
 from reelore.web_theme import COMPONENT_CSS
 
 
@@ -15,10 +16,10 @@ def test_library_secondary_sections_are_visually_quieter() -> None:
 
 
 def test_recent_releases_use_a_compact_horizontal_rail() -> None:
-    assert "#recent .grid" in COMPONENT_CSS
-    assert "overflow-x: auto" in COMPONENT_CSS
-    assert "#recent .card" in COMPONENT_CSS
-    assert "flex: 0 0 190px" in COMPONENT_CSS
+    assert "#recent .grid" in NAVIGATION_CSS
+    assert "overflow-x: auto" in NAVIGATION_CSS
+    assert "#recent .card" in NAVIGATION_CSS
+    assert "flex: 0 0 190px" in NAVIGATION_CSS
 
 
 def test_home_polish_keeps_mobile_spacing_rules() -> None:
