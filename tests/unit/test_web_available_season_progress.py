@@ -24,13 +24,16 @@ def test_default_open_season_ignores_future_only_seasons() -> None:
     available_episode = EpisodeRef(1, 1)
     progress = EpisodeProgress(media_id).mark_seen(available_episode)
 
-    assert _default_open_season(
-        {
-            1: (available_episode,),
-            2: (),
-        },
-        progress,
-    ) == 1
+    assert (
+        _default_open_season(
+            {
+                1: (available_episode,),
+                2: (),
+            },
+            progress,
+        )
+        == 1
+    )
 
 
 def test_default_open_season_is_none_when_every_season_is_future_only() -> None:
