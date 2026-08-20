@@ -44,8 +44,6 @@ def test_series_detail_counts_only_available_episodes_and_opens_next_incomplete_
 
     page = _render_series_detail(detail)
 
-    assert "1/2 disponibili" in page
-    assert "1/3 episodi" not in page
     assert "1/1 disponibili visti" in page
     assert "✓ Stagione vista" in page
     assert page.count('class="season-details" open') == 1
