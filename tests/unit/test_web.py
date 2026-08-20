@@ -168,6 +168,8 @@ class StubTracker:
         self.seen: list[tuple[str, EpisodeRef]] = []
         self.rewatched: list[tuple[str, EpisodeRef]] = []
         self.unseen: list[tuple[str, EpisodeRef]] = []
+        self.seasons_seen: list[tuple[str, int]] = []
+        self.seasons_unseen: list[tuple[str, int]] = []
         self.statuses: list[tuple[str, LibraryStatus]] = []
         self.completions: list[str] = []
         self.removed_media: list[str] = []
@@ -190,6 +192,14 @@ class StubTracker:
 
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> object:
         self.unseen.append((media_id, episode))
+        return object()
+
+    def mark_season_seen(self, media_id: str, season_number: int) -> object:
+        self.seasons_seen.append((media_id, season_number))
+        return object()
+
+    def mark_season_unseen(self, media_id: str, season_number: int) -> object:
+        self.seasons_unseen.append((media_id, season_number))
         return object()
 
     def remove_media(self, media_id: str) -> object:
@@ -349,6 +359,12 @@ def test_series_detail_renders_cinematic_tracking_and_episode_structure() -> Non
     assert 'class="season-section"' in detail.text
     assert 'class="episode-copy"' in detail.text
     assert "Stagione 1" in detail.text
+    assert "1/2 visti" in detail.text
+    assert 'action="/series/tvmaze:1/seasons/1/seen"' in detail.text
+    assert "Segna stagione vista" in detail.text
+    assert 'action="/series/tvmaze:1/seasons/1/unseen"' in detail.text
+    assert "Segna stagione non vista" in detail.text
+    assert "Segnare tutta la stagione come non vista?" in detail.text
     assert "Disponibile in Italia" in detail.text
     assert "Apple TV Plus" in detail.text
     assert "streaming" in detail.text
@@ -375,6 +391,21 @@ def test_series_detail_updates_episode_progress() -> None:
 
     assert response.status_code == 303
     assert tracker.seen == [("tvmaze:1", EpisodeRef(1, 2))]
+
+
+def test_series_detail_updates_whole_season_progress() -> None:
+    tracker = StubTracker()
+    client = _client(tracker=tracker)
+
+    seen = client.post("/series/tvmaze:1/seasons/1/seen", follow_redirects=False)
+    unseen = client.post("/series/tvmaze:1/seasons/1/unseen", follow_redirects=False)
+
+    assert seen.status_code == 303
+    assert unseen.status_code == 303
+    assert seen.headers["location"] == "/series/tvmaze:1"
+    assert unseen.headers["location"] == "/series/tvmaze:1"
+    assert tracker.seasons_seen == [("tvmaze:1", 1)]
+    assert tracker.seasons_unseen == [("tvmaze:1", 1)]
 
 
 def test_series_detail_records_episode_rewatch() -> None:
