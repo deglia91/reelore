@@ -348,3 +348,52 @@ def test_tv_progress_reopens_up_to_date_series_when_episode_becomes_unseen() -> 
     progress_tracker.mark_episode_unseen(media.id, EpisodeRef(1, 2))
 
     assert repository.states[media.id].status is LibraryStatus.IN_PROGRESS
+
+
+def test_tv_progress_marks_only_available_unseen_episodes_in_season_seen() -> None:
+    repository = FakeLibraryRepository()
+    media = _severance("tvmaze:1")
+    tracker = MediaTracker(repository, repository)
+    tracker.add_media(media)
+    repository.catalogs["1"] = TVSeriesCatalog(
+        provider_id="1",
+        title="Severance",
+        summary=None,
+        status="Running",
+        premiered=None,
+        ended=None,
+        image_url=None,
+        episodes=(
+            TVEpisodeMetadata("11", 1, 1, "Episode 1", airdate=date(2026, 1, 1)),
+            TVEpisodeMetadata("12", 1, 2, "Episode 2", airdate=date(2026, 1, 8)),
+            TVEpisodeMetadata("13", 1, 3, "Future", airdate=date(2026, 3, 1)),
+        ),
+    )
+    progress_tracker = TVProgressTracker(tracker, repository, today=date(2026, 2, 1))
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 1))
+    progress_tracker.record_episode_rewatch(media.id, EpisodeRef(1, 1))
+
+    progress = progress_tracker.mark_season_seen(media.id, 1)
+
+    assert progress.seen_episodes == frozenset({EpisodeRef(1, 1), EpisodeRef(1, 2)})
+    assert len([watch for watch in repository.watches if watch.episode == EpisodeRef(1, 1)]) == 2
+    assert len([watch for watch in repository.watches if watch.episode == EpisodeRef(1, 2)]) == 1
+    assert all(watch.episode != EpisodeRef(1, 3) for watch in repository.watches)
+
+
+def test_tv_progress_marks_entire_season_unseen_including_rewatches() -> None:
+    repository = FakeLibraryRepository()
+    media = _severance("tvmaze:1")
+    tracker = MediaTracker(repository, repository)
+    tracker.add_media(media)
+    repository.catalogs["1"] = _catalog("Running")
+    progress_tracker = TVProgressTracker(tracker, repository, today=date(2026, 2, 1))
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 1))
+    progress_tracker.record_episode_rewatch(media.id, EpisodeRef(1, 1))
+    progress_tracker.mark_episode_seen(media.id, EpisodeRef(1, 2))
+
+    progress = progress_tracker.mark_season_unseen(media.id, 1)
+
+    assert progress.seen_count == 0
+    assert repository.list_episode_watches(media.id) == ()
+    assert repository.states[media.id].status is LibraryStatus.IN_PROGRESS
