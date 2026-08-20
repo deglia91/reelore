@@ -21,6 +21,7 @@ from reelore.web_navigation_theme import NAVIGATION_CSS
 from reelore.web_theme import render_theme_css
 
 _HOME_PREVIEW_LIMIT = 8
+_HOME_RECENT_LIMIT = 3
 _HOME_PLATFORM_TYPES = frozenset(
     {
         AvailabilityType.STREAM,
@@ -80,6 +81,8 @@ class LibraryViewReader(Protocol):
 
     def list_top_ten(self) -> tuple[TopTenItemView, ...]: ...
 
+    def list_recent_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]: ...
+
     def list_upcoming_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]: ...
 
     def get_tv_series(self, media_id: str) -> TVSeriesDetailView | None: ...
@@ -124,6 +127,7 @@ def create_web_app(
                 results,
                 views.list_items(today),
                 views.list_top_ten(),
+                views.list_recent_episodes(today),
                 views.list_upcoming_episodes(today),
             )
         )
@@ -215,6 +219,7 @@ def _render_home(
     results: tuple[TVSearchResult, ...],
     library_items: tuple[LibraryItemView, ...],
     top_ten_items: tuple[TopTenItemView, ...],
+    recent_episodes: tuple[UpcomingEpisodeView, ...],
     upcoming_episodes: tuple[UpcomingEpisodeView, ...],
 ) -> str:
     search_results = "".join(_render_search_result(result) for result in results)
@@ -222,6 +227,7 @@ def _render_home(
         search_results = '<p class="empty">Nessuna serie trovata.</p>'
 
     results_section = _render_results_section(query, search_results)
+    recent_section = _render_recent_section(recent_episodes)
     upcoming_section = _render_upcoming_section(upcoming_episodes)
     top_ten_section = _render_top_ten_section(top_ten_items)
     library_sections = _render_home_library_sections(library_items)
@@ -237,10 +243,23 @@ def _render_home(
 <button type="submit"><span class="search-label">Cerca</span>{search_icon}</button>
 </form>
 {results_section}
+{recent_section}
 {upcoming_section}
 {top_ten_section}
 <div id="library">{library_sections}</div>""",
         home=True,
+    )
+
+
+def _render_recent_section(episodes: tuple[UpcomingEpisodeView, ...]) -> str:
+    if not episodes:
+        return ""
+    content = "".join(_render_upcoming_episode(episode) for episode in episodes[:_HOME_RECENT_LIMIT])
+    return (
+        '<section id="recent" style="order:5"><div class="section-heading">'
+        '<div><p class="eyebrow">Novità</p><h2>Ultime uscite</h2></div>'
+        '</div><div class="grid">'
+        f"{content}</div></section>"
     )
 
 
