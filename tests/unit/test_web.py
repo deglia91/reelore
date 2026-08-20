@@ -103,6 +103,31 @@ class StubViews:
             ),
         )
 
+    def list_recent_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]:
+        return (
+            UpcomingEpisodeView(
+                media_id="tvmaze:1",
+                series_title="The Bear",
+                season_number=4,
+                episode_number=5,
+                episode_title="Doors",
+                airdate=date(2026, 8, 19),
+                image_url="https://img.example/the-bear-recent.jpg",
+                availability=SeasonAvailability(
+                    season_number=4,
+                    region="IT",
+                    providers=(
+                        AvailabilityProvider(
+                            "Disney Plus",
+                            AvailabilityType.STREAM,
+                            logo_url="https://img.example/disney-plus.png",
+                        ),
+                    ),
+                    source="JustWatch",
+                ),
+            ),
+        )
+
     def list_upcoming_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]:
         return (
             UpcomingEpisodeView(
@@ -223,6 +248,11 @@ def test_home_renders_tracking_top_ten_upcoming_and_library_previews() -> None:
     response = _client().get("/?q=Severance")
 
     assert response.status_code == 200
+    assert "Ultime uscite" in response.text
+    assert "S04E05" in response.text
+    assert "19 ago" in response.text
+    assert "Doors" in response.text
+    assert "https://img.example/disney-plus.png" in response.text
     assert "Prossime uscite" in response.text
     assert "S03E01" in response.text
     assert "10 gen" in response.text
