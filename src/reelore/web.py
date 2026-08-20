@@ -564,6 +564,19 @@ def _render_catalog_preview(catalog: TVSeriesCatalog) -> str:
     )
 
 
+def _default_open_season(
+    seasons: dict[int, tuple[EpisodeRef, ...]],
+    progress: EpisodeProgress,
+) -> int | None:
+    if not seasons:
+        return None
+    for season_number in sorted(seasons):
+        episodes = seasons[season_number]
+        if any(not progress.has_seen(episode) for episode in episodes):
+            return season_number
+    return max(seasons)
+
+
 def _render_series_detail(detail: TVSeriesDetailView) -> str:
     catalog = detail.catalog
     progress = detail.progress
@@ -586,6 +599,10 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
                 detail.watch_count(reference),
             )
         )
+    season_reference_map = {
+        number: tuple(references) for number, references in season_references.items()
+    }
+    open_season = _default_open_season(season_reference_map, progress)
     season_sections: list[str] = []
     for number, rows in sorted(seasons.items()):
         episode_rows = "".join(rows)
@@ -593,14 +610,18 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
         season_controls = _render_season_controls(
             detail.media_id,
             number,
-            tuple(season_references[number]),
+            season_reference_map[number],
             progress,
         )
+        open_attr = " open" if number == open_season else ""
         season_sections.append(
             '<section class="season-section">'
             f'<div class="section-heading"><h2>Stagione {number}</h2>{season_controls}</div>'
-            f"{availability_html}"
-            f'<div class="episodes">{episode_rows}</div></section>'
+            f'<details class="season-details"{open_attr}>'
+            '<summary class="season-toggle">Episodi e disponibilità</summary>'
+            f'<div class="season-detail-body">{availability_html}'
+            f'<div class="episodes">{episode_rows}</div></div>'
+            "</details></section>"
         )
     season_html = "".join(season_sections)
     state = _status_label(detail.state.status)
@@ -1089,6 +1110,22 @@ button:active {{ transform: translateY(1px); }}
 .season-actions form {{ margin: 0; }}
 .season-progress, .season-complete {{ color: var(--color-text-muted); font-size: .8rem; }}
 .season-complete {{ color: var(--color-accent-strong); font-weight: 800; }}
+.season-details {{
+  overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  background: var(--color-surface);
+}}
+.season-toggle {{
+  display: flex; min-height: 44px; align-items: center; justify-content: space-between;
+  padding: 10px 14px; color: var(--color-text-muted); font-size: .84rem;
+  font-weight: 750; cursor: pointer; list-style: none;
+}}
+.season-toggle::-webkit-details-marker {{ display: none; }}
+.season-toggle::after {{
+  content: "+"; color: var(--color-accent-strong); font-size: 1.15rem; font-weight: 800;
+}}
+.season-details[open] .season-toggle::after {{ content: "-"; }}
+.season-detail-body {{ padding: 0 12px 12px; }}
+.season-detail-body .availability {{ margin-top: 2px; }}
 .episodes {{ display: grid; gap: var(--space-2); }}
 .episode {{
   display: flex; justify-content: space-between; gap: var(--space-4); align-items: center;
@@ -1124,6 +1161,7 @@ button:active {{ transform: translateY(1px); }}
   .season-section .section-heading {{ align-items: flex-start; flex-direction: column; gap: 10px; }}
   .season-actions {{ width: 100%; justify-content: flex-start; }}
   .season-actions button {{ min-height: 40px; padding: 8px 10px; font-size: .78rem; }}
+  .season-detail-body {{ padding: 0 8px 8px; }}
   .episode {{ align-items: flex-start; flex-direction: column; }}
   .episode-actions {{ width: 100%; flex-wrap: wrap; }}
   .preview-page .series-hero {{ grid-template-columns: 104px minmax(0, 1fr); }}
