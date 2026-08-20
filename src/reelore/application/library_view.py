@@ -156,7 +156,11 @@ class LibraryViewService:
                     seen_episodes=seen_available,
                     total_episodes=len(available_episodes),
                     next_episode=self._next_episode(catalog, progress, current_date),
-                    current_season_progress=self._current_season_progress(catalog, progress),
+                    current_season_progress=self._current_season_progress(
+                        catalog,
+                        progress,
+                        current_date,
+                    ),
                     top_ten_rank=state.top_ten_rank,
                 )
             )
@@ -310,19 +314,23 @@ class LibraryViewService:
         self,
         catalog: TVSeriesCatalog | None,
         progress: EpisodeProgress,
+        today: date,
     ) -> CurrentSeasonProgressView | None:
         if catalog is None:
             return None
+        available_episodes = self._available_episodes(catalog, today)
         seen_episodes = [
             episode
-            for episode in catalog.episodes
+            for episode in available_episodes
             if progress.has_seen(EpisodeRef(episode.season_number, episode.episode_number))
         ]
         if not seen_episodes:
             return None
         current_season = max(episode.season_number for episode in seen_episodes)
         current_season_episodes = [
-            episode for episode in catalog.episodes if episode.season_number == current_season
+            episode
+            for episode in available_episodes
+            if episode.season_number == current_season
         ]
         seen_in_season = [
             episode
