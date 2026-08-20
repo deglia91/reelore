@@ -845,9 +845,7 @@ def _render_episode(
     rewatch_action = ""
     through_action = ""
     if seen or allow_through:
-        action_url = (
-            f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
-        )
+        action_url = f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
         primary_action = f"""<form method="post" action="{action_url}">
 <button type="submit">{label}</button>
 </form>"""
