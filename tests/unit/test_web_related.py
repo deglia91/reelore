@@ -84,7 +84,10 @@ def _detail() -> TVSeriesDetailView:
     )
 
 
-def _web_app(views: StubViews, related_views: RecordingRelatedViews | None = None) -> TestClient:
+def _web_app(
+    views: StubViews,
+    related_views: RecordingRelatedViews | None = None,
+) -> TestClient:
     importer = cast(TVImportService, object())
     tracker = cast(TrackingService, object())
     top_ten = cast(TopTenTrackingService, object())
