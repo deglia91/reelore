@@ -1,4 +1,5 @@
 from reelore.web_navigation_theme import NAVIGATION_CSS
+from reelore.web_theme import COMPONENT_CSS
 
 
 def test_mobile_document_cannot_pan_horizontally() -> None:
@@ -24,3 +25,11 @@ def test_mobile_top_ten_is_a_compact_horizontal_rail() -> None:
     assert "flex: 0 0 118px" in NAVIGATION_CSS
     assert "width: 118px" in NAVIGATION_CSS
     assert "font-size: .74rem" in NAVIGATION_CSS
+
+
+def test_mobile_unseen_episode_actions_move_below_episode_copy() -> None:
+    selector = '.episode:not(:has(.episode-actions form[action$="/rewatch"]))'
+    assert selector in COMPONENT_CSS
+    assert f"{selector} .episode-actions" in COMPONENT_CSS
+    assert "grid-template-columns: repeat(2, minmax(0, 1fr))" in COMPONENT_CSS
+    assert f"{selector} .episode-actions form:only-child" in COMPONENT_CSS
