@@ -152,7 +152,9 @@ def _render_top_ten_slot(
     media_id = escape(item.media_id, quote=True)
     poster = _render_poster(item.image_url, item.title)
     library_item = library_by_id.get(item.media_id)
-    status = _status_label(library_item.status) if library_item is not None else "Stato non disponibile"
+    status = (
+        _status_label(library_item.status) if library_item is not None else "Stato non disponibile"
+    )
     return f"""<a class="top-ten-slot" data-rank="{rank}" href="/series/{media_id}">
 <div class="top-ten-position">#{rank}</div>
 {poster}
