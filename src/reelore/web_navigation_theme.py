@@ -413,7 +413,7 @@ body {
     display: none;
   }
 
-  .home-page #upcoming {
+  .home-page #recent {
     display: block !important;
     order: 5;
     width: 100%;
@@ -421,9 +421,103 @@ body {
     margin-top: var(--space-5);
   }
 
-  .home-page #top-ten {
+  .home-page #recent .grid {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    gap: var(--space-3);
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    padding: var(--space-1) 0 var(--space-3);
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .home-page #recent .grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-page #recent .card {
+    display: block;
+    flex: 0 0 190px;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    scroll-snap-align: start;
+  }
+
+  .home-page #recent .poster,
+  .home-page #recent .placeholder {
+    display: block;
+    width: 100%;
+    height: 118px;
+    border-radius: 0;
+    aspect-ratio: auto;
+    object-fit: cover;
+  }
+
+  .home-page #recent .content {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    padding: var(--space-3);
+  }
+
+  .home-page #recent .upcoming-copy {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .home-page #recent .title {
+    margin: 0;
+    overflow: hidden;
+    font-size: .86rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .home-page #recent .meta,
+  .home-page #recent .upcoming-episode-title {
+    margin: 0;
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: .72rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .home-page #recent .upcoming-side {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .home-page #recent .upcoming-date {
+    color: var(--color-accent-strong);
+    font-size: .72rem;
+    font-weight: 750;
+  }
+
+  .home-page #recent .upcoming-platform img {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+  }
+
+  .home-page #upcoming {
     display: block !important;
     order: 6;
+    width: 100%;
+    max-width: 100%;
+    margin-top: var(--space-5);
+  }
+
+  .home-page #top-ten {
+    display: block !important;
+    order: 7;
     width: 100%;
     max-width: 100%;
     margin-top: var(--space-5);
