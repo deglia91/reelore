@@ -29,6 +29,7 @@ from reelore.web_theme import render_theme_css
 
 _HOME_PREVIEW_LIMIT = 8
 _HOME_RECENT_LIMIT = 3
+_HOME_UPCOMING_LIMIT = 3
 _HOME_PLATFORM_TYPES = frozenset(
     {
         AvailabilityType.STREAM,
@@ -287,7 +288,7 @@ def _render_recent_section(episodes: tuple[RecentEpisodeView, ...]) -> str:
 def _render_upcoming_section(episodes: tuple[UpcomingEpisodeView, ...]) -> str:
     if episodes:
         content = "".join(
-            _render_episode_release(episode) for episode in episodes[:_HOME_PREVIEW_LIMIT]
+            _render_episode_release(episode) for episode in episodes[:_HOME_UPCOMING_LIMIT]
         )
     else:
         content = '<p class="feed-empty">Nessuna nuova uscita in programma.</p>'
