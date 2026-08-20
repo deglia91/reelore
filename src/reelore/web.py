@@ -1100,7 +1100,10 @@ button:active {{ transform: translateY(1px); }}
 }}
 .availability-provider {{ display: inline-block; margin: 4px 8px 4px 0; }}
 .availability-source {{ margin-top: 8px; color: var(--color-text-muted); font-size: .78rem; }}
-.season-actions {{ display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }}
+.season-actions {{
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: flex-end; gap: 8px;
+}}
 .season-actions form {{ margin: 0; }}
 .season-progress, .season-complete {{ color: var(--color-text-muted); font-size: .8rem; }}
 .season-complete {{ color: var(--color-accent-strong); font-weight: 800; }}
