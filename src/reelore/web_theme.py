@@ -699,6 +699,34 @@ a:focus-visible {
     margin-top: var(--space-5);
   }
 
+  .season-actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .season-actions .season-progress,
+  .season-actions .season-complete {
+    grid-column: 1 / -1;
+  }
+
+  .season-actions form {
+    min-width: 0;
+  }
+
+  .season-actions form:only-of-type {
+    grid-column: 1 / -1;
+  }
+
+  .season-actions button {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: .78rem;
+  }
+
   .episode {
     min-height: 68px;
     align-items: center;
