@@ -118,3 +118,13 @@ def test_progress_correction_rejects_future_target() -> None:
 
     with pytest.raises(ValueError, match="future episode"):
         tracker.mark_episodes_through("tvmaze:1", EpisodeRef(2, 2))
+
+
+def test_direct_episode_tracking_rejects_future_episode() -> None:
+    repository, tracker = _tracker()
+
+    with pytest.raises(ValueError, match="future episode"):
+        tracker.mark_episode_seen("tvmaze:1", EpisodeRef(2, 2))
+
+    assert repository.get_episode_progress("tvmaze:1").seen_count == 0
+    assert repository.watches == []
