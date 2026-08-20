@@ -1,30 +1,6 @@
 from reelore.application.catalog import TVSeriesCatalog
-from reelore.application.library_view import LibraryViewService
 from reelore.application.related import RelatedTVTitle
-from reelore.domain import EpisodeProgress, LibraryStatus, MediaItem, MediaType, PersonalMediaState
-
-
-class StubStore:
-    def list_media(self) -> tuple[MediaItem, ...]:
-        return (MediaItem("tvmaze:1", "Loki", MediaType.TV_SERIES),)
-
-    def get_personal_state(self, media_id: str) -> PersonalMediaState | None:
-        return PersonalMediaState(media_id, LibraryStatus.COMPLETED)
-
-    def get_episode_progress(self, media_id: str) -> EpisodeProgress:
-        return EpisodeProgress(media_id)
-
-    def get_tv_series_catalog(self, provider_id: str) -> TVSeriesCatalog | None:
-        assert provider_id == "1"
-        return TVSeriesCatalog(
-            provider_id="1",
-            title="Loki",
-            summary=None,
-            status="Ended",
-            premiered=None,
-            ended=None,
-            image_url=None,
-        )
+from reelore.application.related_view import RelatedTitleViewService
 
 
 class StubRelatedProvider:
@@ -45,23 +21,31 @@ class FailingRelatedProvider:
         raise RuntimeError("provider unavailable")
 
 
-def test_series_detail_exposes_provider_related_titles() -> None:
-    service = LibraryViewService(StubStore(), related_provider=StubRelatedProvider())
+def _catalog() -> TVSeriesCatalog:
+    return TVSeriesCatalog(
+        provider_id="1",
+        title="Loki",
+        summary=None,
+        status="Ended",
+        premiered=None,
+        ended=None,
+        image_url=None,
+    )
 
-    detail = service.get_tv_series("tvmaze:1")
 
-    assert detail is not None
-    assert [item.title for item in detail.related_titles] == [
+def test_related_title_view_service_exposes_provider_results() -> None:
+    service = RelatedTitleViewService(StubRelatedProvider())
+
+    related = service.list_for(_catalog())
+
+    assert [item.title for item in related] == [
         "The Falcon and the Winter Soldier",
         "Moon Knight",
     ]
-    assert detail.related_titles[0].provider_key == "88396"
+    assert related[0].provider_key == "88396"
 
 
-def test_series_detail_ignores_related_provider_failures() -> None:
-    service = LibraryViewService(StubStore(), related_provider=FailingRelatedProvider())
+def test_related_title_view_service_ignores_provider_failures() -> None:
+    service = RelatedTitleViewService(FailingRelatedProvider())
 
-    detail = service.get_tv_series("tvmaze:1")
-
-    assert detail is not None
-    assert detail.related_titles == ()
+    assert service.list_for(_catalog()) == ()
