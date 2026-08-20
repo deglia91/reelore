@@ -933,6 +933,7 @@ def _render_app_header() -> str:
 <a href="/">Home</a>
 <a href="/library">{library_icon}<span class="nav-label">Libreria</span></a>
 <a href="/calendar">{calendar_icon}<span class="nav-label">Calendario</span></a>
+<a href="/history">Cronologia</a>
 <a href="/#top-ten">Top 10</a>
 <a href="/#search">{search_icon}<span class="nav-label">Cerca</span></a>
 </nav>
@@ -942,7 +943,7 @@ def _render_app_header() -> str:
 def _render_mobile_nav() -> str:
     return """<nav class="mobile-nav" aria-label="Navigazione mobile">
 <a href="/">Home</a><a href="/library">Libreria</a><a href="/calendar">Calendario</a>
-<a href="/#top-ten">Top 10</a><a href="/#search">Cerca</a>
+<a href="/history">Cronologia</a><a href="/#top-ten">Top 10</a><a href="/#search">Cerca</a>
 </nav>"""
 
 
@@ -1177,7 +1178,7 @@ button:active {{ transform: translateY(1px); }}
   .home-page #upcoming .upcoming-platform img {{ width: 20px; height: 20px; flex-basis: 20px; }}
   .mobile-nav {{
     position: fixed; right: 12px; bottom: 12px; left: 12px; z-index: 30; display: grid;
-    grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 8px;
+    grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 8px;
     border: 1px solid var(--color-border); border-radius: var(--radius-lg);
     background: color-mix(in srgb, var(--color-surface) 94%, transparent);
     box-shadow: var(--shadow-raised); backdrop-filter: blur(18px);
