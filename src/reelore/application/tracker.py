@@ -230,6 +230,7 @@ class TVProgressTracker:
         return self._tracker.record_completion(media_id)
 
     def mark_episode_seen(self, media_id: str, episode: EpisodeRef) -> EpisodeProgress:
+        self._reject_future_episode(media_id, episode)
         watched_at = self._now or datetime.now(UTC)
         progress = self._tracker.mark_episode_seen(media_id, episode, watched_at=watched_at)
         self._sync_after_seen(media_id, progress)
@@ -316,6 +317,24 @@ class TVProgressTracker:
             while progress.has_seen(reference):
                 progress = self.mark_episode_unseen(media_id, reference)
         return progress
+
+    def _reject_future_episode(self, media_id: str, reference: EpisodeRef) -> None:
+        catalog = self._catalog_for(media_id)
+        if catalog is None:
+            return
+        episode = next(
+            (
+                candidate
+                for candidate in catalog.episodes
+                if candidate.season_number == reference.season_number
+                and candidate.episode_number == reference.episode_number
+            ),
+            None,
+        )
+        if episode is None or episode.airdate is None:
+            return
+        if episode.airdate > (self._today or date.today()):
+            raise ValueError("cannot mark a future episode as seen")
 
     def _sync_after_seen(self, media_id: str, progress: EpisodeProgress) -> None:
         state = self._store.get_personal_state(media_id)
