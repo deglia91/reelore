@@ -758,6 +758,36 @@ a:focus-visible {
     font-size: .78rem;
   }
 
+  .episode:not(:has(.episode-actions form[action$="/rewatch"])) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .episode:not(:has(.episode-actions form[action$="/rewatch"])) .episode-copy {
+    width: 100%;
+  }
+
+  .episode:not(:has(.episode-actions form[action$="/rewatch"])) .episode-actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .episode:not(:has(.episode-actions form[action$="/rewatch"])) .episode-actions form {
+    min-width: 0;
+  }
+
+  .episode:not(:has(.episode-actions form[action$="/rewatch"])) .episode-actions form:only-child {
+    grid-column: 1 / -1;
+  }
+
+  .episode:not(:has(.episode-actions form[action$="/rewatch"])) .episode-actions button {
+    width: 100%;
+    min-width: 0;
+  }
+
   .episode:has(.episode-actions form[action$="/rewatch"]) {
     grid-template-columns: auto minmax(0, 1fr) 40px auto 40px;
     gap: 6px;
