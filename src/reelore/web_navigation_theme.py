@@ -336,6 +336,22 @@ body {
     display: none !important;
   }
 
+  .detail-page .series-hero-content {
+    display: contents;
+  }
+
+  .detail-page .series-hero-content h1,
+  .detail-page .series-stats,
+  .detail-page .rewatch-progress {
+    grid-column: 2;
+  }
+
+  .detail-page .series-hero .summary,
+  .detail-page .series-hero .tracking-panel,
+  .detail-page .series-hero-content > .status-form {
+    grid-column: 1 / -1;
+  }
+
   .home-page main {
     display: flex;
     flex-direction: column;
