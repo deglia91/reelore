@@ -53,7 +53,11 @@ def test_watch_history_view_lists_latest_watches_first_with_watch_number() -> No
     history = service.list_history()
 
     assert [item.series_title for item in history] == ["Severance", "The Bear", "Severance"]
-    assert [item.episode_title for item in history] == ["Good News About Hell", "Sundae", "Good News About Hell"]
+    assert [item.episode_title for item in history] == [
+        "Good News About Hell",
+        "Sundae",
+        "Good News About Hell",
+    ]
     assert [item.watch_number for item in history] == [2, 1, 1]
     assert history[0].season_number == 1
     assert history[0].episode_number == 1
