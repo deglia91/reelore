@@ -262,9 +262,7 @@ def _render_home(
 def _render_recent_section(episodes: tuple[RecentEpisodeView, ...]) -> str:
     if not episodes:
         return ""
-    content = "".join(
-        _render_episode_release(episode) for episode in episodes[:_HOME_RECENT_LIMIT]
-    )
+    content = "".join(_render_episode_release(episode) for episode in episodes[:_HOME_RECENT_LIMIT])
     return (
         '<section id="recent" style="order:5"><div class="section-heading">'
         '<div><p class="eyebrow">Novità</p><h2>Ultime uscite</h2></div>'
