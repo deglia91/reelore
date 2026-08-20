@@ -81,6 +81,26 @@ class MultiSeasonViewStore(StubViewStore):
         )
 
 
+class FutureCurrentSeasonViewStore(MultiSeasonViewStore):
+    def get_tv_series_catalog(self, provider_id: str) -> TVSeriesCatalog | None:
+        assert provider_id == "1"
+        return TVSeriesCatalog(
+            provider_id="1",
+            title="Example",
+            summary="Summary",
+            status="Running",
+            premiered=None,
+            ended=None,
+            image_url=None,
+            episodes=(
+                TVEpisodeMetadata("21", 2, 1, "One", airdate=date(2026, 8, 1)),
+                TVEpisodeMetadata("22", 2, 2, "Two", airdate=date(2026, 8, 8)),
+                TVEpisodeMetadata("23", 2, 3, "Three", airdate=date(2026, 8, 15)),
+                TVEpisodeMetadata("24", 2, 4, "Future", airdate=date(2026, 8, 30)),
+            ),
+        )
+
+
 class FutureRewatchViewStore(StubViewStore):
     def get_tv_series_catalog(self, provider_id: str) -> TVSeriesCatalog | None:
         assert provider_id == "1"
@@ -245,6 +265,18 @@ def test_library_view_exposes_progress_for_the_season_being_watched() -> None:
     assert item.next_episode is not None
     assert item.next_episode.season_number == 1
     assert item.next_episode.episode_number == 1
+
+
+def test_library_view_current_season_progress_ignores_future_episodes() -> None:
+    service = LibraryViewService(FutureCurrentSeasonViewStore())
+
+    item = service.list_items(date(2026, 8, 20))[0]
+
+    assert item.current_season_progress is not None
+    assert item.current_season_progress.season_number == 2
+    assert item.current_season_progress.last_seen_episode_number == 3
+    assert item.current_season_progress.seen_episodes == 3
+    assert item.current_season_progress.total_episodes == 3
 
 
 def test_library_view_lists_future_episodes_with_italian_availability() -> None:
