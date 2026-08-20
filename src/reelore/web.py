@@ -841,11 +841,16 @@ def _render_episode(
     )
     media = escape(media_id, quote=True)
     display_ref = f"S{reference.season_number:02}E{reference.episode_number:02}"
-    action_url = (
-        f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
-    )
+    primary_action = ""
     rewatch_action = ""
     through_action = ""
+    if seen or allow_through:
+        action_url = (
+            f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
+        )
+        primary_action = f"""<form method="post" action="{action_url}">
+<button type="submit">{label}</button>
+</form>"""
     if seen:
         rewatch_url = (
             f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/rewatch"
@@ -866,9 +871,7 @@ onsubmit="return confirm('Segnare come visti tutti gli episodi fino a {display_r
 <strong>{display_ref}</strong><span>{escape(title)}</span>{watch_badge}
 </div>
 <div class="episode-actions">
-<form method="post" action="{action_url}">
-<button type="submit">{label}</button>
-</form>
+{primary_action}
 {through_action}
 {rewatch_action}
 </div>
