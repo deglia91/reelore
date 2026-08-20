@@ -215,3 +215,25 @@ def test_library_view_lists_future_episodes_with_italian_availability() -> None:
     assert upcoming[0].availability is not None
     assert upcoming[0].availability.providers[0].name == "Example Stream"
     assert upcoming[0].availability.source == "JustWatch"
+
+
+def test_library_view_lists_recent_episodes_for_last_ninety_days_newest_first() -> None:
+    service = LibraryViewService(StubViewStore(), StubAvailabilityProvider())
+
+    recent = service.list_recent_episodes(date(2026, 8, 18))
+
+    assert [episode.episode_number for episode in recent] == [2, 1]
+    assert [episode.airdate for episode in recent] == [date(2026, 8, 17), date(2026, 8, 1)]
+    assert recent[0].episode_title == "Second"
+    assert recent[0].image_url == "https://img.example/episode.jpg"
+    assert recent[0].availability is not None
+    assert recent[0].availability.providers[0].name == "Example Stream"
+
+
+def test_library_view_recent_episodes_respects_custom_window() -> None:
+    service = LibraryViewService(StubViewStore())
+
+    recent = service.list_recent_episodes(date(2026, 8, 18), days=7)
+
+    assert len(recent) == 1
+    assert recent[0].episode_number == 2
