@@ -9,7 +9,12 @@ from typing import Annotated, Protocol
 from fastapi import FastAPI, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from reelore.application import ImportedTVSeries, TVSearchResult, TVSeriesCatalog
+from reelore.application import (
+    ImportedTVSeries,
+    TVEpisodeMetadata,
+    TVSearchResult,
+    TVSeriesCatalog,
+)
 from reelore.application.availability import AvailabilityType, SeasonAvailability
 from reelore.application.library_view import (
     LibraryItemView,
@@ -572,6 +577,17 @@ def _render_catalog_preview(catalog: TVSeriesCatalog) -> str:
     )
 
 
+def _available_episode_refs(
+    episodes: tuple[TVEpisodeMetadata, ...],
+    today: date,
+) -> tuple[EpisodeRef, ...]:
+    return tuple(
+        EpisodeRef(episode.season_number, episode.episode_number)
+        for episode in episodes
+        if episode.airdate is None or episode.airdate <= today
+    )
+
+
 def _default_open_season(
     seasons: Mapping[int, tuple[EpisodeRef, ...]],
     progress: EpisodeProgress,
@@ -594,11 +610,11 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     summary = escape(catalog.summary or "Nessuna trama disponibile.")
     availability = {item.season_number: item for item in detail.availability}
     seasons: dict[int, list[str]] = defaultdict(list)
-    season_references: dict[int, list[EpisodeRef]] = defaultdict(list)
+    season_episodes: dict[int, list[TVEpisodeMetadata]] = defaultdict(list)
     today = date.today()
     for episode in catalog.episodes:
         reference = EpisodeRef(episode.season_number, episode.episode_number)
-        season_references[episode.season_number].append(reference)
+        season_episodes[episode.season_number].append(episode)
         seasons[episode.season_number].append(
             _render_episode(
                 detail.media_id,
@@ -610,7 +626,8 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
             )
         )
     season_reference_map = {
-        number: tuple(references) for number, references in season_references.items()
+        number: _available_episode_refs(tuple(episodes), today)
+        for number, episodes in season_episodes.items()
     }
     open_season = _default_open_season(season_reference_map, progress)
     season_sections: list[str] = []
@@ -622,6 +639,7 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
             number,
             season_reference_map[number],
             progress,
+            catalog_total=len(season_episodes[number]),
         )
         open_attr = " open" if number == open_season else ""
         season_sections.append(
@@ -679,6 +697,8 @@ def _render_season_controls(
     season_number: int,
     episodes: tuple[EpisodeRef, ...],
     progress: EpisodeProgress,
+    *,
+    catalog_total: int | None = None,
 ) -> str:
     seen_count = sum(1 for episode in episodes if progress.has_seen(episode))
     total = len(episodes)
@@ -701,9 +721,12 @@ def _render_season_controls(
 onsubmit="return confirm('Segnare tutta la stagione come non vista?')">
 <button class="secondary-button" type="submit">Segna stagione non vista</button>
 </form>"""
+    progress_label = f"{seen_count}/{total} visti"
+    if catalog_total is not None and total < catalog_total:
+        progress_label = f"{seen_count}/{total} disponibili visti"
     return (
         '<div class="season-actions">'
-        f'<span class="season-progress">{seen_count}/{total} visti</span>'
+        f'<span class="season-progress">{progress_label}</span>'
         f"{complete_label}{mark_seen}{mark_unseen}</div>"
     )
 
