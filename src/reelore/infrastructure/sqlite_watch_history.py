@@ -124,6 +124,35 @@ class SQLiteWatchHistoryRepository:
             for row in rows
         )
 
+    def list_all_episode_watches(self) -> tuple[EpisodeWatch, ...]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    history.media_id,
+                    history.season_number,
+                    history.episode_number,
+                    history.watched_at
+                FROM episode_watches AS history
+                LEFT JOIN episode_watch_retractions AS retraction
+                  ON retraction.watch_id = history.id
+                WHERE retraction.watch_id IS NULL
+                ORDER BY history.id
+                """
+            ).fetchall()
+
+        return tuple(
+            EpisodeWatch(
+                media_id=str(row[0]),
+                episode=EpisodeRef(
+                    season_number=int(row[1]),
+                    episode_number=int(row[2]),
+                ),
+                watched_at=_datetime_from_text(row[3]),
+            )
+            for row in rows
+        )
+
     def retract_latest_episode_watch(self, media_id: str, episode: EpisodeRef) -> bool:
         with self._connection() as connection:
             row = connection.execute(
