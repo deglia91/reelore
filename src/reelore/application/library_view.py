@@ -356,7 +356,7 @@ class LibraryViewService:
         references = tuple(
             EpisodeRef(episode.season_number, episode.episode_number)
             for episode in sorted(
-                catalog.episodes,
+                self._available_episodes(catalog, date.today()),
                 key=lambda episode: (episode.season_number, episode.episode_number),
             )
         )
