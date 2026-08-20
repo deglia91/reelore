@@ -152,9 +152,12 @@ class TopTenService:
     def assign(self, media_id: str, rank: int) -> PersonalMediaState:
         state = self._require_state(media_id)
         previous_rank = state.top_ten_rank
-        occupant = self._state_at_rank(rank, excluding=media_id)
-        if occupant is not None:
-            self._store.save_personal_state(occupant.rank_in_top_ten(previous_rank))
+        if previous_rank is None:
+            self._shift_contiguous_occupants_down(rank, excluding=media_id)
+        else:
+            occupant = self._state_at_rank(rank, excluding=media_id)
+            if occupant is not None:
+                self._store.save_personal_state(occupant.rank_in_top_ten(previous_rank))
         ranked = state.rank_in_top_ten(rank)
         self._store.save_personal_state(ranked)
         return ranked
@@ -163,6 +166,20 @@ class TopTenService:
         state = self._require_state(media_id).rank_in_top_ten(None)
         self._store.save_personal_state(state)
         return state
+
+    def _shift_contiguous_occupants_down(self, rank: int, *, excluding: str) -> None:
+        occupants: list[PersonalMediaState] = []
+        for candidate_rank in range(rank, 11):
+            occupant = self._state_at_rank(candidate_rank, excluding=excluding)
+            if occupant is None:
+                break
+            occupants.append(occupant)
+        for occupant in reversed(occupants):
+            current_rank = occupant.top_ten_rank
+            if current_rank is None:
+                continue
+            next_rank = current_rank + 1 if current_rank < 10 else None
+            self._store.save_personal_state(occupant.rank_in_top_ten(next_rank))
 
     def _state_at_rank(
         self,
