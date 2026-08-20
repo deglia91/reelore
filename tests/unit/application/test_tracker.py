@@ -193,7 +193,7 @@ def test_top_ten_assigns_unique_rank_and_swaps_existing_occupant() -> None:
     assert repository.states[second.id].top_ten_rank == 2
 
 
-def test_top_ten_assigning_unranked_media_releases_occupied_rank() -> None:
+def test_top_ten_assigning_unranked_media_shifts_occupied_rank_down() -> None:
     repository = FakeLibraryRepository()
     tracker = MediaTracker(repository)
     first = MediaItem("first", "First", MediaType.TV_SERIES)
@@ -205,7 +205,7 @@ def test_top_ten_assigning_unranked_media_releases_occupied_rank() -> None:
     top_ten.assign(first.id, 1)
     top_ten.assign(second.id, 1)
 
-    assert repository.states[first.id].top_ten_rank is None
+    assert repository.states[first.id].top_ten_rank == 2
     assert repository.states[second.id].top_ten_rank == 1
 
 
