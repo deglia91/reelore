@@ -18,9 +18,7 @@ def test_tmdb_returns_italian_related_tv_titles() -> None:
     search_url = (
         "https://api.themoviedb.org/3/search/tv?query=Loki&language=it-IT&include_adult=false"
     )
-    related_url = (
-        "https://api.themoviedb.org/3/tv/84958/recommendations?language=it-IT&page=1"
-    )
+    related_url = "https://api.themoviedb.org/3/tv/84958/recommendations?language=it-IT&page=1"
     client = StubAuthorizedJsonHttpClient(
         {
             search_url: {
@@ -95,9 +93,7 @@ def test_tmdb_related_skips_entries_without_a_title() -> None:
     search_url = (
         "https://api.themoviedb.org/3/search/tv?query=Loki&language=it-IT&include_adult=false"
     )
-    related_url = (
-        "https://api.themoviedb.org/3/tv/84958/recommendations?language=it-IT&page=1"
-    )
+    related_url = "https://api.themoviedb.org/3/tv/84958/recommendations?language=it-IT&page=1"
     client = StubAuthorizedJsonHttpClient(
         {
             search_url: {"results": [{"id": 84958}]},
