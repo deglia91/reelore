@@ -235,6 +235,23 @@ class TVProgressTracker:
         self._sync_after_seen(media_id, progress)
         return progress
 
+    def mark_season_seen(self, media_id: str, season_number: int) -> EpisodeProgress:
+        catalog = self._catalog_for(media_id)
+        if catalog is None:
+            return self._tracker.get_episode_progress(media_id)
+        today = self._today or date.today()
+        progress = self._tracker.get_episode_progress(media_id)
+        for episode in catalog.episodes:
+            if episode.season_number != season_number:
+                continue
+            if episode.airdate is not None and episode.airdate > today:
+                continue
+            reference = EpisodeRef(episode.season_number, episode.episode_number)
+            if progress.has_seen(reference):
+                continue
+            progress = self.mark_episode_seen(media_id, reference)
+        return progress
+
     def record_episode_rewatch(self, media_id: str, episode: EpisodeRef) -> EpisodeWatch:
         watched_at = self._now or datetime.now(UTC)
         return self._tracker.record_episode_rewatch(media_id, episode, watched_at=watched_at)
@@ -249,6 +266,19 @@ class TVProgressTracker:
             LibraryStatus.COMPLETED,
         }:
             self._tracker.change_status(media_id, LibraryStatus.IN_PROGRESS)
+        return progress
+
+    def mark_season_unseen(self, media_id: str, season_number: int) -> EpisodeProgress:
+        catalog = self._catalog_for(media_id)
+        if catalog is None:
+            return self._tracker.get_episode_progress(media_id)
+        progress = self._tracker.get_episode_progress(media_id)
+        for episode in catalog.episodes:
+            if episode.season_number != season_number:
+                continue
+            reference = EpisodeRef(episode.season_number, episode.episode_number)
+            while progress.has_seen(reference):
+                progress = self.mark_episode_unseen(media_id, reference)
         return progress
 
     def _sync_after_seen(self, media_id: str, progress: EpisodeProgress) -> None:
