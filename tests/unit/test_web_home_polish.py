@@ -14,6 +14,13 @@ def test_library_secondary_sections_are_visually_quieter() -> None:
     assert "#library > section:not(:first-child) .meta" in COMPONENT_CSS
 
 
+def test_recent_releases_use_a_compact_horizontal_rail() -> None:
+    assert "#recent .grid" in COMPONENT_CSS
+    assert "overflow-x: auto" in COMPONENT_CSS
+    assert "#recent .card" in COMPONENT_CSS
+    assert "flex: 0 0 190px" in COMPONENT_CSS
+
+
 def test_home_polish_keeps_mobile_spacing_rules() -> None:
     assert "#library > section" in COMPONENT_CSS
     assert "margin-bottom: var(--space-6)" in COMPONENT_CSS
