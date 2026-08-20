@@ -9,6 +9,7 @@ from reelore.application import MediaTracker, TopTenService, TVCatalogImporter
 from reelore.application.catalog import TVCatalogProvider
 from reelore.application.library_view import LibraryViewService
 from reelore.application.localization import LocalizedTVCatalogProvider
+from reelore.application.related_view import RelatedTitleViewService
 from reelore.application.tracker import TVProgressTracker
 from reelore.application.watch_history_view import WatchHistoryViewService
 from reelore.infrastructure import (
@@ -18,6 +19,7 @@ from reelore.infrastructure import (
     TVMazeProvider,
 )
 from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProvider
+from reelore.infrastructure.tmdb_related import TMDBRelatedTVProvider
 from reelore.web import create_web_app
 from reelore.web_history import install_history_routes
 from reelore.web_top_ten import install_top_ten_routes
@@ -37,12 +39,14 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     tracker = MediaTracker(repository, watch_history)
     catalog_provider: TVCatalogProvider = TVMazeProvider()
     availability_provider = None
+    related_views = None
     if tmdb_token:
         catalog_provider = LocalizedTVCatalogProvider(
             catalog_provider,
             TMDBItalianLocalizer(tmdb_token),
         )
         availability_provider = TMDBItalianAvailabilityProvider(tmdb_token)
+        related_views = RelatedTitleViewService(TMDBRelatedTVProvider(tmdb_token))
     importer = TVCatalogImporter(
         catalog_provider,
         repository,
@@ -57,7 +61,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     history_views = WatchHistoryViewService(repository, watch_history)
     tv_progress = TVProgressTracker(tracker, repository)
     top_ten = TopTenService(repository)
-    app = create_web_app(importer, views, tv_progress, top_ten)
+    app = create_web_app(importer, views, tv_progress, top_ten, related_views)
     install_history_routes(app, history_views)
     install_top_ten_routes(app, views, top_ten)
     return app
