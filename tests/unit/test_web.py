@@ -18,6 +18,7 @@ from reelore.application.library_view import (
     CurrentSeasonProgressView,
     LibraryItemView,
     NextEpisodeView,
+    RecentEpisodeView,
     TopTenItemView,
     TVSeriesDetailView,
     UpcomingEpisodeView,
@@ -63,7 +64,7 @@ class StubViews:
                 title="The Bear",
                 status=LibraryStatus.IN_PROGRESS,
                 completion_count=0,
-                rewatch_count=0,
+                rewatch_count=2,
                 image_url="https://img.example/the-bear.jpg",
                 seen_episodes=1,
                 total_episodes=2,
@@ -103,9 +104,9 @@ class StubViews:
             ),
         )
 
-    def list_recent_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]:
+    def list_recent_episodes(self, today: date) -> tuple[RecentEpisodeView, ...]:
         return (
-            UpcomingEpisodeView(
+            RecentEpisodeView(
                 media_id="tvmaze:1",
                 series_title="The Bear",
                 season_number=4,
@@ -171,15 +172,10 @@ class StubTracker:
         self.seasons_seen: list[tuple[str, int]] = []
         self.seasons_unseen: list[tuple[str, int]] = []
         self.statuses: list[tuple[str, LibraryStatus]] = []
-        self.completions: list[str] = []
         self.removed_media: list[str] = []
 
     def change_status(self, media_id: str, status: LibraryStatus) -> object:
         self.statuses.append((media_id, status))
-        return object()
-
-    def record_completion(self, media_id: str) -> object:
-        self.completions.append(media_id)
         return object()
 
     def mark_episode_seen(self, media_id: str, episode: EpisodeRef) -> object:
@@ -275,6 +271,7 @@ def test_home_renders_tracking_top_ten_upcoming_and_library_previews() -> None:
     assert "Second Course" in response.text
     assert ">Visto</button>" in response.text
     assert "Segna 01x02 visto" not in response.text
+    assert "Rivista 2x" not in response.text
     assert "In pari" in response.text
     assert "La tua libreria" in response.text
     assert 'class="home-rail"' in response.text
@@ -315,6 +312,7 @@ def test_library_page_renders_complete_collection_and_status_filter() -> None:
     assert "The Bear" in complete.text
     assert "Severance" in complete.text
     assert "Breaking Bad" in complete.text
+    assert "Rivista 2x" not in complete.text
     assert 'class="library-grid"' in complete.text
     assert 'href="/library?status=in_progress"' in complete.text
 
@@ -372,6 +370,10 @@ def test_series_detail_renders_cinematic_tracking_and_episode_structure() -> Non
     assert "Good News About Hell" in detail.text
     assert "Visto ✓" in detail.text
     assert "Rivisto +1" in detail.text
+    assert "Completamenti" not in detail.text
+    assert "Registra +1" not in detail.text
+    assert "Rivista 0x" not in detail.text
+    assert 'action="/series/tvmaze:1/completion"' not in detail.text
     assert "Posizione attuale: #2" in detail.text
     assert ">Salva<" in detail.text
     assert ">Rimuovi<" in detail.text
@@ -422,24 +424,18 @@ def test_series_detail_records_episode_rewatch() -> None:
     assert tracker.rewatched == [("tvmaze:1", EpisodeRef(1, 1))]
 
 
-def test_series_detail_changes_personal_status_and_records_completion() -> None:
+def test_series_detail_changes_personal_status() -> None:
     tracker = StubTracker()
     client = _client(tracker=tracker)
 
-    status_response = client.post(
+    response = client.post(
         "/series/tvmaze:1/status",
         data={"status": "dropped"},
         follow_redirects=False,
     )
-    completion_response = client.post(
-        "/series/tvmaze:1/completion",
-        follow_redirects=False,
-    )
 
-    assert status_response.status_code == 303
-    assert completion_response.status_code == 303
+    assert response.status_code == 303
     assert tracker.statuses == [("tvmaze:1", LibraryStatus.DROPPED)]
-    assert tracker.completions == ["tvmaze:1"]
 
 
 def test_series_detail_removes_series_and_returns_library() -> None:
