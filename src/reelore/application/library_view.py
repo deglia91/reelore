@@ -116,6 +116,15 @@ class TVSeriesDetailView:
                 return count
         return 0
 
+    def available_progress(self, today: date) -> tuple[int, int]:
+        references = tuple(
+            EpisodeRef(episode.season_number, episode.episode_number)
+            for episode in self.catalog.episodes
+            if episode.airdate is None or episode.airdate <= today
+        )
+        seen = sum(1 for episode in references if self.progress.has_seen(episode))
+        return seen, len(references)
+
 
 class LibraryViewService:
     """Combine local tracking state with cached provider metadata for presentation."""
