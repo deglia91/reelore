@@ -31,10 +31,9 @@ def test_series_detail_renders_compact_related_titles_preview() -> None:
             ended=None,
             image_url=None,
         ),
-        related_titles=related,
     )
 
-    page = _render_series_detail(detail)
+    page = _render_series_detail(detail, related)
 
     assert "Titoli collegati" in page
     for index in range(1, 5):
