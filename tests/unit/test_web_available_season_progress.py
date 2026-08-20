@@ -69,6 +69,9 @@ def test_series_detail_counts_only_available_episodes_and_opens_next_incomplete_
     assert "1/3 episodi" not in page
     assert "1/1 disponibili visti" in page
     assert "✓ Stagione vista" in page
+    assert "Future" in page
+    assert 'action="/series/tvmaze:1/episodes/1/2/seen"' not in page
+    assert 'action="/series/tvmaze:1/episodes/1/2/through"' not in page
     assert page.count('class="season-details" open') == 1
     season_two = page.index("Stagione 2")
     open_details = page.index('class="season-details" open')
