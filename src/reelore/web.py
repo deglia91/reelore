@@ -99,6 +99,8 @@ class TrackingService(Protocol):
 
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> object: ...
 
+    def mark_episodes_through(self, media_id: str, episode: EpisodeRef) -> object: ...
+
     def mark_season_seen(self, media_id: str, season_number: int) -> object: ...
 
     def mark_season_unseen(self, media_id: str, season_number: int) -> object: ...
@@ -203,6 +205,11 @@ def create_web_app(
     @app.post("/series/{media_id}/episodes/{season}/{episode}/seen")
     def mark_seen(media_id: str, season: int, episode: int) -> RedirectResponse:
         tracker.mark_episode_seen(media_id, EpisodeRef(season, episode))
+        return RedirectResponse(url=f"/series/{media_id}", status_code=303)
+
+    @app.post("/series/{media_id}/episodes/{season}/{episode}/through")
+    def mark_through(media_id: str, season: int, episode: int) -> RedirectResponse:
+        tracker.mark_episodes_through(media_id, EpisodeRef(season, episode))
         return RedirectResponse(url=f"/series/{media_id}", status_code=303)
 
     @app.post("/series/{media_id}/episodes/{season}/{episode}/rewatch")
@@ -588,6 +595,7 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
     availability = {item.season_number: item for item in detail.availability}
     seasons: dict[int, list[str]] = defaultdict(list)
     season_references: dict[int, list[EpisodeRef]] = defaultdict(list)
+    today = date.today()
     for episode in catalog.episodes:
         reference = EpisodeRef(episode.season_number, episode.episode_number)
         season_references[episode.season_number].append(reference)
@@ -598,6 +606,7 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
                 reference,
                 progress.has_seen(reference),
                 detail.watch_count(reference),
+                allow_through=episode.airdate is None or episode.airdate <= today,
             )
         )
     season_reference_map = {
@@ -796,6 +805,8 @@ def _render_episode(
     reference: EpisodeRef,
     seen: bool,
     watch_count: int,
+    *,
+    allow_through: bool = False,
 ) -> str:
     action = "unseen" if seen else "seen"
     label = "Visto ✓" if seen else "Segna visto"
@@ -808,12 +819,21 @@ def _render_episode(
         f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/{action}"
     )
     rewatch_action = ""
+    through_action = ""
     if seen:
         rewatch_url = (
             f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/rewatch"
         )
         rewatch_action = f"""<form method="post" action="{rewatch_url}">
 <button class="secondary-button" type="submit">Rivisto +1</button>
+</form>"""
+    elif allow_through:
+        through_url = (
+            f"/series/{media}/episodes/{reference.season_number}/{reference.episode_number}/through"
+        )
+        through_action = f"""<form method="post" action="{through_url}"
+onsubmit="return confirm('Segnare come visti tutti gli episodi fino a {display_ref}?')">
+<button class="secondary-button progress-correction-button" type="submit">Visti fino a qui</button>
 </form>"""
     return f"""<div class="episode">
 <div class="episode-copy">
@@ -823,6 +843,7 @@ def _render_episode(
 <form method="post" action="{action_url}">
 <button type="submit">{label}</button>
 </form>
+{through_action}
 {rewatch_action}
 </div>
 </div>"""
@@ -1138,6 +1159,7 @@ button:active {{ transform: translateY(1px); }}
   flex: 0 0 auto; color: var(--color-accent-strong); font-size: .76rem; font-weight: 800;
 }}
 .episode-actions {{ display: flex; align-items: center; gap: var(--space-2); }}
+.progress-correction-button {{ padding: 8px 10px; font-size: .78rem; }}
 .mobile-nav {{ display: none; }}
 @media (max-width: 720px) {{
   .app-header {{ min-height: 62px; padding: 0 16px; }}
