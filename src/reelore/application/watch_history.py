@@ -1,4 +1,4 @@
-"""Persistence boundary for episode watch history."""
+"""Persistence boundaries for episode watch history."""
 
 from typing import Protocol
 
@@ -12,6 +12,10 @@ class WatchHistoryRepository(Protocol):
 
     def list_episode_watches(self, media_id: str) -> tuple[EpisodeWatch, ...]: ...
 
-    def list_all_episode_watches(self) -> tuple[EpisodeWatch, ...]: ...
-
     def retract_latest_episode_watch(self, media_id: str, episode: EpisodeRef) -> bool: ...
+
+
+class GlobalWatchHistoryReader(Protocol):
+    """Read active episode watch records across the whole library."""
+
+    def list_all_episode_watches(self) -> tuple[EpisodeWatch, ...]: ...
