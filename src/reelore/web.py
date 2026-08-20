@@ -982,7 +982,7 @@ def _render_app_header() -> str:
 <a href="/library">{library_icon}<span class="nav-label">Libreria</span></a>
 <a href="/calendar">{calendar_icon}<span class="nav-label">Calendario</span></a>
 <a href="/history">Cronologia</a>
-<a href="/#top-ten">Top 10</a>
+<a href="/top-ten">Top 10</a>
 <a href="/#search">{search_icon}<span class="nav-label">Cerca</span></a>
 </nav>
 </header>"""
@@ -991,7 +991,7 @@ def _render_app_header() -> str:
 def _render_mobile_nav() -> str:
     return """<nav class="mobile-nav" aria-label="Navigazione mobile">
 <a href="/">Home</a><a href="/library">Libreria</a><a href="/calendar">Calendario</a>
-<a href="/history">Cronologia</a><a href="/#top-ten">Top 10</a><a href="/#search">Cerca</a>
+<a href="/history">Cronologia</a><a href="/top-ten">Top 10</a><a href="/#search">Cerca</a>
 </nav>"""
 
 
