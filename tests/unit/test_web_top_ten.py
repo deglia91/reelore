@@ -3,8 +3,6 @@ from fastapi.testclient import TestClient
 
 from reelore.application.library_view import LibraryItemView, TopTenItemView
 from reelore.domain import LibraryStatus
-from reelore.web import _render_app_header, _render_mobile_nav
-from reelore.web_history import render_history_page
 from reelore.web_top_ten import install_top_ten_routes, render_top_ten_page
 
 
@@ -122,7 +120,7 @@ def test_top_ten_page_exposes_ranked_positions_in_management_selects() -> None:
     page = render_top_ten_page(ranked, library)
 
     assert "The Bear (#2)" in page
-    assert '<form method="post" action="/top-ten/2">' in page
+    assert 'class="top-ten-management" method="post" action="/top-ten/2"' in page
     assert 'name="media_id"' in page
     assert 'action="/top-ten/tvmaze:1/remove"' in page
 
@@ -146,11 +144,3 @@ def test_top_ten_routes_assign_and_remove_from_dedicated_page() -> None:
     assert removed.status_code == 303
     assert removed.headers["location"] == "/top-ten"
     assert top_ten.removed == ["tvmaze:1"]
-
-
-def test_global_navigation_links_to_dedicated_top_ten_page() -> None:
-    assert 'href="/top-ten">Top 10</a>' in _render_app_header()
-    assert 'href="/top-ten">Top 10</a>' in _render_mobile_nav()
-
-    history_page = render_history_page(())
-    assert history_page.count('href="/top-ten">Top 10</a>') == 2

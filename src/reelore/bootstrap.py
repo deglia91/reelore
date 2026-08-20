@@ -59,7 +59,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     top_ten = TopTenService(repository)
     app = create_web_app(importer, views, tv_progress, top_ten)
     install_history_routes(app, history_views)
-    install_top_ten_routes(app, views)
+    install_top_ten_routes(app, views, top_ten)
     return app
 
 
