@@ -605,14 +605,13 @@ def _default_open_season(
 def _render_series_detail(detail: TVSeriesDetailView) -> str:
     catalog = detail.catalog
     progress = detail.progress
-    total = len(catalog.episodes)
-    seen = progress.seen_count
+    today = date.today()
+    seen, total = detail.available_progress(today)
     poster = _render_image(catalog.image_url, catalog.title)
     summary = escape(catalog.summary or "Nessuna trama disponibile.")
     availability = {item.season_number: item for item in detail.availability}
     seasons: dict[int, list[str]] = defaultdict(list)
     season_episodes: dict[int, list[TVEpisodeMetadata]] = defaultdict(list)
-    today = date.today()
     for episode in catalog.episodes:
         reference = EpisodeRef(episode.season_number, episode.episode_number)
         season_episodes[episode.season_number].append(episode)
