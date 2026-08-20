@@ -12,6 +12,7 @@ from reelore.application import ImportedTVSeries, TVSearchResult, TVSeriesCatalo
 from reelore.application.availability import AvailabilityType, SeasonAvailability
 from reelore.application.library_view import (
     LibraryItemView,
+    RecentEpisodeView,
     TopTenItemView,
     TVSeriesDetailView,
     UpcomingEpisodeView,
@@ -81,7 +82,7 @@ class LibraryViewReader(Protocol):
 
     def list_top_ten(self) -> tuple[TopTenItemView, ...]: ...
 
-    def list_recent_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]: ...
+    def list_recent_episodes(self, today: date) -> tuple[RecentEpisodeView, ...]: ...
 
     def list_upcoming_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]: ...
 
@@ -90,8 +91,6 @@ class LibraryViewReader(Protocol):
 
 class TrackingService(Protocol):
     def change_status(self, media_id: str, status: LibraryStatus) -> object: ...
-
-    def record_completion(self, media_id: str) -> object: ...
 
     def mark_episode_seen(self, media_id: str, episode: EpisodeRef) -> object: ...
 
@@ -180,11 +179,6 @@ def create_web_app(
         tracker.change_status(media_id, status)
         return RedirectResponse(url=f"/series/{media_id}", status_code=303)
 
-    @app.post("/series/{media_id}/completion")
-    def record_completion(media_id: str) -> RedirectResponse:
-        tracker.record_completion(media_id)
-        return RedirectResponse(url=f"/series/{media_id}", status_code=303)
-
     @app.post("/series/{media_id}/top-ten")
     def assign_top_ten(media_id: str, rank: Annotated[int, Form()]) -> RedirectResponse:
         top_ten.assign(media_id, rank)
@@ -233,7 +227,7 @@ def _render_home(
     results: tuple[TVSearchResult, ...],
     library_items: tuple[LibraryItemView, ...],
     top_ten_items: tuple[TopTenItemView, ...],
-    recent_episodes: tuple[UpcomingEpisodeView, ...],
+    recent_episodes: tuple[RecentEpisodeView, ...],
     upcoming_episodes: tuple[UpcomingEpisodeView, ...],
 ) -> str:
     search_results = "".join(_render_search_result(result) for result in results)
@@ -265,11 +259,11 @@ def _render_home(
     )
 
 
-def _render_recent_section(episodes: tuple[UpcomingEpisodeView, ...]) -> str:
+def _render_recent_section(episodes: tuple[RecentEpisodeView, ...]) -> str:
     if not episodes:
         return ""
     content = "".join(
-        _render_upcoming_episode(episode) for episode in episodes[:_HOME_RECENT_LIMIT]
+        _render_episode_release(episode) for episode in episodes[:_HOME_RECENT_LIMIT]
     )
     return (
         '<section id="recent" style="order:5"><div class="section-heading">'
@@ -282,7 +276,7 @@ def _render_recent_section(episodes: tuple[UpcomingEpisodeView, ...]) -> str:
 def _render_upcoming_section(episodes: tuple[UpcomingEpisodeView, ...]) -> str:
     if episodes:
         content = "".join(
-            _render_upcoming_episode(episode) for episode in episodes[:_HOME_PREVIEW_LIMIT]
+            _render_episode_release(episode) for episode in episodes[:_HOME_PREVIEW_LIMIT]
         )
     else:
         content = '<p class="feed-empty">Nessuna nuova uscita in programma.</p>'
@@ -295,7 +289,7 @@ def _render_upcoming_section(episodes: tuple[UpcomingEpisodeView, ...]) -> str:
     )
 
 
-def _render_upcoming_episode(episode: UpcomingEpisodeView) -> str:
+def _render_episode_release(episode: RecentEpisodeView | UpcomingEpisodeView) -> str:
     image = _render_image(episode.image_url, episode.series_title)
     media_id = escape(episode.media_id, quote=True)
     reference = f"S{episode.season_number:02}E{episode.episode_number:02}"
@@ -612,8 +606,6 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
         )
     season_html = "".join(season_sections)
     state = _status_label(detail.state.status)
-    completion = detail.state.completion_count
-    rewatch = detail.state.rewatch_count
     rewatch_progress = _render_rewatch_progress(detail)
     status_options = "".join(
         _render_status_option(status, detail.state.status) for status in LibraryStatus
@@ -628,7 +620,7 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
 <p class="eyebrow">Scheda serie</p>
 <h1 id="series-title">{escape(catalog.title)}</h1>
 <div class="series-stats">
-<span>{state}</span><span>{seen}/{total} episodi</span><span>Rivista {rewatch}x</span>
+<span>{state}</span><span>{seen}/{total} episodi</span>
 </div>
 {rewatch_progress}
 <p class="summary">{summary}</p>
@@ -638,13 +630,6 @@ def _render_series_detail(detail: TVSeriesDetailView) -> str:
 <form class="status-form" method="post" action="/series/{media_id}/status">
 <select id="status" name="status" aria-label="Stato personale">{status_options}</select>
 <button type="submit">Aggiorna</button>
-</form>
-</div>
-<div class="completion-control">
-<p class="tracking-label">Completamenti</p>
-<p class="completion-count">{completion}</p>
-<form method="post" action="/series/{media_id}/completion">
-<button type="submit">Registra +1</button>
 </form>
 </div>
 {top_ten_controls}
@@ -858,7 +843,6 @@ def _render_library_item(item: LibraryItemView, quick_action: bool) -> str:
     media_id = escape(item.media_id, quote=True)
     status = _status_label(item.status)
     overall_progress = f"{item.seen_episodes}/{item.total_episodes} episodi"
-    rewatch = f" · Rivista {item.rewatch_count}x" if item.rewatch_count else ""
     next_episode = item.next_episode
     if quick_action and next_episode is not None:
         reference = f"{next_episode.season_number:02}x{next_episode.episode_number:02}"
@@ -882,7 +866,7 @@ def _render_library_item(item: LibraryItemView, quick_action: bool) -> str:
 {image}
 <div class="content">
 <p class="title">{escape(item.title)}</p>
-<div class="meta">{status} · {overall_progress}{rewatch}</div>
+<div class="meta">{status} · {overall_progress}</div>
 </div>
 </a>"""
 
