@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from typing import cast
 
 from fastapi import FastAPI
 
@@ -17,7 +18,7 @@ from reelore.infrastructure import (
     TVMazeProvider,
 )
 from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProvider
-from reelore.web import create_web_app
+from reelore.web import LibraryViewReader, create_web_app
 
 _DEFAULT_DATABASE_PATH = "data/reelore.db"
 _DEFAULT_ENV_PATH = Path(".env")
@@ -53,7 +54,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     )
     tv_progress = TVProgressTracker(tracker, repository)
     top_ten = TopTenService(repository)
-    return create_web_app(importer, views, tv_progress, top_ten)
+    return create_web_app(importer, cast(LibraryViewReader, views), tv_progress, top_ten)
 
 
 def build_default_app() -> FastAPI:
