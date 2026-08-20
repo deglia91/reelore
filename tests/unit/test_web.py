@@ -169,6 +169,7 @@ class StubTracker:
         self.seen: list[tuple[str, EpisodeRef]] = []
         self.rewatched: list[tuple[str, EpisodeRef]] = []
         self.unseen: list[tuple[str, EpisodeRef]] = []
+        self.corrected_through: list[tuple[str, EpisodeRef]] = []
         self.seasons_seen: list[tuple[str, int]] = []
         self.seasons_unseen: list[tuple[str, int]] = []
         self.statuses: list[tuple[str, LibraryStatus]] = []
@@ -188,6 +189,10 @@ class StubTracker:
 
     def mark_episode_unseen(self, media_id: str, episode: EpisodeRef) -> object:
         self.unseen.append((media_id, episode))
+        return object()
+
+    def mark_episodes_through(self, media_id: str, episode: EpisodeRef) -> object:
+        self.corrected_through.append((media_id, episode))
         return object()
 
     def mark_season_seen(self, media_id: str, season_number: int) -> object:
