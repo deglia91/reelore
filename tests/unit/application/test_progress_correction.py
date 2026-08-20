@@ -106,7 +106,10 @@ def test_progress_correction_marks_missing_episodes_through_target_without_rewat
         {EpisodeRef(1, 1), EpisodeRef(1, 2), EpisodeRef(2, 1)}
     )
     assert len([watch for watch in repository.watches if watch.episode == first]) == 2
-    assert [watch.watched_at for watch in repository.watches if watch.episode != first] == [None, None]
+    assert [watch.watched_at for watch in repository.watches if watch.episode != first] == [
+        None,
+        None,
+    ]
     assert repository.states["tvmaze:1"].status is LibraryStatus.UP_TO_DATE
 
 
