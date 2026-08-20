@@ -1,6 +1,5 @@
-from stat import S_IXUSR
 from pathlib import Path
-
+from stat import S_IXUSR
 
 ROOT = Path(__file__).parents[2]
 
