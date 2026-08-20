@@ -593,13 +593,16 @@ def _default_open_season(
     seasons: Mapping[int, tuple[EpisodeRef, ...]],
     progress: EpisodeProgress,
 ) -> int | None:
-    if not seasons:
+    available_seasons = {
+        season_number: episodes for season_number, episodes in seasons.items() if episodes
+    }
+    if not available_seasons:
         return None
-    for season_number in sorted(seasons):
-        episodes = seasons[season_number]
+    for season_number in sorted(available_seasons):
+        episodes = available_seasons[season_number]
         if any(not progress.has_seen(episode) for episode in episodes):
             return season_number
-    return max(seasons)
+    return max(available_seasons)
 
 
 def _render_series_detail(detail: TVSeriesDetailView) -> str:
