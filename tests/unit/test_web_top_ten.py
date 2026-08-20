@@ -32,9 +32,7 @@ class StubViews:
         return ()
 
     def list_items(self) -> tuple[LibraryItemView, ...]:
-        return (
-            _library_item("tvmaze:1", "The Bear", LibraryStatus.IN_PROGRESS, None),
-        )
+        return (_library_item("tvmaze:1", "The Bear", LibraryStatus.IN_PROGRESS, None),)
 
 
 class StubTopTen:
