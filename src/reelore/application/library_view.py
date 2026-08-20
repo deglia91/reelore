@@ -328,9 +328,7 @@ class LibraryViewService:
             return None
         current_season = max(episode.season_number for episode in seen_episodes)
         current_season_episodes = [
-            episode
-            for episode in available_episodes
-            if episode.season_number == current_season
+            episode for episode in available_episodes if episode.season_number == current_season
         ]
         seen_in_season = [
             episode
