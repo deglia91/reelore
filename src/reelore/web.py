@@ -1,6 +1,7 @@
 """Minimal responsive web adapter for Reelore."""
 
 from collections import defaultdict
+from collections.abc import Mapping
 from datetime import date
 from html import escape
 from typing import Annotated, Protocol
@@ -565,7 +566,7 @@ def _render_catalog_preview(catalog: TVSeriesCatalog) -> str:
 
 
 def _default_open_season(
-    seasons: dict[int, tuple[EpisodeRef, ...]],
+    seasons: Mapping[int, tuple[EpisodeRef, ...]],
     progress: EpisodeProgress,
 ) -> int | None:
     if not seasons:
