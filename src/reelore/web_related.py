@@ -26,7 +26,7 @@ def _render_related_title(item: RelatedTVTitle) -> str:
     metadata = f'<div class="meta">{year}</div>' if year else ""
     return (
         '<article class="card related-title-card">'
-        f"{image}<div class=\"content\"><p class=\"title\">{escape(item.title)}</p>"
+        f'{image}<div class="content"><p class="title">{escape(item.title)}</p>'
         f"{metadata}</div></article>"
     )
 
