@@ -1,39 +1,39 @@
 """Mobile-first layout for home rails, library browsing, calendar, and ranking."""
 
 _LOGO_ICON = (
-    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%3E"
     "%3Cpath%20d=%27M4.5%204.5L15.5%2012%204.5%2019.5V4.5zM10.5%206.5L18%2012l-7.5%205.5%27"
     "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
     "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
 _CALENDAR_ICON = (
-    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%3E"
     "%3Cpath%20d=%27M7%204v3M17%204v3M4.5%209h15M6%205.5h12a2%202%200%200%201%202%202v10.5"
     "%20a2%202%200%200%201-2%202H6a2%202%200%200%201-2-2V7.5a2%202%200%200%201%202-2z%27"
     "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
     "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
 _LIBRARY_ICON = (
-    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%3E"
     "%3Cpath%20d=%27M5%206.5h4v12H5zM10.5%204.5h4v14h-4zM16%207.5h3v11h-3z%27"
     "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
     "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
 _HISTORY_ICON = (
-    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%3E"
     "%3Cpath%20d=%27M5%207v4H1M4.5%2011a7.5%207.5%200%201%201%202.2%205.3M12%208v4.5l3%201.8%27"
     "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
     "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
 _TOP_TEN_ICON = (
-    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%3E"
     "%3Cpath%20d=%27M8%204h8v4a4%204%200%200%201-8%200V4zM6%205H4v2a4%204%200%200%200%204%204M18%205h2v2"
     "%20a4%204%200%200%201-4%204M12%2012v4M8%2020h8M9%2016h6%27"
     "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
     "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
 _SEARCH_ICON = (
-    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%3E"
     "%3Cpath%20d=%27M10.5%204.5a6%206%200%201%200%200%2012%206%206%200%200%200%200-12zM15%2015l4.5%204.5%27"
     "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
     "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
