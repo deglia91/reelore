@@ -38,3 +38,14 @@ def test_macos_notifier_labels_today_release() -> None:
     notifier.notify(_reminder(ReleaseReminderKind.TODAY))
 
     assert "Oggi esce" in commands[0][2]
+
+
+def test_macos_notifier_can_send_test_notification() -> None:
+    commands: list[list[str]] = []
+    notifier = MacOSReleaseReminderNotifier(run_command=commands.append)
+
+    notifier.send_test()
+
+    assert commands[0][:2] == ["/usr/bin/osascript", "-e"]
+    assert "Notifiche NextEp configurate correttamente." in commands[0][2]
+    assert 'with title "NextEp"' in commands[0][2]
