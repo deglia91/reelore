@@ -20,6 +20,6 @@ def test_calendar_emphasizes_nearest_upcoming_day() -> None:
 
 
 def test_calendar_card_exposes_clear_open_episode_affordance() -> None:
-    assert ".calendar-page .calendar-entry::after" in NAVIGATION_CSS
+    assert ".calendar-page .calendar-entry-copy::after" in NAVIGATION_CSS
     assert 'content: "Apri episodio →"' in NAVIGATION_CSS
     assert "color: var(--color-accent-strong)" in NAVIGATION_CSS
