@@ -2,7 +2,10 @@ from reelore.web_navigation_theme import NAVIGATION_CSS
 
 
 def test_series_detail_emphasizes_actionable_unseen_episodes() -> None:
-    assert ".detail-page .season-details[open] .episode:has(.progress-correction-button)" in NAVIGATION_CSS
+    assert (
+        ".detail-page .season-details[open] .episode:has(.progress-correction-button)"
+        in NAVIGATION_CSS
+    )
     assert 'content: "Da vedere"' in NAVIGATION_CSS
     assert "border-color: var(--color-accent)" in NAVIGATION_CSS
 
@@ -15,5 +18,8 @@ def test_calendar_provider_information_reads_as_compact_chip() -> None:
 
 
 def test_continue_watching_prioritizes_actionable_cards_visually() -> None:
-    assert ".home-page #library > section:first-child .home-rail > .card:has(.quick-action)" in NAVIGATION_CSS
+    assert (
+        ".home-page #library > section:first-child .home-rail > .card:has(.quick-action)"
+        in NAVIGATION_CSS
+    )
     assert "order: -1" in NAVIGATION_CSS
