@@ -16,19 +16,29 @@ class ReleaseReminderPreferencesStore(Protocol):
     def save_preferences(self, preferences: ReleaseReminderPreferences) -> None: ...
 
 
+class ReleaseReminderTestSender(Protocol):
+    def send_test(self) -> None: ...
+
+
 def install_release_reminder_routes(
     app: FastAPI,
     preferences: ReleaseReminderPreferencesStore,
     *,
     notifications_available: bool,
+    test_sender: ReleaseReminderTestSender | None = None,
 ) -> None:
     @app.get("/reminders", response_class=HTMLResponse)
-    def reminder_settings(saved: Annotated[bool, Query()] = False) -> HTMLResponse:
+    def reminder_settings(
+        saved: Annotated[bool, Query()] = False,
+        tested: Annotated[bool, Query()] = False,
+    ) -> HTMLResponse:
         return HTMLResponse(
             render_release_reminder_settings_page(
                 preferences.get_preferences(),
                 notifications_available=notifications_available,
+                test_available=test_sender is not None,
                 saved=saved,
+                tested=tested,
             )
         )
 
@@ -45,18 +55,32 @@ def install_release_reminder_routes(
         )
         return RedirectResponse(url="/reminders?saved=true", status_code=303)
 
+    if test_sender is not None:
+
+        @app.post("/reminders/test")
+        def send_test_notification() -> RedirectResponse:
+            test_sender.send_test()
+            return RedirectResponse(url="/reminders?tested=true", status_code=303)
+
 
 def render_release_reminder_settings_page(
     preferences: ReleaseReminderPreferences,
     *,
     notifications_available: bool,
+    test_available: bool = False,
     saved: bool = False,
+    tested: bool = False,
 ) -> str:
     today_checked = " checked" if preferences.today_enabled else ""
     tomorrow_checked = " checked" if preferences.tomorrow_enabled else ""
     saved_notice = (
         '<p class="reminder-notice reminder-notice-success">Preferenze salvate.</p>'
         if saved
+        else ""
+    )
+    tested_notice = (
+        '<p class="reminder-notice reminder-notice-success">Notifica di prova inviata.</p>'
+        if tested
         else ""
     )
     if notifications_available:
@@ -68,6 +92,11 @@ def render_release_reminder_settings_page(
             '<p class="reminder-notice">Le preferenze vengono salvate, ma le notifiche di sistema '
             "non sono disponibili su questo dispositivo.</p>"
         )
+    test_action = ""
+    if test_available:
+        test_action = """<form class="reminder-test-form" method="post" action="/reminders/test">
+<button class="reminder-test-button" type="submit">Invia notifica di prova</button>
+</form>"""
     theme = render_theme_css() + NAVIGATION_CSS
     return f"""<!doctype html>
 <html lang="it">
@@ -125,6 +154,12 @@ body {{
   background: var(--color-accent); color: var(--color-accent-contrast); font-weight: 800;
   cursor: pointer;
 }}
+.reminder-test-form {{ margin-top: 12px; }}
+.reminder-test-button {{
+  min-height: 44px; width: 100%; border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm); padding: 10px 14px; background: var(--color-surface);
+  color: var(--color-accent-strong); font-weight: 800; cursor: pointer;
+}}
 @media (max-width: 720px) {{
   .reminder-shell {{ width: min(100% - 24px, 760px); }}
   .reminder-header-inner {{ min-height: 62px; }}
@@ -146,6 +181,7 @@ body {{
 <p>Scegli quando NextEp deve avvisarti per le nuove puntate delle serie che segui.</p>
 </section>
 {saved_notice}
+{tested_notice}
 {delivery_notice}
 <form class="reminder-form" method="post" action="/reminders">
 <label class="reminder-option">
@@ -158,6 +194,7 @@ body {{
 </label>
 <button type="submit">Salva preferenze</button>
 </form>
+{test_action}
 </main>
 </body>
 </html>"""
