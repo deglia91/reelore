@@ -6,7 +6,12 @@ from reelore.application.availability import (
     AvailabilityType,
     SeasonAvailability,
 )
-from reelore.application.library_view import LibraryItemView, TVSeriesDetailView, UpcomingEpisodeView
+from reelore.application.library_view import (
+    LibraryItemView,
+    NextEpisodeView,
+    TVSeriesDetailView,
+    UpcomingEpisodeView,
+)
 from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus, PersonalMediaState
 from reelore.web import (
     _render_calendar_episode,
@@ -99,20 +104,7 @@ def test_continue_watching_prioritizes_series_with_available_next_episode() -> N
         image_url=None,
         seen_episodes=3,
         total_episodes=8,
-        next_episode=None,
-    )
-    actionable = LibraryItemView(
-        media_id=actionable.media_id,
-        title=actionable.title,
-        status=actionable.status,
-        completion_count=actionable.completion_count,
-        rewatch_count=actionable.rewatch_count,
-        image_url=actionable.image_url,
-        seen_episodes=actionable.seen_episodes,
-        total_episodes=actionable.total_episodes,
-        next_episode=__import__(
-            "reelore.application.library_view", fromlist=["NextEpisodeView"]
-        ).NextEpisodeView(1, 4, "Ready Now"),
+        next_episode=NextEpisodeView(1, 4, "Ready Now"),
     )
 
     html = _render_home_library_sections((waiting, actionable))
