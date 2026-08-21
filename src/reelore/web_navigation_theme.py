@@ -162,6 +162,14 @@ body {
   border-bottom: 1px solid var(--color-border);
 }
 
+.calendar-day:first-child .calendar-day-heading {
+  border-bottom-color: var(--color-accent);
+}
+
+.calendar-day:first-child .calendar-day-heading h2 {
+  color: var(--color-accent-strong);
+}
+
 .calendar-day-list {
   display: grid;
   gap: var(--space-3);
