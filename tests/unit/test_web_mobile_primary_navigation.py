@@ -8,7 +8,7 @@ def test_mobile_header_hides_primary_navigation_actions() -> None:
     assert "display: none !important" in NAVIGATION_CSS
 
 
-def test_mobile_bottom_navigation_exposes_five_primary_destinations() -> None:
+def test_mobile_bottom_navigation_exposes_five_visible_primary_destinations() -> None:
     navigation = _render_mobile_nav()
 
     for href, label in (
@@ -20,7 +20,8 @@ def test_mobile_bottom_navigation_exposes_five_primary_destinations() -> None:
     ):
         assert href in navigation
         assert label in navigation
-    assert 'href="/history"' not in navigation
+    assert '.mobile-nav a[href="/history"]' in NAVIGATION_CSS
+    assert "display: none" in NAVIGATION_CSS
 
 
 def test_mobile_bottom_navigation_is_fixed_and_preserves_content_space() -> None:
