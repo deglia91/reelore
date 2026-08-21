@@ -1,8 +1,8 @@
 """Curated explicit franchise relationships keyed by source provider IDs."""
 
+from collections.abc import Mapping
 from datetime import date
 from types import MappingProxyType
-from typing import Mapping
 
 from reelore.application.catalog import TVSeriesCatalog
 from reelore.application.franchise import FranchiseRelationType, FranchiseTVTitle
