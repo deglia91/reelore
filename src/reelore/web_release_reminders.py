@@ -55,7 +55,9 @@ def render_release_reminder_settings_page(
     today_checked = " checked" if preferences.today_enabled else ""
     tomorrow_checked = " checked" if preferences.tomorrow_enabled else ""
     saved_notice = (
-        '<p class="reminder-notice reminder-notice-success">Preferenze salvate.</p>' if saved else ""
+        '<p class="reminder-notice reminder-notice-success">Preferenze salvate.</p>'
+        if saved
+        else ""
     )
     if notifications_available:
         delivery_notice = (
