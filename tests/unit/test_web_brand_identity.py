@@ -66,6 +66,17 @@ def test_secondary_mobile_headers_match_primary_wordmark_treatment() -> None:
     assert "background-clip: text" in NAVIGATION_CSS
 
 
+def test_secondary_mobile_headers_match_primary_geometry() -> None:
+    assert ".top-ten-header-inner," in NAVIGATION_CSS
+    assert ".history-header-inner" in NAVIGATION_CSS
+    assert "min-height: 86px !important" in NAVIGATION_CSS
+    assert "width: 100% !important" in NAVIGATION_CSS
+    assert "padding: 0 16px !important" in NAVIGATION_CSS
+    assert ".top-ten-brand::before," in NAVIGATION_CSS
+    assert "width: 58px !important" in NAVIGATION_CSS
+    assert "height: 52px !important" in NAVIGATION_CSS
+
+
 def test_mobile_page_headings_share_compact_scale() -> None:
     for selector in (
         ".library-page-heading h1",
