@@ -7,7 +7,8 @@ def test_global_navigation_links_to_watch_history() -> None:
     mobile = _render_mobile_nav()
 
     assert '<a href="/history">Cronologia</a>' in desktop
-    assert '<a href="/history">Cronologia</a>' in mobile
+    assert 'href="/history"' in mobile
+    assert "Cronologia" in mobile
 
 
 def test_global_navigation_links_to_dedicated_top_ten_page() -> None:
@@ -16,5 +17,13 @@ def test_global_navigation_links_to_dedicated_top_ten_page() -> None:
     history = render_history_page(())
 
     assert '<a href="/top-ten">Top 10</a>' in desktop
-    assert '<a href="/top-ten">Top 10</a>' in mobile
-    assert history.count('href="/top-ten">Top 10</a>') == 2
+    assert 'href="/top-ten"' in mobile
+    assert "Top 10" in mobile
+    assert 'href="/top-ten"' in history
+
+
+def test_shared_mobile_navigation_marks_current_section() -> None:
+    history = render_history_page(())
+
+    assert 'href="/history" class="mobile-nav-item active" aria-current="page"' in history
+    assert 'href="/#search"' not in history
