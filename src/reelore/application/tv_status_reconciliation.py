@@ -35,7 +35,7 @@ class TVStatusReconciliationResult:
 
 
 class TVStatusReconciliationService:
-    """Reopen completed series when refreshed metadata introduces unseen episodes."""
+    """Reopen caught-up series when refreshed metadata introduces unseen episodes."""
 
     def __init__(
         self,
@@ -51,7 +51,10 @@ class TVStatusReconciliationService:
             if media.media_type is not MediaType.TV_SERIES:
                 continue
             state = self._store.get_personal_state(media.id)
-            if state is None or state.status is not LibraryStatus.COMPLETED:
+            if state is None or state.status not in {
+                LibraryStatus.UP_TO_DATE,
+                LibraryStatus.COMPLETED,
+            }:
                 continue
             catalog = self._catalog_for(media.id)
             if catalog is None:
@@ -67,6 +70,8 @@ class TVStatusReconciliationService:
             has_available_unseen = any(
                 episode.airdate is None or episode.airdate <= today for episode in unseen
             )
+            if state.status is LibraryStatus.UP_TO_DATE and not has_available_unseen:
+                continue
             status = LibraryStatus.IN_PROGRESS if has_available_unseen else LibraryStatus.UP_TO_DATE
             self._status_updater.change_status(media.id, status)
             reopened += 1
