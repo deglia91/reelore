@@ -67,9 +67,7 @@ class TVStatusReconciliationService:
             has_available_unseen = any(
                 episode.airdate is None or episode.airdate <= today for episode in unseen
             )
-            status = (
-                LibraryStatus.IN_PROGRESS if has_available_unseen else LibraryStatus.UP_TO_DATE
-            )
+            status = LibraryStatus.IN_PROGRESS if has_available_unseen else LibraryStatus.UP_TO_DATE
             self._status_updater.change_status(media.id, status)
             reopened += 1
         return TVStatusReconciliationResult(reopened=reopened)
