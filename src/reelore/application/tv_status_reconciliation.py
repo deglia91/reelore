@@ -5,7 +5,14 @@ from datetime import date
 from typing import Protocol
 
 from reelore.application.catalog import TVSeriesCatalog
-from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus, MediaItem, MediaType, PersonalMediaState
+from reelore.domain import (
+    EpisodeProgress,
+    EpisodeRef,
+    LibraryStatus,
+    MediaItem,
+    MediaType,
+    PersonalMediaState,
+)
 
 
 class TVStatusReconciliationStore(Protocol):
