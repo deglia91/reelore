@@ -30,3 +30,7 @@ def test_primary_navigation_uses_one_coherent_minimal_tech_icon_family() -> None
     for href in ("/library", "/calendar", "/history", "/top-ten", "/#search"):
         assert f'a[href="{href}"]::before' in NAVIGATION_CSS
     assert "stroke-linecap=%27round%27" in NAVIGATION_CSS
+
+
+def test_minimal_tech_masks_include_svg_namespace_for_safari() -> None:
+    assert NAVIGATION_CSS.count("xmlns=%27http://www.w3.org/2000/svg%27") == 6
