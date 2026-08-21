@@ -51,6 +51,18 @@ SHELL_POLISH_CSS = """
     transform: translateX(16px);
   }
 
+  body .mobile-nav,
+  .top-ten-mobile-nav,
+  .history-mobile-nav {
+    padding: 6px 7px 5px !important;
+  }
+
+  body .mobile-nav a,
+  .top-ten-mobile-nav a,
+  .history-mobile-nav a {
+    min-height: 52px !important;
+  }
+
   .library-page-heading h1,
   .calendar-page-heading h1,
   .top-ten-heading h1,
