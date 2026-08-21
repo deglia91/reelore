@@ -2,7 +2,14 @@ from datetime import date
 
 from reelore.application import TVEpisodeMetadata, TVSeriesCatalog
 from reelore.application.tv_status_reconciliation import TVStatusReconciliationService
-from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus, MediaItem, MediaType, PersonalMediaState
+from reelore.domain import (
+    EpisodeProgress,
+    EpisodeRef,
+    LibraryStatus,
+    MediaItem,
+    MediaType,
+    PersonalMediaState,
+)
 
 
 class StubStore:
