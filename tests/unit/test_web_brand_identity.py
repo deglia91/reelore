@@ -66,6 +66,13 @@ def test_secondary_mobile_headers_match_primary_wordmark_treatment() -> None:
     assert "background-clip: text" in NAVIGATION_CSS
 
 
+def test_mobile_wordmark_has_slightly_stronger_presence() -> None:
+    assert ".app-header .brand::after," in NAVIGATION_CSS
+    assert ".top-ten-brand::after," in NAVIGATION_CSS
+    assert ".history-brand::after" in NAVIGATION_CSS
+    assert "font-size: 1.52rem !important" in NAVIGATION_CSS
+
+
 def test_secondary_mobile_headers_match_primary_geometry() -> None:
     assert ".top-ten-header-inner," in NAVIGATION_CSS
     assert ".history-header-inner" in NAVIGATION_CSS
