@@ -20,6 +20,12 @@ class MacOSReleaseReminderNotifier:
         prefix = "Oggi esce" if reminder.kind is ReleaseReminderKind.TODAY else "Domani esce"
         reference = f"S{reminder.season_number:02}E{reminder.episode_number:02}"
         message = f"{prefix} {reminder.series_title} · {reference} · {reminder.episode_title}"
+        self._send(message)
+
+    def send_test(self) -> None:
+        self._send("Notifiche NextEp configurate correttamente.")
+
+    def _send(self, message: str) -> None:
         escaped_message = _escape_applescript_text(message)
         script = f'display notification "{escaped_message}" with title "NextEp"'
         self._run_command(["/usr/bin/osascript", "-e", script])
