@@ -14,6 +14,17 @@ class ReleaseReminderKind(StrEnum):
 
 
 @dataclass(frozen=True, slots=True)
+class ReleaseReminderPreferences:
+    today_enabled: bool = True
+    tomorrow_enabled: bool = True
+
+    def allows(self, kind: ReleaseReminderKind) -> bool:
+        if kind is ReleaseReminderKind.TODAY:
+            return self.today_enabled
+        return self.tomorrow_enabled
+
+
+@dataclass(frozen=True, slots=True)
 class ReleaseReminder:
     media_id: str
     series_title: str
@@ -22,6 +33,12 @@ class ReleaseReminder:
     episode_title: str
     airdate: date
     kind: ReleaseReminderKind
+
+
+class ReleaseReminderPreferencesStore(Protocol):
+    def get_preferences(self) -> ReleaseReminderPreferences: ...
+
+    def save_preferences(self, preferences: ReleaseReminderPreferences) -> None: ...
 
 
 class ReleaseReminderHistory(Protocol):
