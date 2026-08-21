@@ -16,6 +16,7 @@ from reelore.application import (
     TVSeriesCatalog,
 )
 from reelore.application.availability import AvailabilityType, SeasonAvailability
+from reelore.application.franchise import FranchiseTVTitle
 from reelore.application.library_view import (
     LibraryItemView,
     RecentEpisodeView,
@@ -25,6 +26,7 @@ from reelore.application.library_view import (
 )
 from reelore.application.related import RelatedTVTitle
 from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus
+from reelore.web_franchise import render_franchise_titles
 from reelore.web_navigation_theme import NAVIGATION_CSS
 from reelore.web_related import render_related_titles
 from reelore.web_theme import render_theme_css
@@ -102,6 +104,10 @@ class RelatedTitleReader(Protocol):
     def list_for(self, catalog: TVSeriesCatalog) -> tuple[RelatedTVTitle, ...]: ...
 
 
+class FranchiseTitleReader(Protocol):
+    def list_for(self, catalog: TVSeriesCatalog) -> tuple[FranchiseTVTitle, ...]: ...
+
+
 class TrackingService(Protocol):
     def change_status(self, media_id: str, status: LibraryStatus) -> object: ...
 
@@ -132,6 +138,7 @@ def create_web_app(
     tracker: TrackingService,
     top_ten: TopTenTrackingService,
     related_views: RelatedTitleReader | None = None,
+    franchise_views: FranchiseTitleReader | None = None,
 ) -> FastAPI:
     app = FastAPI(title="Reelore")
 
@@ -181,7 +188,8 @@ def create_web_app(
         if detail is None:
             return HTMLResponse("Serie non trovata", status_code=404)
         related = related_views.list_for(detail.catalog) if related_views is not None else ()
-        return HTMLResponse(_render_series_detail(detail, related))
+        franchise = franchise_views.list_for(detail.catalog) if franchise_views is not None else ()
+        return HTMLResponse(_render_series_detail(detail, related, franchise))
 
     @app.post("/series/{media_id}/remove")
     def remove_series(media_id: str) -> RedirectResponse:
@@ -616,6 +624,7 @@ def _default_open_season(
 def _render_series_detail(
     detail: TVSeriesDetailView,
     related_titles: tuple[RelatedTVTitle, ...] = (),
+    franchise_titles: tuple[FranchiseTVTitle, ...] = (),
 ) -> str:
     catalog = detail.catalog
     progress = detail.progress
@@ -666,6 +675,7 @@ def _render_series_detail(
             "</details></section>"
         )
     season_html = "".join(season_sections)
+    franchise_html = render_franchise_titles(franchise_titles)
     related_html = render_related_titles(related_titles)
     state = _status_label(detail.state.status)
     rewatch_progress = _render_rewatch_progress(detail)
@@ -703,6 +713,7 @@ def _render_series_detail(
 </form>
 </div>
 </section>
+{franchise_html}
 {related_html}
 <div class="series-seasons">{season_html}</div>"""
     )
