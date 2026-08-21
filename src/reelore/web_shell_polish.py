@@ -34,7 +34,7 @@ SHELL_POLISH_CSS = """
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
-    font-size: 1.52rem !important;
+    font-size: 1.62rem !important;
     font-weight: 850;
     letter-spacing: -.035em;
   }
@@ -42,7 +42,7 @@ SHELL_POLISH_CSS = """
   .app-header .brand::after,
   .top-ten-brand::after,
   .history-brand::after {
-    font-size: 1.52rem !important;
+    font-size: 1.62rem !important;
   }
 
   .library-page-heading h1,
