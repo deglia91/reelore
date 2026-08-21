@@ -1,5 +1,6 @@
 from reelore.web import _render_app_header, _render_mobile_nav
 from reelore.web_history import render_history_page
+from reelore.web_navigation_theme import NAVIGATION_CSS
 
 
 def test_global_navigation_links_to_watch_history() -> None:
@@ -25,5 +26,7 @@ def test_global_navigation_links_to_dedicated_top_ten_page() -> None:
 def test_shared_mobile_navigation_marks_current_section() -> None:
     history = render_history_page(())
 
-    assert 'href="/history" class="mobile-nav-item active" aria-current="page"' in history
-    assert 'href="/#search"' not in history
+    assert 'href="/history" aria-current="page"' in history
+    assert '.history-mobile-nav a[aria-current="page"]' in NAVIGATION_CSS
+    assert '.history-mobile-nav a[href="/#search"]' in NAVIGATION_CSS
+    assert "display: none !important" in NAVIGATION_CSS
