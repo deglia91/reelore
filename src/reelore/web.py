@@ -557,9 +557,7 @@ def _render_library_filters(selected: LibraryStatus | None) -> str:
         href = "/library" if status is None else f"/library?status={status.value}"
         active = " active" if status is selected else ""
         current = ' aria-current="page"' if status is selected else ""
-        links.append(
-            f'<a class="filter-chip{active}" href="{href}"{current}>{escape(label)}</a>'
-        )
+        links.append(f'<a class="filter-chip{active}" href="{href}"{current}>{escape(label)}</a>')
     return f'<nav class="library-filters" aria-label="Filtri libreria">{"".join(links)}</nav>'
 
 
