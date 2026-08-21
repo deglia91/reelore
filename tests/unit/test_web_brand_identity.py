@@ -2,22 +2,22 @@ from reelore.web import _render_app_header
 from reelore.web_navigation_theme import NAVIGATION_CSS
 
 
-def test_header_uses_minimal_tech_wordmark_structure() -> None:
+def test_header_keeps_semantic_next_ep_brand_anchor() -> None:
     header = _render_app_header()
 
-    assert 'class="brand-word"' in header
-    assert 'class="brand-accent">Ep</span>' in header
+    assert 'aria-label="NextEp Home"' in header
     assert 'data-icon="next-episode"' in header
+    assert "NextEp" in header
 
 
-def test_header_uses_one_coherent_icon_family_for_primary_navigation() -> None:
-    header = _render_app_header()
+def test_navigation_theme_defines_minimal_tech_brand_treatment() -> None:
+    assert ".app-header .brand-mark" in NAVIGATION_CSS
+    assert "linear-gradient(135deg" in NAVIGATION_CSS
+    assert "filter: drop-shadow" in NAVIGATION_CSS
+    assert ".app-header .brand" in NAVIGATION_CSS
 
-    for icon in ("library", "calendar", "history", "top-ten", "search"):
-        assert f'data-icon="{icon}"' in header
 
-
-def test_mobile_navigation_keeps_matching_minimal_tech_masks() -> None:
+def test_primary_navigation_uses_one_coherent_minimal_tech_icon_family() -> None:
     for token in (
         "--next-ep-logo-icon",
         "--next-ep-library-icon",
@@ -27,4 +27,6 @@ def test_mobile_navigation_keeps_matching_minimal_tech_masks() -> None:
         "--next-ep-search-icon",
     ):
         assert token in NAVIGATION_CSS
+    for href in ("/library", "/calendar", "/history", "/top-ten", "/#search"):
+        assert f'a[href="{href}"]::before' in NAVIGATION_CSS
     assert "stroke-linecap=%27round%27" in NAVIGATION_CSS
