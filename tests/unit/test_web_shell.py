@@ -9,7 +9,7 @@ def test_app_shell_exposes_desktop_and_mobile_navigation() -> None:
     assert 'class="mobile-nav"' in page
     assert 'href="/library"' in page
     assert 'href="/calendar"' in page
-    assert 'href="/#top-ten"' in page
+    assert 'href="/top-ten"' in page
     assert 'href="/#search"' in page
 
 
