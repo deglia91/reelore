@@ -73,6 +73,13 @@ def test_mobile_wordmark_has_stronger_presence() -> None:
     assert "font-size: 1.62rem !important" in NAVIGATION_CSS
 
 
+def test_mobile_brand_moves_slightly_toward_visual_center() -> None:
+    assert ".app-header .brand," in NAVIGATION_CSS
+    assert ".top-ten-brand," in NAVIGATION_CSS
+    assert ".history-brand" in NAVIGATION_CSS
+    assert "transform: translateX(16px)" in NAVIGATION_CSS
+
+
 def test_secondary_mobile_headers_match_primary_geometry() -> None:
     assert ".top-ten-header-inner," in NAVIGATION_CSS
     assert ".history-header-inner" in NAVIGATION_CSS
