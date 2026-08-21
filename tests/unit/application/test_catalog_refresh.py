@@ -6,7 +6,9 @@ from reelore.domain import MediaItem, MediaType
 
 
 class StubProvider:
-    def __init__(self, catalogs: dict[str, TVSeriesCatalog], failing: set[str] | None = None) -> None:
+    def __init__(
+        self, catalogs: dict[str, TVSeriesCatalog], failing: set[str] | None = None
+    ) -> None:
         self._catalogs = catalogs
         self._failing = failing or set()
         self.requested: list[str] = []
