@@ -2,9 +2,25 @@
 
 SHELL_POLISH_CSS = """
 @media (max-width: 720px) {
+  .top-ten-header-inner,
+  .history-header-inner {
+    width: 100% !important;
+    min-height: 86px !important;
+    margin: 0 !important;
+    padding: 0 16px !important;
+  }
+
   .top-ten-brand,
   .history-brand {
+    gap: 14px !important;
     font-size: 0 !important;
+  }
+
+  .top-ten-brand::before,
+  .history-brand::before {
+    width: 58px !important;
+    height: 52px !important;
+    flex: 0 0 62px !important;
   }
 
   .top-ten-brand::after,
