@@ -7,12 +7,14 @@ from fastapi import FastAPI
 
 from reelore.application import MediaTracker, TopTenService, TVCatalogImporter
 from reelore.application.catalog import TVCatalogProvider
+from reelore.application.catalog_refresh import TVCatalogRefreshService
 from reelore.application.franchise_view import FranchiseTitleViewService
 from reelore.application.library_view import LibraryViewService
 from reelore.application.localization import LocalizedTVCatalogProvider
 from reelore.application.related_view import RelatedTitleViewService
 from reelore.application.tracker import TVProgressTracker
 from reelore.application.watch_history_view import WatchHistoryViewService
+from reelore.catalog_refresh_runtime import start_catalog_refresh
 from reelore.infrastructure import (
     SQLiteLibraryRepository,
     SQLiteWatchHistoryRepository,
@@ -58,6 +60,11 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
         tracker,
         provider_name="tvmaze",
     )
+    refresh_service = TVCatalogRefreshService(
+        catalog_provider,
+        repository,
+        provider_name="tvmaze",
+    )
     views = LibraryViewService(
         repository,
         availability_provider,
@@ -79,6 +86,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     )
     install_history_routes(app, history_views)
     install_top_ten_routes(app, views, top_ten)
+    start_catalog_refresh(refresh_service)
     return app
 
 
