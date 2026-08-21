@@ -16,7 +16,7 @@ class StubRefreshService:
 def test_catalog_refresh_starts_in_background_daemon_thread() -> None:
     service = StubRefreshService()
 
-    thread = start_catalog_refresh(service)  # type: ignore[arg-type]
+    thread = start_catalog_refresh(service)
 
     assert thread.daemon is True
     assert thread.name == "reelore-catalog-refresh"
