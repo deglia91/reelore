@@ -40,22 +40,32 @@ def test_build_app_wires_release_reminders_on_macos(
     tmp_path: Path,
     monkeypatch: MonkeyPatch,
 ) -> None:
-    started: list[object | None] = []
+    refresh_reminders: list[object | None] = []
+    scheduled_reminders: list[object] = []
 
     def fake_start_catalog_refresh(
         service: object,
         reconciliation: object,
         reminders: object | None = None,
     ) -> None:
-        started.append(reminders)
+        refresh_reminders.append(reminders)
+
+    def fake_start_release_reminder_scheduler(reminders: object) -> None:
+        scheduled_reminders.append(reminders)
 
     monkeypatch.setattr(bootstrap, "start_catalog_refresh", fake_start_catalog_refresh)
+    monkeypatch.setattr(
+        bootstrap,
+        "start_release_reminder_scheduler",
+        fake_start_release_reminder_scheduler,
+    )
     monkeypatch.setattr(sys, "platform", "darwin")
 
     build_app(tmp_path / "reelore.db")
 
-    assert len(started) == 1
-    assert started[0] is not None
+    assert len(refresh_reminders) == 1
+    assert refresh_reminders[0] is not None
+    assert scheduled_reminders == [refresh_reminders[0]]
 
 
 def test_load_env_file_sets_values_without_overriding_environment(tmp_path: Path) -> None:
