@@ -549,6 +549,7 @@ def _render_library_filters(selected: LibraryStatus | None) -> str:
         ("Da vedere", LibraryStatus.PLANNED),
         ("Completate", LibraryStatus.COMPLETED),
         ("In pausa", LibraryStatus.PAUSED),
+        ("Non più seguita", LibraryStatus.DROPPED),
     )
     links: list[str] = []
     for label, status in options:
