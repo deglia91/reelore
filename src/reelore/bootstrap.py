@@ -39,6 +39,7 @@ from reelore.release_reminder_runtime import ReleaseReminderRuntime
 from reelore.release_reminder_scheduler import start_release_reminder_scheduler
 from reelore.web import create_web_app
 from reelore.web_history import install_history_routes
+from reelore.web_release_reminders import install_release_reminder_routes
 from reelore.web_top_ten import install_top_ten_routes
 
 _DEFAULT_DATABASE_PATH = "data/reelore.db"
@@ -53,6 +54,8 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     repository.initialize()
     watch_history = SQLiteWatchHistoryRepository(path)
     watch_history.initialize()
+    reminder_preferences = SQLiteReleaseReminderPreferences(path)
+    reminder_preferences.initialize()
     tracker = MediaTracker(repository, watch_history)
     catalog_provider: TVCatalogProvider = TVMazeProvider()
     availability_provider = None
@@ -85,8 +88,6 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     if sys.platform == "darwin":
         reminder_history = SQLiteReleaseReminderHistory(path)
         reminder_history.initialize()
-        reminder_preferences = SQLiteReleaseReminderPreferences(path)
-        reminder_preferences.initialize()
         reminder_delivery = ReleaseReminderDeliveryService(
             reminder_history,
             MacOSReleaseReminderNotifier(),
@@ -112,6 +113,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     )
     install_history_routes(app, history_views)
     install_top_ten_routes(app, views, top_ten)
+    install_release_reminder_routes(app, reminder_preferences)
     start_catalog_refresh(refresh_service, reconciliation_service, reminder_runtime)
     if reminder_runtime is not None:
         start_release_reminder_scheduler(reminder_runtime)
