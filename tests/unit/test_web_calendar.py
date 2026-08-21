@@ -28,7 +28,8 @@ def test_calendar_groups_upcoming_episodes_by_day() -> None:
         (
             _episode(airdate=today, season=4, episode=1, title="Premiere"),
             _episode(airdate=today, season=4, episode=2, title="Second"),
-            _episode(airdate=date(2026, 8, 21), season=4, episode=3, title="Third"),
+            _episode(airdate=date(2026, 8, 20), season=4, episode=3, title="Tomorrow"),
+            _episode(airdate=date(2026, 8, 21), season=4, episode=4, title="Third"),
         ),
         today,
     )
@@ -36,13 +37,16 @@ def test_calendar_groups_upcoming_episodes_by_day() -> None:
     assert 'class="calendar-page-heading"' in page
     assert "Calendario" in page
     assert "Oggi · 19 agosto" in page
+    assert "Domani · 20 agosto" in page
     assert "Venerdì 21 agosto" in page
-    assert page.count('class="calendar-day"') == 2
+    assert page.count('class="calendar-day"') == 3
     assert "04x01" in page
     assert "04x02" in page
     assert "04x03" in page
+    assert "04x04" in page
     assert "Premiere" in page
     assert "Second" in page
+    assert "Tomorrow" in page
     assert "Third" in page
 
 
