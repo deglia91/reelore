@@ -1,8 +1,9 @@
-"""Plan simple release reminders from upcoming TV episodes."""
+"""Plan and deliver release reminders for upcoming TV episodes."""
 
 from dataclasses import dataclass
 from datetime import date, timedelta
 from enum import StrEnum
+from typing import Protocol
 
 from reelore.application.library_view import UpcomingEpisodeView
 
@@ -21,6 +22,38 @@ class ReleaseReminder:
     episode_title: str
     airdate: date
     kind: ReleaseReminderKind
+
+
+class ReleaseReminderHistory(Protocol):
+    def was_delivered(self, reminder: ReleaseReminder) -> bool: ...
+
+    def record_delivered(self, reminder: ReleaseReminder) -> None: ...
+
+
+class ReleaseReminderNotifier(Protocol):
+    def notify(self, reminder: ReleaseReminder) -> None: ...
+
+
+class ReleaseReminderDeliveryService:
+    """Deliver due reminders once per episode and reminder kind."""
+
+    def __init__(
+        self,
+        history: ReleaseReminderHistory,
+        notifier: ReleaseReminderNotifier,
+    ) -> None:
+        self._history = history
+        self._notifier = notifier
+
+    def deliver(self, reminders: tuple[ReleaseReminder, ...]) -> int:
+        delivered = 0
+        for reminder in reminders:
+            if self._history.was_delivered(reminder):
+                continue
+            self._notifier.notify(reminder)
+            self._history.record_delivered(reminder)
+            delivered += 1
+        return delivered
 
 
 def plan_release_reminders(
