@@ -13,9 +13,12 @@ class StubFranchiseProvider:
         assert catalog.title == "Breaking Bad"
         return (
             FranchiseTVTitle(
-                provider_key="60059",
+                provider_key="618",
                 title="Better Call Saul",
-                relation=FranchiseRelationType.SPIN_OFF_OF,
+                relations=(
+                    FranchiseRelationType.SPIN_OFF_OF,
+                    FranchiseRelationType.PREQUEL_OF,
+                ),
                 premiered=date(2015, 2, 8),
             ),
         )
@@ -37,6 +40,7 @@ def _titles_from(provider: FranchiseTVProvider) -> tuple[FranchiseTVTitle, ...]:
 
 def test_franchise_relations_are_distinct_from_generic_recommendations() -> None:
     assert {relation.value for relation in FranchiseRelationType} == {
+        "prequel_of",
         "sequel_of",
         "spin_off_of",
         "same_universe",
@@ -46,14 +50,17 @@ def test_franchise_relations_are_distinct_from_generic_recommendations() -> None
     }
 
 
-def test_franchise_provider_exposes_typed_relationships() -> None:
+def test_franchise_provider_exposes_multiple_typed_relationships() -> None:
     titles = _titles_from(StubFranchiseProvider())
 
     assert titles == (
         FranchiseTVTitle(
-            provider_key="60059",
+            provider_key="618",
             title="Better Call Saul",
-            relation=FranchiseRelationType.SPIN_OFF_OF,
+            relations=(
+                FranchiseRelationType.SPIN_OFF_OF,
+                FranchiseRelationType.PREQUEL_OF,
+            ),
             premiered=date(2015, 2, 8),
         ),
     )
