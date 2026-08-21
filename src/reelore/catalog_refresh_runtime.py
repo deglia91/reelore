@@ -16,16 +16,24 @@ class TVStatusReconciler(Protocol):
     def reconcile(self, today: date) -> TVStatusReconciliationResult: ...
 
 
+class ReleaseReminderRunner(Protocol):
+    def run(self, today: date) -> int: ...
+
+
 def start_catalog_refresh(
     service: CatalogRefresher,
     reconciliation: TVStatusReconciler | None = None,
+    reminders: ReleaseReminderRunner | None = None,
 ) -> Thread:
-    """Refresh the local catalog in a daemon thread and reconcile tracking state."""
+    """Refresh catalog, reconcile tracking state, then run due reminders."""
 
     def refresh_and_reconcile() -> None:
         service.refresh_library()
+        today = date.today()
         if reconciliation is not None:
-            reconciliation.reconcile(date.today())
+            reconciliation.reconcile(today)
+        if reminders is not None:
+            reminders.run(today)
 
     thread = Thread(
         target=refresh_and_reconcile,
