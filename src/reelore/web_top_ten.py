@@ -137,10 +137,12 @@ body {{
   .top-ten-slot {{ grid-template-columns: 38px 50px minmax(0, 1fr); gap: 10px; min-height: 78px; }}
   .top-ten-poster {{ width: 50px; height: 60px; }}
   .top-ten-management {{ align-items: stretch; flex-direction: column; }}
+  .top-ten-management select,
+  .top-ten-management button {{ min-height: 44px; }}
   .top-ten-management button {{ width: 100%; }}
   .top-ten-mobile-nav {{
-    position: fixed; right: 12px; bottom: 12px; left: 12px; z-index: 30; display: grid;
-    grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 8px;
+    position: fixed; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); left: 12px;
+    z-index: 30; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 8px;
     border: 1px solid var(--color-border); border-radius: var(--radius-lg);
     background: color-mix(in srgb, var(--color-surface) 94%, transparent);
     box-shadow: var(--shadow-raised); backdrop-filter: blur(18px);
