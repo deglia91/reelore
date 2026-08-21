@@ -379,7 +379,10 @@ def _render_calendar_page(
     return _page(
         f"""<section class="calendar-page-heading">
 <p class="eyebrow">Prossime uscite</p>
+<div class="section-heading">
 <h1>Calendario</h1>
+<a class="section-link" href="/reminders">Gestisci promemoria</a>
+</div>
 <p class="sub">Le nuove puntate delle serie che stai seguendo, ordinate per giorno.</p>
 </section>
 <div class="calendar-agenda">{content}</div>""",
