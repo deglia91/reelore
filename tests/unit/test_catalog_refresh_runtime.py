@@ -29,6 +29,17 @@ class StubReconciliationService:
         return TVStatusReconciliationResult(reopened=1)
 
 
+class StubReminderRunner:
+    def __init__(self, calls: list[str]) -> None:
+        self.calls = calls
+        self.called = Event()
+
+    def run(self, today: date) -> int:
+        self.calls.append("reminders")
+        self.called.set()
+        return 1
+
+
 def test_catalog_refresh_starts_in_background_daemon_thread() -> None:
     service = StubRefreshService()
 
@@ -49,3 +60,16 @@ def test_catalog_refresh_reconciles_tv_status_after_refresh() -> None:
 
     assert reconciliation.called.is_set()
     assert calls == ["refresh", "reconcile"]
+
+
+def test_catalog_refresh_runs_release_reminders_after_reconciliation() -> None:
+    calls: list[str] = []
+    refresh = StubRefreshService(calls)
+    reconciliation = StubReconciliationService(calls)
+    reminders = StubReminderRunner(calls)
+
+    thread = start_catalog_refresh(refresh, reconciliation, reminders)
+    thread.join(timeout=1)
+
+    assert reminders.called.is_set()
+    assert calls == ["refresh", "reconcile", "reminders"]
