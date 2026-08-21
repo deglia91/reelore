@@ -194,15 +194,18 @@ class LibraryViewService:
 
     def list_upcoming_episodes(self, today: date) -> tuple[UpcomingEpisodeView, ...]:
         upcoming: list[UpcomingEpisodeView] = []
-        excluded = {LibraryStatus.DROPPED, LibraryStatus.COMPLETED}
         for media in self._store.list_media():
             state = self._store.get_personal_state(media.id)
             catalog = self._catalog_for(media.id)
-            if state is None or catalog is None or state.status in excluded:
+            if state is None or catalog is None or state.status is LibraryStatus.DROPPED:
                 continue
+            progress = self._store.get_episode_progress(media.id)
             availability_by_season: dict[int, SeasonAvailability | None] = {}
             for episode in catalog.episodes:
                 if episode.airdate is None or episode.airdate < today:
+                    continue
+                reference = EpisodeRef(episode.season_number, episode.episode_number)
+                if progress.has_seen(reference):
                     continue
                 if episode.season_number not in availability_by_season:
                     availability_by_season[episode.season_number] = self._season_availability(
