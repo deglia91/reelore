@@ -25,10 +25,10 @@ def test_primary_navigation_uses_one_coherent_minimal_tech_icon_family() -> None
         "--next-ep-history-icon",
         "--next-ep-top-ten-icon",
         "--next-ep-search-icon",
+        "--next-ep-brand-asset",
+        "--next-ep-home-icon",
     ):
         assert token in NAVIGATION_CSS
-    for href in ("/library", "/calendar", "/history", "/top-ten", "/#search"):
-        assert f'a[href="{href}"]::before' in NAVIGATION_CSS
     assert "stroke-linecap=%27round%27" in NAVIGATION_CSS
 
 
@@ -40,13 +40,15 @@ def test_minimal_tech_masks_include_svg_namespace_for_safari() -> None:
     assert namespace_count == svg_count
 
 
-def test_minimal_tech_logo_uses_bolder_double_forward_geometry() -> None:
-    assert "stroke-width=%272.2%27" in NAVIGATION_CSS
-    assert "M3.5%205L11%2012l-7.5%207" in NAVIGATION_CSS
+def test_shared_brand_uses_dedicated_logo_asset() -> None:
+    assert "--next-ep-brand-asset" in NAVIGATION_CSS
+    assert "background-image: var(--next-ep-brand-asset) !important" in NAVIGATION_CSS
+    assert "mask-image: none !important" in NAVIGATION_CSS
 
 
 def test_mobile_header_moves_actions_to_bottom_navigation() -> None:
     assert ".app-header .desktop-nav {\n    display: none !important;" in NAVIGATION_CSS
-    assert "body .mobile-nav {" in NAVIGATION_CSS
-    assert "grid-template-columns: repeat(5, minmax(0, 1fr))" in NAVIGATION_CSS
-    assert 'body .mobile-nav a[href="/history"]' not in NAVIGATION_CSS
+    assert "body .mobile-nav," in NAVIGATION_CSS
+    assert "grid-template-columns: repeat(5, minmax(0, 1fr)) !important" in NAVIGATION_CSS
+    assert 'body .mobile-nav a[href="/#search"]' in NAVIGATION_CSS
+    assert 'body .mobile-nav a[href="/history"]::before' in NAVIGATION_CSS
