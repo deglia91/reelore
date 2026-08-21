@@ -13,6 +13,7 @@ from reelore.application.library_view import LibraryViewService
 from reelore.application.localization import LocalizedTVCatalogProvider
 from reelore.application.related_view import RelatedTitleViewService
 from reelore.application.tracker import TVProgressTracker
+from reelore.application.tv_status_reconciliation import TVStatusReconciliationService
 from reelore.application.watch_history_view import WatchHistoryViewService
 from reelore.catalog_refresh_runtime import start_catalog_refresh
 from reelore.infrastructure import (
@@ -65,6 +66,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
         repository,
         provider_name="tvmaze",
     )
+    reconciliation_service = TVStatusReconciliationService(repository, tracker)
     views = LibraryViewService(
         repository,
         availability_provider,
@@ -86,7 +88,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     )
     install_history_routes(app, history_views)
     install_top_ten_routes(app, views, top_ten)
-    start_catalog_refresh(refresh_service)
+    start_catalog_refresh(refresh_service, reconciliation_service)
     return app
 
 
