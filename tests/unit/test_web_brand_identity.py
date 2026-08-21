@@ -45,7 +45,9 @@ def test_minimal_tech_logo_uses_bolder_double_forward_geometry() -> None:
     assert "M3.5%205L11%2012l-7.5%207" in NAVIGATION_CSS
 
 
-def test_mobile_header_icons_do_not_use_permanent_boxes() -> None:
-    assert "border: 1px solid transparent" in NAVIGATION_CSS
-    assert "background: transparent" in NAVIGATION_CSS
-    assert ".app-header .desktop-nav a:hover" in NAVIGATION_CSS
+def test_mobile_header_moves_actions_to_bottom_navigation() -> None:
+    assert ".app-header .desktop-nav {\n    display: none !important;" in NAVIGATION_CSS
+    assert "body .mobile-nav {" in NAVIGATION_CSS
+    assert "grid-template-columns: repeat(6, minmax(0, 1fr))" in NAVIGATION_CSS
+    assert 'body .mobile-nav a[href="/history"]' in NAVIGATION_CSS
+    assert "display: none" in NAVIGATION_CSS
