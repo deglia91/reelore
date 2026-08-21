@@ -1,8 +1,9 @@
 """Periodic scheduler for release reminders while NextEp remains running."""
 
+from collections.abc import Callable
 from datetime import date
 from threading import Event, Thread
-from typing import Callable, Protocol
+from typing import Protocol
 
 
 class ScheduledReminderRuntime(Protocol):
