@@ -33,6 +33,7 @@ from reelore.infrastructure.sqlite_release_reminders import SQLiteReleaseReminde
 from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProvider
 from reelore.infrastructure.tmdb_related import TMDBRelatedTVProvider
 from reelore.release_reminder_runtime import ReleaseReminderRuntime
+from reelore.release_reminder_scheduler import start_release_reminder_scheduler
 from reelore.web import create_web_app
 from reelore.web_history import install_history_routes
 from reelore.web_top_ten import install_top_ten_routes
@@ -103,6 +104,8 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     install_history_routes(app, history_views)
     install_top_ten_routes(app, views, top_ten)
     start_catalog_refresh(refresh_service, reconciliation_service, reminder_runtime)
+    if reminder_runtime is not None:
+        start_release_reminder_scheduler(reminder_runtime)
     return app
 
 
