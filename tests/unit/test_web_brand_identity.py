@@ -91,6 +91,11 @@ def test_secondary_mobile_headers_match_primary_geometry() -> None:
     assert "height: 52px !important" in NAVIGATION_CSS
 
 
+def test_mobile_navigation_uses_slimmer_touch_safe_height() -> None:
+    assert "padding: 6px 7px 5px !important" in NAVIGATION_CSS
+    assert "min-height: 52px !important" in NAVIGATION_CSS
+
+
 def test_mobile_page_headings_share_compact_scale() -> None:
     for selector in (
         ".library-page-heading h1",
