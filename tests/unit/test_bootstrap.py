@@ -14,7 +14,7 @@ def test_build_app_initializes_local_database(tmp_path: Path) -> None:
 
     app = build_app(database_path)
 
-    assert app.title == "Reelore"
+    assert app.title == "NextEp"
     assert database_path.exists()
     assert any(isinstance(route, Route) and route.path == "/reminders" for route in app.routes)
 
