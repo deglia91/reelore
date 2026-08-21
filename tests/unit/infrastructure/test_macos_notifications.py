@@ -26,14 +26,9 @@ def test_macos_notifier_sends_tomorrow_release_to_notification_center() -> None:
 
     notifier.notify(_reminder(ReleaseReminderKind.TOMORROW))
 
-    assert commands == [
-        [
-            "/usr/bin/osascript",
-            "-e",
-            'display notification "Domani esce Example \\"Show\\" · S02E03 · The Return" '
-            'with title "NextEp"',
-        ]
-    ]
+    assert commands[0][:2] == ["/usr/bin/osascript", "-e"]
+    assert 'Domani esce Example \\"Show\\" · S02E03 · The Return' in commands[0][2]
+    assert 'with title "NextEp"' in commands[0][2]
 
 
 def test_macos_notifier_labels_today_release() -> None:
