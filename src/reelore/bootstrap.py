@@ -29,6 +29,9 @@ from reelore.infrastructure.curated_franchise import (
     CuratedFranchiseTVProvider,
 )
 from reelore.infrastructure.macos_notifications import MacOSReleaseReminderNotifier
+from reelore.infrastructure.sqlite_release_reminder_preferences import (
+    SQLiteReleaseReminderPreferences,
+)
 from reelore.infrastructure.sqlite_release_reminders import SQLiteReleaseReminderHistory
 from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProvider
 from reelore.infrastructure.tmdb_related import TMDBRelatedTVProvider
@@ -82,11 +85,17 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     if sys.platform == "darwin":
         reminder_history = SQLiteReleaseReminderHistory(path)
         reminder_history.initialize()
+        reminder_preferences = SQLiteReleaseReminderPreferences(path)
+        reminder_preferences.initialize()
         reminder_delivery = ReleaseReminderDeliveryService(
             reminder_history,
             MacOSReleaseReminderNotifier(),
         )
-        reminder_runtime = ReleaseReminderRuntime(views, reminder_delivery)
+        reminder_runtime = ReleaseReminderRuntime(
+            views,
+            reminder_delivery,
+            reminder_preferences,
+        )
     franchise_views = FranchiseTitleViewService(
         CuratedFranchiseTVProvider(CURATED_TV_FRANCHISE_GRAPH)
     )
