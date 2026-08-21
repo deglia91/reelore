@@ -173,7 +173,15 @@ class LibraryViewService:
                     top_ten_rank=state.top_ten_rank,
                 )
             )
-        return tuple(items)
+        return tuple(
+            sorted(
+                items,
+                key=lambda item: (
+                    item.next_episode is None,
+                    item.title.casefold(),
+                ),
+            )
+        )
 
     def list_top_ten(self) -> tuple[TopTenItemView, ...]:
         ranked: list[TopTenItemView] = []
