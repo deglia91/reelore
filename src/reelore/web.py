@@ -420,6 +420,8 @@ def _calendar_date_label(airdate: date, today: date) -> str:
     day_and_month = f"{airdate.day} {_MONTH_NAMES[airdate.month - 1]}"
     if airdate == today:
         return f"Oggi · {day_and_month}"
+    if (airdate - today).days == 1:
+        return f"Domani · {day_and_month}"
     return f"{_WEEKDAY_NAMES[airdate.weekday()]} {day_and_month}"
 
 
