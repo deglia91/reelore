@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
 
+from pytest import MonkeyPatch
+
+import reelore.bootstrap as bootstrap
 from reelore.bootstrap import _load_env_file, build_app
 
 
@@ -11,6 +14,19 @@ def test_build_app_initializes_local_database(tmp_path: Path) -> None:
 
     assert app.title == "Reelore"
     assert database_path.exists()
+
+
+def test_build_app_starts_catalog_refresh(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    started: list[object] = []
+
+    def fake_start_catalog_refresh(service: object) -> None:
+        started.append(service)
+
+    monkeypatch.setattr(bootstrap, "start_catalog_refresh", fake_start_catalog_refresh)
+
+    build_app(tmp_path / "reelore.db")
+
+    assert len(started) == 1
 
 
 def test_load_env_file_sets_values_without_overriding_environment(tmp_path: Path) -> None:
