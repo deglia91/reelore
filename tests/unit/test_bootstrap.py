@@ -17,16 +17,18 @@ def test_build_app_initializes_local_database(tmp_path: Path) -> None:
 
 
 def test_build_app_starts_catalog_refresh(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
-    started: list[object] = []
+    started: list[tuple[object, object]] = []
 
-    def fake_start_catalog_refresh(service: object) -> None:
-        started.append(service)
+    def fake_start_catalog_refresh(service: object, reconciliation: object) -> None:
+        started.append((service, reconciliation))
 
     monkeypatch.setattr(bootstrap, "start_catalog_refresh", fake_start_catalog_refresh)
 
     build_app(tmp_path / "reelore.db")
 
     assert len(started) == 1
+    assert started[0][0] is not None
+    assert started[0][1] is not None
 
 
 def test_load_env_file_sets_values_without_overriding_environment(tmp_path: Path) -> None:
