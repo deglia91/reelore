@@ -39,7 +39,9 @@ def test_calendar_groups_upcoming_episodes_by_day() -> None:
     assert "Oggi · 19 agosto" in page
     assert "Domani · 20 agosto" in page
     assert "Venerdì 21 agosto" in page
-    assert page.count('class="calendar-day"') == 3
+    assert 'class="calendar-day calendar-day-today"' in page
+    assert 'class="calendar-day calendar-day-tomorrow"' in page
+    assert page.count('class="calendar-day') == 3
     assert "04x01" in page
     assert "04x02" in page
     assert "04x03" in page
