@@ -17,10 +17,14 @@ def test_build_app_initializes_local_database(tmp_path: Path) -> None:
 
 
 def test_build_app_starts_catalog_refresh(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
-    started: list[tuple[object, object]] = []
+    started: list[tuple[object, object, object | None]] = []
 
-    def fake_start_catalog_refresh(service: object, reconciliation: object) -> None:
-        started.append((service, reconciliation))
+    def fake_start_catalog_refresh(
+        service: object,
+        reconciliation: object,
+        reminders: object | None = None,
+    ) -> None:
+        started.append((service, reconciliation, reminders))
 
     monkeypatch.setattr(bootstrap, "start_catalog_refresh", fake_start_catalog_refresh)
 
@@ -29,6 +33,28 @@ def test_build_app_starts_catalog_refresh(tmp_path: Path, monkeypatch: MonkeyPat
     assert len(started) == 1
     assert started[0][0] is not None
     assert started[0][1] is not None
+
+
+def test_build_app_wires_release_reminders_on_macos(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    started: list[object | None] = []
+
+    def fake_start_catalog_refresh(
+        service: object,
+        reconciliation: object,
+        reminders: object | None = None,
+    ) -> None:
+        started.append(reminders)
+
+    monkeypatch.setattr(bootstrap, "start_catalog_refresh", fake_start_catalog_refresh)
+    monkeypatch.setattr(bootstrap.sys, "platform", "darwin")
+
+    build_app(tmp_path / "reelore.db")
+
+    assert len(started) == 1
+    assert started[0] is not None
 
 
 def test_load_env_file_sets_values_without_overriding_environment(tmp_path: Path) -> None:
