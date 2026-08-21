@@ -2,40 +2,41 @@
 
 _LOGO_ICON = (
     "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
-    "%3Cpath%20d=%27M3%205l7%207-7%207M10%205l7%207-7%207M20%205v14%27"
-    "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%272%27"
+    "%3Cpath%20d=%27M4.5%204.5L15.5%2012%204.5%2019.5V4.5zM10.5%206.5L18%2012l-7.5%205.5%27"
+    "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
     "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
 _CALENDAR_ICON = (
     "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
-    "%3Cpath%20d=%27M7%203v4M17%203v4M4%209h16M5%205h14a2%202%200%200%201%202%202v12"
-    "%20a2%202%200%200%201-2%202H5a2%202%200%200%201-2-2V7a2%202%200%200%201%202-2%27"
+    "%3Cpath%20d=%27M7%204v3M17%204v3M4.5%209h15M6%205.5h12a2%202%200%200%201%202%202v10.5"
+    "%20a2%202%200%200%201-2%202H6a2%202%200%200%201-2-2V7.5a2%202%200%200%201%202-2z%27"
     "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
     "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
 _LIBRARY_ICON = (
     "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
-    "%3Cpath%20d=%27M4%205h4v15H4zM10%203h4v17h-4zM16%206h4v14h-4z%27"
+    "%3Cpath%20d=%27M5%206.5h4v12H5zM10.5%204.5h4v14h-4zM16%207.5h3v11h-3z%27"
     "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
-    "%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
+    "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
 _HISTORY_ICON = (
     "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
-    "%3Cpath%20d=%27M4%2012a8%208%200%201%200%202-5.3M4%204v5h5M12%208v5l3%202%27"
+    "%3Cpath%20d=%27M5%207v4H1M4.5%2011a7.5%207.5%200%201%201%202.2%205.3M12%208v4.5l3%201.8%27"
     "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
     "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
 _TOP_TEN_ICON = (
     "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
-    "%3Cpath%20d=%27M12%203l2.8%205.7%206.2.9-4.5%204.4%201.1%206.2-5.6-3-5.6%203%201.1-6.2L3%209.6l6.2-.9z%27"
-    "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.6%27"
-    "%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
+    "%3Cpath%20d=%27M8%204h8v4a4%204%200%200%201-8%200V4zM6%205H4v2a4%204%200%200%200%204%204M18%205h2v2"
+    "%20a4%204%200%200%201-4%204M12%2012v4M8%2020h8M9%2016h6%27"
+    "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
+    "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
 _SEARCH_ICON = (
     "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
-    "%3Cpath%20d=%27M11%204a7%207%200%201%200%200%2014%207%207%200%200%200%200-14z"
-    "%20M16%2016l5%205%27%20fill=%27none%27%20stroke=%27black%27"
-    "%20stroke-width=%272%27%20stroke-linecap=%27round%27/%3E%3C/svg%3E"
+    "%3Cpath%20d=%27M10.5%204.5a6%206%200%201%200%200%2012%206%206%200%200%200%200-12zM15%2015l4.5%204.5%27"
+    "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
+    "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
 
 NAVIGATION_CSS = (
@@ -53,6 +54,99 @@ body {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+}
+
+.app-header .brand {
+  gap: 12px;
+  background: linear-gradient(135deg, var(--color-text) 0 58%, var(--color-accent-strong) 72%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  letter-spacing: -.035em;
+}
+
+.app-header .brand-mark {
+  width: 44px !important;
+  height: 38px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--color-accent-strong) !important;
+  box-shadow: none !important;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--color-accent) 34%, transparent));
+}
+
+.app-header .brand-mark .brand-icon {
+  display: none;
+}
+
+body .app-header .brand-mark::before {
+  display: block !important;
+  width: 38px;
+  height: 34px;
+  content: "";
+  background: linear-gradient(135deg, var(--color-accent-strong), var(--color-accent));
+  mask-image: var(--next-ep-logo-icon);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-image: var(--next-ep-logo-icon);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+}
+
+.app-header .desktop-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.app-header .desktop-nav .nav-icon {
+  display: none !important;
+}
+
+body .app-header .desktop-nav a::before {
+  display: block !important;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  content: "";
+  background: currentcolor;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+}
+
+body .app-header .desktop-nav a[href="/library"]::before {
+  mask-image: var(--next-ep-library-icon);
+  -webkit-mask-image: var(--next-ep-library-icon);
+}
+
+body .app-header .desktop-nav a[href="/calendar"]::before {
+  mask-image: var(--next-ep-calendar-icon);
+  -webkit-mask-image: var(--next-ep-calendar-icon);
+}
+
+body .app-header .desktop-nav a[href="/history"]::before {
+  mask-image: var(--next-ep-history-icon);
+  -webkit-mask-image: var(--next-ep-history-icon);
+}
+
+body .app-header .desktop-nav a[href="/top-ten"]::before {
+  mask-image: var(--next-ep-top-ten-icon);
+  -webkit-mask-image: var(--next-ep-top-ten-icon);
+}
+
+body .app-header .desktop-nav a[href="/#search"]::before {
+  mask-image: var(--next-ep-search-icon);
+  -webkit-mask-image: var(--next-ep-search-icon);
+}
+
+body .app-header .desktop-nav a[href="/"]::before {
+  display: none !important;
 }
 
 .home-page main,
@@ -289,6 +383,10 @@ body {
 
   .app-header .brand::after {
     content: "NextEp";
+    background: linear-gradient(135deg, var(--color-text) 0 58%, var(--color-accent-strong) 72%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
     font-size: 1.15rem;
     font-weight: 850;
     letter-spacing: -.03em;
@@ -297,17 +395,17 @@ body {
   .app-header .brand-mark {
     width: 42px;
     height: 42px;
-    border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
-    background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+    border: 0;
+    background: transparent;
     font-size: 0;
     box-shadow: none;
   }
 
   .app-header .brand-mark::before {
-    width: 25px;
-    height: 25px;
+    width: 31px;
+    height: 31px;
     content: "";
-    background: var(--color-accent-strong);
+    background: linear-gradient(135deg, var(--color-accent-strong), var(--color-accent));
     mask-image: var(--next-ep-logo-icon);
     mask-position: center;
     mask-repeat: no-repeat;
@@ -329,7 +427,9 @@ body {
     width: 42px;
     height: 42px;
     place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-accent) 24%, var(--color-border));
     border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--color-surface) 72%, transparent);
     color: var(--color-accent-strong);
     font-size: 0;
     text-decoration: none;
