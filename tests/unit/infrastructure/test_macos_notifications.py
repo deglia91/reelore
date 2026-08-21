@@ -1,10 +1,10 @@
+from datetime import date
+
 from reelore.application.release_reminders import ReleaseReminder, ReleaseReminderKind
 from reelore.infrastructure.macos_notifications import MacOSReleaseReminderNotifier
 
 
 def _reminder(kind: ReleaseReminderKind) -> ReleaseReminder:
-    from datetime import date
-
     return ReleaseReminder(
         media_id="tvmaze:1",
         series_title='Example "Show"',
