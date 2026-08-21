@@ -1,6 +1,7 @@
 """Composition root for the local Reelore web application."""
 
 import os
+import sys
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -12,6 +13,7 @@ from reelore.application.franchise_view import FranchiseTitleViewService
 from reelore.application.library_view import LibraryViewService
 from reelore.application.localization import LocalizedTVCatalogProvider
 from reelore.application.related_view import RelatedTitleViewService
+from reelore.application.release_reminders import ReleaseReminderDeliveryService
 from reelore.application.tracker import TVProgressTracker
 from reelore.application.tv_status_reconciliation import TVStatusReconciliationService
 from reelore.application.watch_history_view import WatchHistoryViewService
@@ -26,8 +28,11 @@ from reelore.infrastructure.curated_franchise import (
     CURATED_TV_FRANCHISE_GRAPH,
     CuratedFranchiseTVProvider,
 )
+from reelore.infrastructure.macos_notifications import MacOSReleaseReminderNotifier
+from reelore.infrastructure.sqlite_release_reminders import SQLiteReleaseReminderHistory
 from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProvider
 from reelore.infrastructure.tmdb_related import TMDBRelatedTVProvider
+from reelore.release_reminder_runtime import ReleaseReminderRuntime
 from reelore.web import create_web_app
 from reelore.web_history import install_history_routes
 from reelore.web_top_ten import install_top_ten_routes
@@ -72,6 +77,15 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
         availability_provider,
         watch_history,
     )
+    reminder_runtime = None
+    if sys.platform == "darwin":
+        reminder_history = SQLiteReleaseReminderHistory(path)
+        reminder_history.initialize()
+        reminder_delivery = ReleaseReminderDeliveryService(
+            reminder_history,
+            MacOSReleaseReminderNotifier(),
+        )
+        reminder_runtime = ReleaseReminderRuntime(views, reminder_delivery)
     franchise_views = FranchiseTitleViewService(
         CuratedFranchiseTVProvider(CURATED_TV_FRANCHISE_GRAPH)
     )
@@ -88,7 +102,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
     )
     install_history_routes(app, history_views)
     install_top_ten_routes(app, views, top_ten)
-    start_catalog_refresh(refresh_service, reconciliation_service)
+    start_catalog_refresh(refresh_service, reconciliation_service, reminder_runtime)
     return app
 
 
