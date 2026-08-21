@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from reelore.application import MediaTracker, TopTenService, TVCatalogImporter
 from reelore.application.catalog import TVCatalogProvider
+from reelore.application.franchise_view import FranchiseTitleViewService
 from reelore.application.library_view import LibraryViewService
 from reelore.application.localization import LocalizedTVCatalogProvider
 from reelore.application.related_view import RelatedTitleViewService
@@ -17,6 +18,10 @@ from reelore.infrastructure import (
     SQLiteWatchHistoryRepository,
     TMDBItalianLocalizer,
     TVMazeProvider,
+)
+from reelore.infrastructure.curated_franchise import (
+    CURATED_TV_FRANCHISE_GRAPH,
+    CuratedFranchiseTVProvider,
 )
 from reelore.infrastructure.tmdb_availability import TMDBItalianAvailabilityProvider
 from reelore.infrastructure.tmdb_related import TMDBRelatedTVProvider
@@ -58,10 +63,20 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
         availability_provider,
         watch_history,
     )
+    franchise_views = FranchiseTitleViewService(
+        CuratedFranchiseTVProvider(CURATED_TV_FRANCHISE_GRAPH)
+    )
     history_views = WatchHistoryViewService(repository, watch_history)
     tv_progress = TVProgressTracker(tracker, repository)
     top_ten = TopTenService(repository)
-    app = create_web_app(importer, views, tv_progress, top_ten, related_views)
+    app = create_web_app(
+        importer,
+        views,
+        tv_progress,
+        top_ten,
+        related_views,
+        franchise_views,
+    )
     install_history_routes(app, history_views)
     install_top_ten_routes(app, views, top_ten)
     return app
