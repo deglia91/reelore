@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 from pytest import MonkeyPatch
+from starlette.routing import Route
 
 import reelore.bootstrap as bootstrap
 from reelore.bootstrap import _load_env_file, build_app
@@ -15,7 +16,9 @@ def test_build_app_initializes_local_database(tmp_path: Path) -> None:
 
     assert app.title == "Reelore"
     assert database_path.exists()
-    assert any(route.path == "/reminders" for route in app.routes)
+    assert any(
+        isinstance(route, Route) and route.path == "/reminders" for route in app.routes
+    )
 
 
 def test_build_app_starts_catalog_refresh(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
