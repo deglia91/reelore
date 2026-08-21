@@ -49,6 +49,7 @@ NEXT_EP_SHELL_CSS = (
 
   .app-header .brand {
     gap: 14px;
+    font-size: 0 !important;
   }
 
   .app-header .brand::after {
@@ -60,6 +61,10 @@ NEXT_EP_SHELL_CSS = (
 
   .app-header .desktop-nav {
     display: none !important;
+  }
+
+  .home-page #library > section:first-child {
+    margin-top: var(--space-2) !important;
   }
 
   .top-ten-brand,
