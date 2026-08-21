@@ -34,3 +34,14 @@ def test_primary_navigation_uses_one_coherent_minimal_tech_icon_family() -> None
 
 def test_minimal_tech_masks_include_svg_namespace_for_safari() -> None:
     assert NAVIGATION_CSS.count("xmlns=%27http://www.w3.org/2000/svg%27") == 6
+
+
+def test_minimal_tech_logo_uses_bolder_double_forward_geometry() -> None:
+    assert "stroke-width=%272.2%27" in NAVIGATION_CSS
+    assert "M3.5%205L11%2012l-7.5%207" in NAVIGATION_CSS
+
+
+def test_mobile_header_icons_do_not_use_permanent_boxes() -> None:
+    assert "border: 1px solid transparent" in NAVIGATION_CSS
+    assert "background: transparent" in NAVIGATION_CSS
+    assert ".app-header .desktop-nav a:hover" in NAVIGATION_CSS
