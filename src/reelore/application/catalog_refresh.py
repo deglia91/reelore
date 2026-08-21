@@ -3,8 +3,14 @@
 from dataclasses import dataclass
 from typing import Protocol
 
-from reelore.application.catalog import TVCatalogProvider, TVSeriesCatalog
+from reelore.application.catalog import TVSeriesCatalog
 from reelore.domain import MediaItem, MediaType
+
+
+class TVCatalogRefreshProvider(Protocol):
+    """Load the latest catalog metadata for one provider series."""
+
+    def get_series(self, provider_id: str) -> TVSeriesCatalog: ...
 
 
 class TVCatalogRefreshStore(Protocol):
@@ -26,7 +32,7 @@ class TVCatalogRefreshService:
 
     def __init__(
         self,
-        provider: TVCatalogProvider,
+        provider: TVCatalogRefreshProvider,
         store: TVCatalogRefreshStore,
         *,
         provider_name: str,
