@@ -52,3 +52,13 @@ def test_mobile_header_moves_actions_to_bottom_navigation() -> None:
     assert "grid-template-columns: repeat(5, minmax(0, 1fr)) !important" in NAVIGATION_CSS
     assert 'body .mobile-nav a[href="/#search"]' in NAVIGATION_CSS
     assert 'body .mobile-nav a[href="/history"]::before' in NAVIGATION_CSS
+
+
+def test_mobile_header_hides_legacy_brand_text() -> None:
+    assert ".app-header .brand {" in NAVIGATION_CSS
+    assert "font-size: 0 !important" in NAVIGATION_CSS
+
+
+def test_mobile_home_tightens_search_to_continue_watching_gap() -> None:
+    assert ".home-page #library > section:first-child" in NAVIGATION_CSS
+    assert "margin-top: var(--space-2) !important" in NAVIGATION_CSS
