@@ -59,6 +59,26 @@ def test_mobile_header_hides_legacy_brand_text() -> None:
     assert "font-size: 0 !important" in NAVIGATION_CSS
 
 
+def test_secondary_mobile_headers_match_primary_wordmark_treatment() -> None:
+    assert ".top-ten-brand::after," in NAVIGATION_CSS
+    assert ".history-brand::after" in NAVIGATION_CSS
+    assert 'content: "NextEp"' in NAVIGATION_CSS
+    assert "background-clip: text" in NAVIGATION_CSS
+
+
+def test_mobile_page_headings_share_compact_scale() -> None:
+    for selector in (
+        ".library-page-heading h1",
+        ".calendar-page-heading h1",
+        ".top-ten-heading h1",
+        ".history-heading h1",
+    ):
+        assert selector in NAVIGATION_CSS
+    assert "font-size: clamp(2rem, 10vw, 2.8rem) !important" in NAVIGATION_CSS
+
+
 def test_mobile_home_tightens_search_to_continue_watching_gap() -> None:
+    assert ".home-page .search" in NAVIGATION_CSS
     assert ".home-page #library > section:first-child" in NAVIGATION_CSS
-    assert "margin-top: var(--space-2) !important" in NAVIGATION_CSS
+    assert NAVIGATION_CSS.count("margin-bottom: var(--space-1) !important") >= 1
+    assert NAVIGATION_CSS.count("margin-top: var(--space-1) !important") >= 1
