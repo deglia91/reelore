@@ -2,7 +2,7 @@
 
 from typing import Annotated, Protocol
 
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from reelore.application.release_reminders import ReleaseReminderPreferences
@@ -19,10 +19,18 @@ class ReleaseReminderPreferencesStore(Protocol):
 def install_release_reminder_routes(
     app: FastAPI,
     preferences: ReleaseReminderPreferencesStore,
+    *,
+    notifications_available: bool,
 ) -> None:
     @app.get("/reminders", response_class=HTMLResponse)
-    def reminder_settings() -> HTMLResponse:
-        return HTMLResponse(render_release_reminder_settings_page(preferences.get_preferences()))
+    def reminder_settings(saved: Annotated[bool, Query()] = False) -> HTMLResponse:
+        return HTMLResponse(
+            render_release_reminder_settings_page(
+                preferences.get_preferences(),
+                notifications_available=notifications_available,
+                saved=saved,
+            )
+        )
 
     @app.post("/reminders")
     def save_reminder_settings(
@@ -35,12 +43,29 @@ def install_release_reminder_routes(
                 tomorrow_enabled=tomorrow_enabled,
             )
         )
-        return RedirectResponse(url="/reminders", status_code=303)
+        return RedirectResponse(url="/reminders?saved=true", status_code=303)
 
 
-def render_release_reminder_settings_page(preferences: ReleaseReminderPreferences) -> str:
+def render_release_reminder_settings_page(
+    preferences: ReleaseReminderPreferences,
+    *,
+    notifications_available: bool,
+    saved: bool = False,
+) -> str:
     today_checked = " checked" if preferences.today_enabled else ""
     tomorrow_checked = " checked" if preferences.tomorrow_enabled else ""
+    saved_notice = (
+        '<p class="reminder-notice reminder-notice-success">Preferenze salvate.</p>' if saved else ""
+    )
+    if notifications_available:
+        delivery_notice = (
+            '<p class="reminder-notice">Notifiche di sistema attive su questo Mac.</p>'
+        )
+    else:
+        delivery_notice = (
+            '<p class="reminder-notice">Le preferenze vengono salvate, ma le notifiche di sistema '
+            "non sono disponibili su questo dispositivo.</p>"
+        )
     theme = render_theme_css() + NAVIGATION_CSS
     return f"""<!doctype html>
 <html lang="it">
@@ -73,6 +98,14 @@ body {{
 }}
 .reminder-heading h1 {{ margin: 0 0 8px; font-size: clamp(2.2rem, 7vw, 3.6rem); }}
 .reminder-heading p {{ margin: 0; color: var(--color-text-muted); line-height: 1.5; }}
+.reminder-notice {{
+  margin: 0 0 12px; padding: 12px 14px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text-muted);
+  font-size: .86rem; line-height: 1.4;
+}}
+.reminder-notice-success {{
+  border-color: var(--color-accent); color: var(--color-accent-strong);
+}}
 .reminder-form {{
   display: grid; gap: 12px; padding: 18px; border: 1px solid var(--color-border);
   border-radius: var(--radius-md); background: var(--color-surface);
@@ -110,6 +143,8 @@ body {{
 <h1>Promemoria uscite</h1>
 <p>Scegli quando NextEp deve avvisarti per le nuove puntate delle serie che segui.</p>
 </section>
+{saved_notice}
+{delivery_notice}
 <form class="reminder-form" method="post" action="/reminders">
 <label class="reminder-option">
 <input type="checkbox" name="today_enabled" value="true"{today_checked}>
