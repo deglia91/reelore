@@ -85,13 +85,15 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
         watch_history,
     )
     notifications_available = sys.platform == "darwin"
+    reminder_notifier: MacOSReleaseReminderNotifier | None = None
     reminder_runtime = None
     if notifications_available:
         reminder_history = SQLiteReleaseReminderHistory(path)
         reminder_history.initialize()
+        reminder_notifier = MacOSReleaseReminderNotifier()
         reminder_delivery = ReleaseReminderDeliveryService(
             reminder_history,
-            MacOSReleaseReminderNotifier(),
+            reminder_notifier,
         )
         reminder_runtime = ReleaseReminderRuntime(
             views,
@@ -118,6 +120,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
         app,
         reminder_preferences,
         notifications_available=notifications_available,
+        test_sender=reminder_notifier,
     )
     start_catalog_refresh(refresh_service, reconciliation_service, reminder_runtime)
     if reminder_runtime is not None:
