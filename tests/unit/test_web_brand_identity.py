@@ -33,7 +33,11 @@ def test_primary_navigation_uses_one_coherent_minimal_tech_icon_family() -> None
 
 
 def test_minimal_tech_masks_include_svg_namespace_for_safari() -> None:
-    assert NAVIGATION_CSS.count("xmlns=%27http://www.w3.org/2000/svg%27") == 6
+    svg_count = NAVIGATION_CSS.count("data:image/svg+xml")
+    namespace_count = NAVIGATION_CSS.count("xmlns=%27http://www.w3.org/2000/svg%27")
+
+    assert svg_count > 0
+    assert namespace_count == svg_count
 
 
 def test_minimal_tech_logo_uses_bolder_double_forward_geometry() -> None:
