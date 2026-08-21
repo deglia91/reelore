@@ -45,6 +45,12 @@ SHELL_POLISH_CSS = """
     font-size: 1.62rem !important;
   }
 
+  .app-header .brand,
+  .top-ten-brand,
+  .history-brand {
+    transform: translateX(16px);
+  }
+
   .library-page-heading h1,
   .calendar-page-heading h1,
   .top-ten-heading h1,
