@@ -16,12 +16,12 @@ def test_mobile_bottom_navigation_exposes_five_visible_primary_destinations() ->
         ('href="/library"', "Libreria"),
         ('href="/calendar"', "Calendario"),
         ('href="/top-ten"', "Top 10"),
-        ('href="/#search"', "Cerca"),
+        ('href="/history"', "Cronologia"),
     ):
         assert href in navigation
         assert label in navigation
-    assert '.mobile-nav a[href="/history"]' in NAVIGATION_CSS
-    assert "display: none" in NAVIGATION_CSS
+    assert 'body .mobile-nav a[href="/#search"]' in NAVIGATION_CSS
+    assert "display: none !important" in NAVIGATION_CSS
 
 
 def test_mobile_bottom_navigation_is_fixed_and_preserves_content_space() -> None:
