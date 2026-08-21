@@ -4,7 +4,7 @@ from datetime import datetime
 from html import escape
 from typing import Protocol
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse
 
 from reelore.application.watch_history_view import WatchHistoryItemView
@@ -25,6 +25,7 @@ _MONTH_ABBREVIATIONS = (
     "nov",
     "dic",
 )
+_HISTORY_FILTERS = frozenset({"all", "first", "rewatch"})
 
 
 class WatchHistoryViewReader(Protocol):
@@ -33,13 +34,23 @@ class WatchHistoryViewReader(Protocol):
 
 def install_history_routes(app: FastAPI, history: WatchHistoryViewReader) -> None:
     @app.get("/history", response_class=HTMLResponse)
-    def watch_history() -> HTMLResponse:
-        return HTMLResponse(render_history_page(history.list_history()))
+    def watch_history(filter: str = Query(default="all")) -> HTMLResponse:
+        return HTMLResponse(
+            render_history_page(
+                history.list_history(),
+                selected_filter=_normalize_history_filter(filter),
+            )
+        )
 
 
-def render_history_page(entries: tuple[WatchHistoryItemView, ...]) -> str:
-    if entries:
-        content = "".join(_render_history_entry(entry) for entry in entries)
+def render_history_page(
+    entries: tuple[WatchHistoryItemView, ...],
+    selected_filter: str = "all",
+) -> str:
+    selected = _normalize_history_filter(selected_filter)
+    filtered_entries = _filter_history(entries, selected)
+    if filtered_entries:
+        content = "".join(_render_history_entry(entry) for entry in filtered_entries)
     else:
         content = (
             '<div class="history-empty">'
@@ -47,6 +58,7 @@ def render_history_page(entries: tuple[WatchHistoryItemView, ...]) -> str:
             "<p>Gli episodi che guardi appariranno qui in ordine cronologico.</p>"
             "</div>"
         )
+    filters = _render_history_filters(selected)
     theme = render_theme_css() + NAVIGATION_CSS
     return f"""<!doctype html>
 <html lang="it">
@@ -74,13 +86,23 @@ body {{
 .history-nav a {{ color: var(--color-text-muted); font-size: .9rem; text-decoration: none; }}
 .history-nav a[aria-current="page"] {{ color: var(--color-accent-strong); font-weight: 800; }}
 .history-main {{ padding: 38px 0 110px; }}
-.history-heading {{ margin-bottom: 26px; }}
+.history-heading {{ margin-bottom: 18px; }}
 .history-heading .eyebrow {{
   margin: 0 0 8px; color: var(--color-accent-strong); font-size: .78rem;
   font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
 }}
 .history-heading h1 {{ margin: 0 0 8px; font-size: clamp(2.3rem, 7vw, 4rem); }}
 .history-heading p {{ margin: 0; color: var(--color-text-muted); }}
+.history-filters {{ display: flex; gap: 8px; margin: 0 0 20px; overflow-x: auto; }}
+.history-filters .filter-chip {{
+  flex: 0 0 auto; padding: 8px 12px; border: 1px solid var(--color-border);
+  border-radius: 999px; color: var(--color-text-muted); font-size: .78rem;
+  font-weight: 750; text-decoration: none;
+}}
+.history-filters .filter-chip.active {{
+  border-color: var(--color-accent); color: var(--color-accent-strong);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}}
 .history-list {{ display: grid; gap: 10px; }}
 .history-entry {{
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center;
@@ -140,6 +162,7 @@ body {{
 <p class="eyebrow">Attività</p><h1>Cronologia</h1>
 <p>Le tue visioni, dalla più recente alla più vecchia.</p>
 </section>
+{filters}
 <div class="history-list">{content}</div>
 </main>
 <nav class="history-mobile-nav" aria-label="Navigazione mobile">
@@ -149,6 +172,37 @@ body {{
 </nav>
 </body>
 </html>"""
+
+
+def _normalize_history_filter(value: str) -> str:
+    return value if value in _HISTORY_FILTERS else "all"
+
+
+def _filter_history(
+    entries: tuple[WatchHistoryItemView, ...],
+    selected_filter: str,
+) -> tuple[WatchHistoryItemView, ...]:
+    if selected_filter == "first":
+        return tuple(entry for entry in entries if entry.watch_number == 1)
+    if selected_filter == "rewatch":
+        return tuple(entry for entry in entries if entry.watch_number > 1)
+    return entries
+
+
+def _render_history_filters(selected_filter: str) -> str:
+    options = (
+        ("Tutte", "all", "/history"),
+        ("Prime visioni", "first", "/history?filter=first"),
+        ("Rewatch", "rewatch", "/history?filter=rewatch"),
+    )
+    links: list[str] = []
+    for label, value, href in options:
+        active = " active" if value == selected_filter else ""
+        current = ' aria-current="page"' if value == selected_filter else ""
+        links.append(
+            f'<a class="filter-chip{active}" href="{href}"{current}>{label}</a>'
+        )
+    return f'<nav class="history-filters" aria-label="Filtri cronologia">{"".join(links)}</nav>'
 
 
 def _render_history_entry(entry: WatchHistoryItemView) -> str:
