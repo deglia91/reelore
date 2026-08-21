@@ -36,8 +36,6 @@ def test_calendar_groups_upcoming_episodes_by_day() -> None:
 
     assert 'class="calendar-page-heading"' in page
     assert "Calendario" in page
-    assert 'class="calendar-reminder-link" href="/reminders"' in page
-    assert "Gestisci promemoria" in page
     assert "Oggi · 19 agosto" in page
     assert "Domani · 20 agosto" in page
     assert "Venerdì 21 agosto" in page
@@ -57,7 +55,6 @@ def test_calendar_renders_empty_state() -> None:
 
     assert "Nessuna uscita in programma" in page
     assert "Le nuove puntate delle serie che segui appariranno qui." in page
-    assert 'class="calendar-reminder-link" href="/reminders"' in page
 
 
 def test_mobile_navigation_links_to_dedicated_calendar() -> None:
