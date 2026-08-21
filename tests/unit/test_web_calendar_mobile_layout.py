@@ -17,3 +17,9 @@ def test_calendar_emphasizes_nearest_upcoming_day() -> None:
     assert "border-bottom-color: var(--color-accent);" in NAVIGATION_CSS
     assert ".calendar-day:first-child .calendar-day-heading h2 {" in NAVIGATION_CSS
     assert "color: var(--color-accent-strong);" in NAVIGATION_CSS
+
+
+def test_calendar_card_exposes_clear_open_episode_affordance() -> None:
+    assert ".calendar-page .calendar-entry::after" in NAVIGATION_CSS
+    assert 'content: "Apri episodio →"' in NAVIGATION_CSS
+    assert "color: var(--color-accent-strong)" in NAVIGATION_CSS
