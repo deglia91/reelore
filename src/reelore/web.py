@@ -140,7 +140,7 @@ def create_web_app(
     related_views: RelatedTitleReader | None = None,
     franchise_views: FranchiseTitleReader | None = None,
 ) -> FastAPI:
-    app = FastAPI(title="Reelore")
+    app = FastAPI(title="NextEp")
 
     @app.get("/", response_class=HTMLResponse)
     def home(q: str | None = Query(default=None)) -> HTMLResponse:
@@ -273,7 +273,7 @@ def _render_home(
     return _page(
         f"""<section class="home-hero" aria-labelledby="home-title">
 <p class="eyebrow">La tua raccolta personale</p>
-<h1 id="home-title">Reelore</h1>
+<h1 id="home-title">NextEp</h1>
 <p class="sub">Le storie che guardi. La tua memoria, finalmente organizzata.</p>
 </section>
 <form id="search" class="search" method="get" action="/">
@@ -450,6 +450,7 @@ def _render_top_ten_section(items: tuple[TopTenItemView, ...]) -> str:
     return (
         '<section id="top-ten"><div class="section-heading">'
         '<div><p class="eyebrow">Preferite</p><h2>La tua Top 10</h2></div>'
+        '<a class="section-link" href="/top-ten">Vedi tutte</a>'
         '</div><div class="grid">'
         f"{content}</div></section>"
     )
@@ -555,7 +556,10 @@ def _render_library_filters(selected: LibraryStatus | None) -> str:
     for label, status in options:
         href = "/library" if status is None else f"/library?status={status.value}"
         active = " active" if status is selected else ""
-        links.append(f'<a class="filter-chip{active}" href="{href}">{escape(label)}</a>')
+        current = ' aria-current="page"' if status is selected else ""
+        links.append(
+            f'<a class="filter-chip{active}" href="{href}"{current}>{escape(label)}</a>'
+        )
     return f'<nav class="library-filters" aria-label="Filtri libreria">{"".join(links)}</nav>'
 
 
@@ -1038,7 +1042,7 @@ def _page(
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reelore</title>
+<title>NextEp</title>
 <style>
 {theme}
 * {{ box-sizing: border-box; }}
