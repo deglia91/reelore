@@ -44,7 +44,11 @@ class MediaTracker:
         return media
 
     def change_status(self, media_id: str, status: LibraryStatus) -> PersonalMediaState:
-        state = self._require_state(media_id).change_status(status)
+        state = self._require_state(media_id)
+        if status is LibraryStatus.COMPLETED and state.completion_count == 0:
+            state = state.record_completion()
+        else:
+            state = state.change_status(status)
         self._repository.save_personal_state(state)
         return state
 
