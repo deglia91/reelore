@@ -1,6 +1,20 @@
 """Small presentation improvements for daily NextEp use."""
 
 DAILY_USE_POLISH_CSS = """
+.calendar-page .calendar-entry {
+  position: relative;
+}
+
+.calendar-page .calendar-entry::after {
+  align-self: end;
+  margin: 0 var(--space-3) var(--space-2) 0;
+  color: var(--color-accent-strong);
+  content: "Apri episodio →";
+  font-size: .7rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 @media (max-width: 720px) {
   .detail-page .season-details[open] .episode:has(.progress-correction-button) {
     border-color: var(--color-accent);
