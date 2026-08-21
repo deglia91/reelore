@@ -57,6 +57,12 @@ def test_calendar_renders_empty_state() -> None:
     assert "Le nuove puntate delle serie che segui appariranno qui." in page
 
 
+def test_calendar_links_to_release_reminder_preferences_even_when_empty() -> None:
+    page = _render_calendar_page((), date(2026, 8, 19))
+
+    assert '<a class="section-link" href="/reminders">Gestisci promemoria</a>' in page
+
+
 def test_mobile_navigation_links_to_dedicated_calendar() -> None:
     navigation = _render_mobile_nav()
 
