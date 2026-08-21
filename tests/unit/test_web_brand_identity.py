@@ -48,6 +48,6 @@ def test_minimal_tech_logo_uses_bolder_double_forward_geometry() -> None:
 def test_mobile_header_moves_actions_to_bottom_navigation() -> None:
     assert ".app-header .desktop-nav {\n    display: none !important;" in NAVIGATION_CSS
     assert "body .mobile-nav {" in NAVIGATION_CSS
-    assert "grid-template-columns: repeat(6, minmax(0, 1fr))" in NAVIGATION_CSS
+    assert "grid-template-columns: repeat(5, minmax(0, 1fr))" in NAVIGATION_CSS
     assert 'body .mobile-nav a[href="/history"]' in NAVIGATION_CSS
     assert "display: none" in NAVIGATION_CSS
