@@ -12,8 +12,9 @@ CREATE TABLE IF NOT EXISTS release_reminder_deliveries (
     media_id TEXT NOT NULL,
     season_number INTEGER NOT NULL CHECK (season_number > 0),
     episode_number INTEGER NOT NULL CHECK (episode_number > 0),
+    airdate TEXT NOT NULL,
     reminder_kind TEXT NOT NULL,
-    PRIMARY KEY (media_id, season_number, episode_number, reminder_kind)
+    PRIMARY KEY (media_id, season_number, episode_number, airdate, reminder_kind)
 );
 """
 
@@ -49,6 +50,7 @@ class SQLiteReleaseReminderHistory:
                 WHERE media_id = ?
                   AND season_number = ?
                   AND episode_number = ?
+                  AND airdate = ?
                   AND reminder_kind = ?
                 LIMIT 1
                 """,
@@ -56,6 +58,7 @@ class SQLiteReleaseReminderHistory:
                     reminder.media_id,
                     reminder.season_number,
                     reminder.episode_number,
+                    reminder.airdate.isoformat(),
                     reminder.kind.value,
                 ),
             ).fetchone()
@@ -66,13 +69,14 @@ class SQLiteReleaseReminderHistory:
             connection.execute(
                 """
                 INSERT OR IGNORE INTO release_reminder_deliveries
-                    (media_id, season_number, episode_number, reminder_kind)
-                VALUES (?, ?, ?, ?)
+                    (media_id, season_number, episode_number, airdate, reminder_kind)
+                VALUES (?, ?, ?, ?, ?)
                 """,
                 (
                     reminder.media_id,
                     reminder.season_number,
                     reminder.episode_number,
+                    reminder.airdate.isoformat(),
                     reminder.kind.value,
                 ),
             )
