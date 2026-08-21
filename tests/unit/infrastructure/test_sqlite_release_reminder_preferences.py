@@ -17,9 +17,7 @@ def test_release_reminder_preferences_persist_across_restarts(tmp_path: Path) ->
     database_path = tmp_path / "reelore.db"
     store = SQLiteReleaseReminderPreferences(database_path)
     store.initialize()
-    store.save_preferences(
-        ReleaseReminderPreferences(today_enabled=True, tomorrow_enabled=False)
-    )
+    store.save_preferences(ReleaseReminderPreferences(today_enabled=True, tomorrow_enabled=False))
 
     reopened = SQLiteReleaseReminderPreferences(database_path)
     reopened.initialize()
