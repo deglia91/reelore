@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 from pytest import MonkeyPatch
@@ -49,7 +50,7 @@ def test_build_app_wires_release_reminders_on_macos(
         started.append(reminders)
 
     monkeypatch.setattr(bootstrap, "start_catalog_refresh", fake_start_catalog_refresh)
-    monkeypatch.setattr(bootstrap.sys, "platform", "darwin")
+    monkeypatch.setattr(sys, "platform", "darwin")
 
     build_app(tmp_path / "reelore.db")
 
