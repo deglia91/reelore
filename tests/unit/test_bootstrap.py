@@ -15,6 +15,7 @@ def test_build_app_initializes_local_database(tmp_path: Path) -> None:
 
     assert app.title == "Reelore"
     assert database_path.exists()
+    assert any(route.path == "/reminders" for route in app.routes)
 
 
 def test_build_app_starts_catalog_refresh(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
