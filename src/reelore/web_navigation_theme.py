@@ -19,6 +19,18 @@ _LIBRARY_ICON = (
     "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
     "%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
 )
+_HISTORY_ICON = (
+    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "%3Cpath%20d=%27M4%2012a8%208%200%201%200%202-5.3M4%204v5h5M12%208v5l3%202%27"
+    "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.8%27"
+    "%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
+)
+_TOP_TEN_ICON = (
+    "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
+    "%3Cpath%20d=%27M12%203l2.8%205.7%206.2.9-4.5%204.4%201.1%206.2-5.6-3-5.6%203%201.1-6.2L3%209.6l6.2-.9z%27"
+    "%20fill=%27none%27%20stroke=%27black%27%20stroke-width=%271.6%27"
+    "%20stroke-linejoin=%27round%27/%3E%3C/svg%3E"
+)
 _SEARCH_ICON = (
     "data:image/svg+xml,%3Csvg%20viewBox=%270%200%2024%2024%27%3E"
     "%3Cpath%20d=%27M11%204a7%207%200%201%200%200%2014%207%207%200%200%200%200-14z"
@@ -31,6 +43,8 @@ NAVIGATION_CSS = (
     f'  --next-ep-logo-icon: url("{_LOGO_ICON}");\n'
     f'  --next-ep-calendar-icon: url("{_CALENDAR_ICON}");\n'
     f'  --next-ep-library-icon: url("{_LIBRARY_ICON}");\n'
+    f'  --next-ep-history-icon: url("{_HISTORY_ICON}");\n'
+    f'  --next-ep-top-ten-icon: url("{_TOP_TEN_ICON}");\n'
     f'  --next-ep-search-icon: url("{_SEARCH_ICON}");\n'
     "}\n"
     + """
@@ -61,6 +75,20 @@ body {
   font-size: .82rem;
   font-weight: 750;
   text-decoration: none;
+}
+
+.desktop-nav a:focus-visible,
+.section-link:focus-visible,
+.filter-chip:focus-visible {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 3px;
+}
+
+.library-page .desktop-nav a[href="/library"],
+.detail-page .desktop-nav a[href="/library"],
+.calendar-page .desktop-nav a[href="/calendar"] {
+  color: var(--color-accent-strong);
+  background: var(--color-surface-raised);
 }
 
 .home-rail {
@@ -307,8 +335,7 @@ body {
     text-decoration: none;
   }
 
-  .app-header .desktop-nav a[href="/"],
-  .app-header .desktop-nav a[href="/#top-ten"] {
+  .app-header .desktop-nav a[href="/"] {
     display: none;
   }
 
@@ -333,6 +360,16 @@ body {
   .app-header .desktop-nav a[href="/library"]::before {
     mask-image: var(--next-ep-library-icon);
     -webkit-mask-image: var(--next-ep-library-icon);
+  }
+
+  .app-header .desktop-nav a[href="/history"]::before {
+    mask-image: var(--next-ep-history-icon);
+    -webkit-mask-image: var(--next-ep-history-icon);
+  }
+
+  .app-header .desktop-nav a[href="/top-ten"]::before {
+    mask-image: var(--next-ep-top-ten-icon);
+    -webkit-mask-image: var(--next-ep-top-ten-icon);
   }
 
   .app-header .desktop-nav a[href="/#search"]::before {
@@ -861,6 +898,12 @@ body {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     background: var(--color-surface);
+  }
+}
+
+@media (max-width: 420px) {
+  .app-header .brand::after {
+    display: none;
   }
 }
 """
