@@ -35,10 +35,7 @@ def render_next_episode_callout(detail: TVSeriesDetailView, today: date) -> str:
     title = escape(episode.title)
     reference = f"S{episode.season_number:02}E{episode.episode_number:02}"
     anchor = f"episode-s{episode.season_number:02}e{episode.episode_number:02}"
-    action = (
-        f"/series/{media_id}/episodes/{episode.season_number}/"
-        f"{episode.episode_number}/seen"
-    )
+    action = f"/series/{media_id}/episodes/{episode.season_number}/{episode.episode_number}/seen"
     return f"""<div class="next-episode-callout">
 <div class="next-episode-callout-copy">
 <p class="tracking-label">Prossimo episodio</p>
