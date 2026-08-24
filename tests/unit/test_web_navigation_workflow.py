@@ -1,4 +1,10 @@
-from reelore.application.library_view import LibraryItemView, UpcomingEpisodeView
+from datetime import date
+
+from reelore.application.library_view import (
+    LibraryItemView,
+    NextEpisodeView,
+    UpcomingEpisodeView,
+)
 from reelore.domain import EpisodeRef, LibraryStatus
 from reelore.web import (
     _render_calendar_episode,
@@ -18,12 +24,7 @@ def _item(title: str, *, actionable: bool) -> LibraryItemView:
         image_url=None,
         seen_episodes=0,
         total_episodes=1,
-        next_episode=(
-            __import__("reelore.application.library_view", fromlist=["NextEpisodeView"])
-            .NextEpisodeView(1, 1, "Pilot")
-            if actionable
-            else None
-        ),
+        next_episode=NextEpisodeView(1, 1, "Pilot") if actionable else None,
     )
 
 
@@ -34,7 +35,7 @@ def test_calendar_links_directly_to_episode_anchor() -> None:
         season_number=2,
         episode_number=3,
         episode_title="Third",
-        airdate=__import__("datetime").date(2026, 8, 25),
+        airdate=date(2026, 8, 25),
         image_url=None,
     )
 
