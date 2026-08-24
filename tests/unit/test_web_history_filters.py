@@ -41,5 +41,5 @@ def test_history_filters_first_watches() -> None:
         selected_filter="first",
     )
 
-    assert "First Watch" in page
-    assert "Rewatch" not in page
+    assert '<p class="history-series">First Watch</p>' in page
+    assert '<p class="history-series">Rewatch</p>' not in page
