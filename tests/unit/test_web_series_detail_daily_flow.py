@@ -3,7 +3,10 @@ from datetime import date
 from reelore.application import TVSeriesCatalog
 from reelore.application.library_view import TVSeriesDetailView
 from reelore.domain import EpisodeProgress, LibraryStatus, PersonalMediaState
-from reelore.web_series_next_episode import DETAIL_DEEP_LINK_SCRIPT, render_next_episode_callout
+from reelore.web_series_next_episode import (
+    DETAIL_DEEP_LINK_SCRIPT,
+    render_next_episode_callout,
+)
 
 
 def _caught_up_detail(status: LibraryStatus) -> TVSeriesDetailView:
