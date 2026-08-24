@@ -34,7 +34,9 @@ class WatchStatisticsService:
     def get_statistics(self) -> WatchStatistics:
         watches = self._history.list_all_episode_watches()
         unique = {(watch.media_id, watch.episode) for watch in watches}
-        total_minutes = sum(self._runtime_minutes(watch.media_id, watch.episode) for watch in watches)
+        total_minutes = sum(
+            self._runtime_minutes(watch.media_id, watch.episode) for watch in watches
+        )
         return WatchStatistics(
             total_watch_minutes=total_minutes,
             total_watches=len(watches),
