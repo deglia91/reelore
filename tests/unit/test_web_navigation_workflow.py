@@ -6,12 +6,8 @@ from reelore.application.library_view import (
     UpcomingEpisodeView,
 )
 from reelore.domain import EpisodeRef, LibraryStatus
-from reelore.web import (
-    _render_calendar_episode,
-    _render_episode,
-    _render_library_page,
-    _sort_library_items,
-)
+from reelore.web import _render_calendar_episode, _render_episode, _render_library_page
+from reelore.web_library_sort import sort_library_items
 
 
 def _item(title: str, *, actionable: bool) -> LibraryItemView:
@@ -61,11 +57,11 @@ def test_library_supports_priority_and_title_sorting() -> None:
     waiting = _item("Alpha", actionable=False)
     actionable = _item("Zulu", actionable=True)
 
-    assert _sort_library_items((waiting, actionable), "priority") == (
+    assert sort_library_items((waiting, actionable), "priority") == (
         actionable,
         waiting,
     )
-    assert _sort_library_items((waiting, actionable), "title") == (waiting, actionable)
+    assert sort_library_items((waiting, actionable), "title") == (waiting, actionable)
 
 
 def test_library_page_renders_sort_controls() -> None:
