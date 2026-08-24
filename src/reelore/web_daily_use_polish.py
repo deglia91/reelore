@@ -1,6 +1,10 @@
 """Small presentation improvements for daily NextEp use."""
 
 DAILY_USE_POLISH_CSS = """
+.detail-page .series-stats span:first-child::before {
+  content: "Stato: ";
+}
+
 .calendar-page .calendar-entry-copy::after {
   display: block;
   width: fit-content;
