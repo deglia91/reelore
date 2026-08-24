@@ -1,5 +1,10 @@
 from datetime import date
 
+from reelore.application.availability import (
+    AvailabilityProvider,
+    AvailabilityType,
+    SeasonAvailability,
+)
 from reelore.application.library_view import UpcomingEpisodeView
 from reelore.web import _render_calendar_page, _render_mobile_nav
 
@@ -10,6 +15,7 @@ def _episode(
     season: int,
     episode: int,
     title: str,
+    availability: SeasonAvailability | None = None,
 ) -> UpcomingEpisodeView:
     return UpcomingEpisodeView(
         media_id="tvmaze:1",
@@ -19,6 +25,7 @@ def _episode(
         episode_title=title,
         airdate=airdate,
         image_url="https://img.example/the-bear.jpg",
+        availability=availability,
     )
 
 
@@ -48,6 +55,64 @@ def test_calendar_groups_upcoming_episodes_by_day() -> None:
     assert "Second" in page
     assert "Tomorrow" in page
     assert "Third" in page
+
+
+def test_calendar_renders_provider_logo_when_available() -> None:
+    availability = SeasonAvailability(
+        season_number=4,
+        region="IT",
+        providers=(
+            AvailabilityProvider(
+                "Disney Plus",
+                AvailabilityType.STREAM,
+                logo_url="https://img.example/disney-plus.png",
+            ),
+        ),
+        source="JustWatch",
+    )
+
+    page = _render_calendar_page(
+        (
+            _episode(
+                airdate=date(2026, 8, 19),
+                season=4,
+                episode=1,
+                title="Premiere",
+                availability=availability,
+            ),
+        ),
+        date(2026, 8, 19),
+    )
+
+    assert 'class="calendar-provider-logo"' in page
+    assert 'src="https://img.example/disney-plus.png"' in page
+    assert 'alt="Disney Plus"' in page
+    assert "Disney Plus" in page
+
+
+def test_calendar_keeps_provider_name_when_logo_is_missing() -> None:
+    availability = SeasonAvailability(
+        season_number=4,
+        region="IT",
+        providers=(AvailabilityProvider("Apple TV Plus", AvailabilityType.STREAM),),
+        source="JustWatch",
+    )
+
+    page = _render_calendar_page(
+        (
+            _episode(
+                airdate=date(2026, 8, 19),
+                season=4,
+                episode=1,
+                title="Premiere",
+                availability=availability,
+            ),
+        ),
+        date(2026, 8, 19),
+    )
+
+    assert "Apple TV Plus" in page
+    assert 'class="calendar-provider-logo"' not in page
 
 
 def test_calendar_renders_empty_state() -> None:
