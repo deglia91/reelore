@@ -27,11 +27,9 @@ from reelore.application.library_view import (
 from reelore.application.related import RelatedTVTitle
 from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus
 from reelore.web_franchise import render_franchise_titles
-from reelore.web_library_sort import (
-    normalize_library_sort as _normalize_library_sort,
-    render_library_sort as _render_library_sort,
-    sort_library_items as _sort_library_items,
-)
+from reelore.web_library_sort import normalize_library_sort as _normalize_library_sort
+from reelore.web_library_sort import render_library_sort as _render_library_sort
+from reelore.web_library_sort import sort_library_items as _sort_library_items
 from reelore.web_navigation_theme import NAVIGATION_CSS
 from reelore.web_related import render_related_titles
 from reelore.web_theme import render_theme_css
