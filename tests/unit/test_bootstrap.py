@@ -16,9 +16,7 @@ def test_build_app_initializes_local_database(tmp_path: Path) -> None:
 
     assert app.title == "NextEp"
     assert database_path.exists()
-    route_paths = {
-        route.path for route in app.routes if isinstance(route, Route)
-    }
+    route_paths = {route.path for route in app.routes if isinstance(route, Route)}
     assert {
         "/",
         "/library",
