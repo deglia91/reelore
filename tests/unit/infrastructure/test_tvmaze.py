@@ -69,6 +69,7 @@ def test_tvmaze_series_maps_numbered_episodes_and_cast() -> None:
                             "airdate": "2022-02-18",
                             "summary": "Mark returns to work.",
                             "image": {"original": "https://img.example/e1.jpg"},
+                            "runtime": 57,
                         },
                         {
                             "id": 2999,
@@ -96,6 +97,7 @@ def test_tvmaze_series_maps_numbered_episodes_and_cast() -> None:
     assert series.title == "Severance"
     assert series.episodes[0].season_number == 1
     assert series.episodes[0].episode_number == 1
+    assert series.episodes[0].runtime_minutes == 57
     assert len(series.episodes) == 1
     assert series.cast[0].person_name == "Adam Scott"
     assert series.cast[0].character_name == "Mark Scout"
