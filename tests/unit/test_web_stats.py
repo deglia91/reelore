@@ -1,4 +1,5 @@
 from reelore.application import WatchStatistics
+from reelore.web_history import render_history_page
 from reelore.web_stats import format_watch_time, render_statistics_page
 
 
@@ -26,3 +27,10 @@ def test_statistics_page_renders_watch_activity_summary() -> None:
     assert "70" in page
     assert "5" in page
     assert 'href="/history"' in page
+
+
+def test_history_page_links_to_statistics() -> None:
+    page = render_history_page(())
+
+    assert 'href="/stats"' in page
+    assert "Statistiche" in page
