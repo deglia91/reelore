@@ -61,7 +61,10 @@ def test_library_supports_priority_and_title_sorting() -> None:
     waiting = _item("Alpha", actionable=False)
     actionable = _item("Zulu", actionable=True)
 
-    assert _sort_library_items((waiting, actionable), "priority") == (actionable, waiting)
+    assert _sort_library_items((waiting, actionable), "priority") == (
+        actionable,
+        waiting,
+    )
     assert _sort_library_items((waiting, actionable), "title") == (waiting, actionable)
 
 
