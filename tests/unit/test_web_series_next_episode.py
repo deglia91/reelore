@@ -55,10 +55,13 @@ def test_next_episode_callout_exposes_quick_seen_action_and_anchor() -> None:
     assert ">Visto</button>" in html
 
 
-def test_next_episode_callout_is_hidden_when_caught_up() -> None:
+def test_next_episode_callout_shows_caught_up_state() -> None:
     progress = EpisodeProgress("tvmaze:1").mark_seen(EpisodeRef(1, 1)).mark_seen(EpisodeRef(1, 2))
 
-    assert render_next_episode_callout(_detail(progress), date(2026, 8, 24)) == ""
+    html = render_next_episode_callout(_detail(progress), date(2026, 8, 24))
+
+    assert "Sei in pari" in html
+    assert "Nessun episodio disponibile da vedere" in html
 
 
 def test_detail_deep_link_script_opens_target_season() -> None:
