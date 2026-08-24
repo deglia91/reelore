@@ -23,6 +23,7 @@ class TVEpisodeMetadata:
     airdate: date | None = None
     summary: str | None = None
     image_url: str | None = None
+    runtime_minutes: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
