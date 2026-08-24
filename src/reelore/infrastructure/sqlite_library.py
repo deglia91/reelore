@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS tv_episode_catalog (
     airdate TEXT,
     summary TEXT,
     image_url TEXT,
+    runtime_minutes INTEGER CHECK (runtime_minutes IS NULL OR runtime_minutes >= 0),
     PRIMARY KEY (series_provider_id, provider_id),
     FOREIGN KEY (series_provider_id) REFERENCES tv_series_catalog(provider_id) ON DELETE CASCADE
 );
@@ -106,13 +107,21 @@ class SQLiteLibraryRepository:
     def initialize(self) -> None:
         with self._connection() as connection:
             connection.executescript(_SCHEMA)
-            columns = {
+            state_columns = {
                 str(row[1])
                 for row in connection.execute("PRAGMA table_info(personal_media_states)")
             }
-            if "top_ten_rank" not in columns:
+            if "top_ten_rank" not in state_columns:
                 connection.execute(
                     "ALTER TABLE personal_media_states ADD COLUMN top_ten_rank INTEGER"
+                )
+            episode_columns = {
+                str(row[1])
+                for row in connection.execute("PRAGMA table_info(tv_episode_catalog)")
+            }
+            if "runtime_minutes" not in episode_columns:
+                connection.execute(
+                    "ALTER TABLE tv_episode_catalog ADD COLUMN runtime_minutes INTEGER"
                 )
 
     def save_media(self, media: MediaItem) -> None:
@@ -240,6 +249,7 @@ class SQLiteLibraryRepository:
                 _date_to_text(episode.airdate),
                 episode.summary,
                 episode.image_url,
+                episode.runtime_minutes,
             )
             for episode in catalog.episodes
         ]
@@ -285,8 +295,8 @@ class SQLiteLibraryRepository:
                 """
                 INSERT INTO tv_episode_catalog
                     (series_provider_id, provider_id, season_number, episode_number,
-                     title, airdate, summary, image_url)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                     title, airdate, summary, image_url, runtime_minutes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 episode_rows,
             )
@@ -319,7 +329,7 @@ class SQLiteLibraryRepository:
                 """
                 SELECT
                     provider_id, season_number, episode_number, title,
-                    airdate, summary, image_url
+                    airdate, summary, image_url, runtime_minutes
                 FROM tv_episode_catalog
                 WHERE series_provider_id = ?
                 ORDER BY season_number, episode_number
@@ -345,6 +355,7 @@ class SQLiteLibraryRepository:
                 airdate=_date_from_text(row[4]),
                 summary=str(row[5]) if row[5] is not None else None,
                 image_url=str(row[6]) if row[6] is not None else None,
+                runtime_minutes=int(row[7]) if row[7] is not None else None,
             )
             for row in episode_rows
         )
