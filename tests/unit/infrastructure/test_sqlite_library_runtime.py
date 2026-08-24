@@ -58,8 +58,7 @@ def test_sqlite_initialize_migrates_legacy_episode_catalog(tmp_path) -> None:
 
     with sqlite3.connect(database_path) as connection:
         columns = {
-            str(row[1])
-            for row in connection.execute("PRAGMA table_info(tv_episode_catalog)")
+            str(row[1]) for row in connection.execute("PRAGMA table_info(tv_episode_catalog)")
         }
 
     assert "runtime_minutes" in columns
