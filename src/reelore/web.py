@@ -32,6 +32,10 @@ from reelore.web_library_sort import render_library_sort as _render_library_sort
 from reelore.web_library_sort import sort_library_items as _sort_library_items
 from reelore.web_navigation_theme import NAVIGATION_CSS
 from reelore.web_related import render_related_titles
+from reelore.web_series_next_episode import DETAIL_DEEP_LINK_SCRIPT
+from reelore.web_series_next_episode import (
+    render_next_episode_callout as _render_next_episode_callout,
+)
 from reelore.web_theme import render_theme_css
 
 _HOME_PREVIEW_LIMIT = 8
@@ -697,6 +701,7 @@ def _render_series_detail(
     related_html = render_related_titles(related_titles)
     state = _status_label(detail.state.status)
     rewatch_progress = _render_rewatch_progress(detail)
+    next_episode_callout = _render_next_episode_callout(detail, today)
     status_options = "".join(
         _render_status_option(status, detail.state.status) for status in LibraryStatus
     )
@@ -713,6 +718,7 @@ def _render_series_detail(
 <span>{state}</span><span>{seen}/{total} episodi</span>
 </div>
 {rewatch_progress}
+{next_episode_callout}
 <p class="summary">{summary}</p>
 <div class="tracking-panel">
 <div>
@@ -733,7 +739,8 @@ def _render_series_detail(
 </section>
 {franchise_html}
 {related_html}
-<div class="series-seasons">{season_html}</div>"""
+<div class="series-seasons">{season_html}</div>
+{DETAIL_DEEP_LINK_SCRIPT}"""
     )
 
 
@@ -1140,6 +1147,16 @@ button:active {{ transform: translateY(1px); }}
 .title {{ margin: 0 0 6px; font-weight: 750; }}
 .meta {{ font-size: .86rem; margin-bottom: 12px; }}
 .next-episode {{ margin: 0; line-height: 1.35; }}
+.next-episode-callout {{
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  margin: var(--space-4) 0; padding: 12px 14px; border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface));
+}}
+.next-episode-callout-copy {{ min-width: 0; }}
+.next-episode-callout-copy p {{ margin: 0 0 4px; }}
+.next-episode-callout-copy a {{ text-decoration: none; }}
+.next-episode-callout form {{ flex: 0 0 auto; margin: 0; }}
 .upcoming-availability {{ margin-top: 10px; font-size: .82rem; line-height: 1.35; }}
 .upcoming-card-content {{
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3);
@@ -1252,6 +1269,8 @@ button:active {{ transform: translateY(1px); }}
   .search {{ flex-direction: row; }}
   .grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
   .hero {{ grid-template-columns: 110px 1fr; gap: var(--space-4); }}
+  .next-episode-callout {{ align-items: stretch; flex-direction: column; }}
+  .next-episode-callout button {{ width: 100%; }}
   .season-section .section-heading {{ align-items: flex-start; flex-direction: column; gap: 10px; }}
   .season-actions {{ width: 100%; justify-content: flex-start; }}
   .season-actions button {{ min-height: 40px; padding: 8px 10px; font-size: .78rem; }}
