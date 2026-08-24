@@ -12,6 +12,7 @@ from reelore.application.library import LibraryRepository
 from reelore.application.tracker import MediaNotFoundError, MediaTracker, TopTenService
 from reelore.application.watch_history import GlobalWatchHistoryReader, WatchHistoryRepository
 from reelore.application.watch_history_view import WatchHistoryItemView, WatchHistoryViewService
+from reelore.application.watch_statistics import WatchStatistics, WatchStatisticsService
 
 __all__ = [
     "GlobalWatchHistoryReader",
@@ -30,4 +31,6 @@ __all__ = [
     "WatchHistoryItemView",
     "WatchHistoryRepository",
     "WatchHistoryViewService",
+    "WatchStatistics",
+    "WatchStatisticsService",
 ]
