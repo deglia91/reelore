@@ -64,6 +64,14 @@ def _render_caught_up_callout(status: LibraryStatus) -> str:
 
 DETAIL_DEEP_LINK_SCRIPT = """<script>
 (() => {
+  const storageKey = "nextep-detail-episode";
+  const restoreStoredTarget = () => {
+    if (window.location.hash) return;
+    const stored = sessionStorage.getItem(storageKey);
+    if (!stored) return;
+    sessionStorage.removeItem(storageKey);
+    history.replaceState(null, "", `#${stored}`);
+  };
   const openTargetSeason = () => {
     if (!window.location.hash) return;
     const target = document.getElementById(window.location.hash.slice(1));
@@ -71,6 +79,16 @@ DETAIL_DEEP_LINK_SCRIPT = """<script>
     const details = target.closest("details");
     if (details) details.open = true;
   };
+  document.querySelectorAll('form[action$="/seen"]').forEach((form) => {
+    form.addEventListener("submit", () => {
+      const match = form.action.match(/\/episodes\/(\d+)\/(\d+)\/seen$/);
+      if (!match) return;
+      const season = match[1].padStart(2, "0");
+      const episode = match[2].padStart(2, "0");
+      sessionStorage.setItem(storageKey, `episode-s${season}e${episode}`);
+    });
+  });
+  restoreStoredTarget();
   openTargetSeason();
   window.addEventListener("hashchange", openTargetSeason);
 })();
