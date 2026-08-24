@@ -49,7 +49,4 @@ def _sort_link(
         query = f"status={status.value}&{query}"
     active = " active" if value == selected else ""
     current = ' aria-current="page"' if value == selected else ""
-    return (
-        f'<a class="filter-chip{active}" href="/library?{query}"{current}>'
-        f"{label}</a>"
-    )
+    return f'<a class="filter-chip{active}" href="/library?{query}"{current}>{label}</a>'
