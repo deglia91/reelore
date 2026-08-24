@@ -29,6 +29,7 @@ class OrderingStore:
         return progress
 
     def get_tv_series_catalog(self, provider_id: str) -> TVSeriesCatalog | None:
+        episodes: tuple[TVEpisodeMetadata, ...]
         if provider_id == "1":
             episodes = (
                 TVEpisodeMetadata("11", 1, 1, "Seen", airdate=date(2026, 8, 1)),
