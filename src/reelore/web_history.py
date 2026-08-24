@@ -199,9 +199,7 @@ def _render_history_filters(selected_filter: str) -> str:
     for label, value, href in options:
         active = " active" if value == selected_filter else ""
         current = ' aria-current="page"' if value == selected_filter else ""
-        links.append(
-            f'<a class="filter-chip{active}" href="{href}"{current}>{label}</a>'
-        )
+        links.append(f'<a class="filter-chip{active}" href="{href}"{current}>{label}</a>')
     return f'<nav class="history-filters" aria-label="Filtri cronologia">{"".join(links)}</nav>'
 
 
