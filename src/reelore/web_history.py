@@ -93,6 +93,12 @@ body {{
 }}
 .history-heading h1 {{ margin: 0 0 8px; font-size: clamp(2.3rem, 7vw, 4rem); }}
 .history-heading p {{ margin: 0; color: var(--color-text-muted); }}
+.history-stats-link {{
+  display: inline-flex; margin-top: 14px; padding: 8px 12px;
+  border: 1px solid var(--color-border); border-radius: 999px;
+  color: var(--color-accent-strong); font-size: .78rem; font-weight: 800;
+  text-decoration: none;
+}}
 .history-filters {{ display: flex; gap: 8px; margin: 0 0 20px; overflow-x: auto; }}
 .history-filters .filter-chip {{
   flex: 0 0 auto; padding: 8px 12px; border: 1px solid var(--color-border);
@@ -166,6 +172,7 @@ body {{
 <section class="history-heading">
 <p class="eyebrow">Attività</p><h1>Cronologia</h1>
 <p>Le tue visioni, dalla più recente alla più vecchia.</p>
+<a class="history-stats-link" href="/stats">Statistiche</a>
 </section>
 {filters}
 <div class="history-list">{content}</div>
