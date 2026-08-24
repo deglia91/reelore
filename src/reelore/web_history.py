@@ -50,7 +50,7 @@ def render_history_page(
     selected = _normalize_history_filter(selected_filter)
     filtered_entries = _filter_history(entries, selected)
     if filtered_entries:
-        content = "".join(_render_history_entry(entry) for entry in filtered_entries)
+        content = _render_history_groups(filtered_entries)
     else:
         content = (
             '<div class="history-empty">'
@@ -103,7 +103,12 @@ body {{
   border-color: var(--color-accent); color: var(--color-accent-strong);
   background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }}
-.history-list {{ display: grid; gap: 10px; }}
+.history-list {{ display: grid; gap: 24px; }}
+.history-day {{ display: grid; gap: 10px; }}
+.history-day-title {{
+  margin: 0; color: var(--color-text-muted); font-size: .82rem; font-weight: 800;
+  letter-spacing: .04em; text-transform: uppercase;
+}}
 .history-entry {{
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center;
   padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md);
@@ -203,6 +208,24 @@ def _render_history_filters(selected_filter: str) -> str:
     return f'<nav class="history-filters" aria-label="Filtri cronologia">{"".join(links)}</nav>'
 
 
+def _render_history_groups(entries: tuple[WatchHistoryItemView, ...]) -> str:
+    groups: dict[str, list[WatchHistoryItemView]] = {}
+    for entry in entries:
+        key = entry.watched_at.date().isoformat() if entry.watched_at is not None else "legacy"
+        groups.setdefault(key, []).append(entry)
+    return "".join(_render_history_group(tuple(group)) for group in groups.values())
+
+
+def _render_history_group(entries: tuple[WatchHistoryItemView, ...]) -> str:
+    first = entries[0]
+    label = _format_history_day(first.watched_at)
+    rows = "".join(_render_history_entry(entry) for entry in entries)
+    return f"""<section class="history-day">
+<h2 class="history-day-title">{label}</h2>
+{rows}
+</section>"""
+
+
 def _render_history_entry(entry: WatchHistoryItemView) -> str:
     media_id = escape(entry.media_id, quote=True)
     episode_title = escape(entry.episode_title)
@@ -218,6 +241,13 @@ def _render_history_entry(entry: WatchHistoryItemView) -> str:
 </div>
 <div class="history-meta"><time class="history-date">{watched_at}</time>{rewatch}</div>
 </a>"""
+
+
+def _format_history_day(value: datetime | None) -> str:
+    if value is None:
+        return "Data non disponibile"
+    month = _MONTH_ABBREVIATIONS[value.month - 1]
+    return f"{value.day} {month} {value.year}"
 
 
 def _format_watch_date(value: datetime | None) -> str:
