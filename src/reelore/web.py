@@ -442,10 +442,22 @@ def _calendar_date_label(airdate: date, today: date) -> str:
 def _render_upcoming_availability(availability: SeasonAvailability | None) -> str:
     if availability is None or not availability.providers:
         return ""
-    providers = " · ".join(
-        f"{escape(provider.name)} ({_availability_label(provider.availability_type)})"
-        for provider in availability.providers
-    )
+    rendered_providers: list[str] = []
+    for provider in availability.providers:
+        name = escape(provider.name)
+        label = _availability_label(provider.availability_type)
+        if provider.logo_url is None:
+            rendered_providers.append(f"{name} ({label})")
+            continue
+        logo_url = escape(provider.logo_url, quote=True)
+        logo_alt = escape(provider.name, quote=True)
+        rendered_providers.append(
+            '<span class="calendar-provider">'
+            f'<img class="calendar-provider-logo" src="{logo_url}" alt="{logo_alt}" '
+            'width="20" height="20" loading="lazy">'
+            f'<span class="calendar-provider-name">{name}</span></span> ({label})'
+        )
+    providers = " · ".join(rendered_providers)
     source = escape(availability.source)
     return (
         f'<div class="upcoming-availability">In Italia: {providers}'
