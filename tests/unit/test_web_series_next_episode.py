@@ -56,11 +56,7 @@ def test_next_episode_callout_exposes_quick_seen_action_and_anchor() -> None:
 
 
 def test_next_episode_callout_is_hidden_when_caught_up() -> None:
-    progress = (
-        EpisodeProgress("tvmaze:1")
-        .mark_seen(EpisodeRef(1, 1))
-        .mark_seen(EpisodeRef(1, 2))
-    )
+    progress = EpisodeProgress("tvmaze:1").mark_seen(EpisodeRef(1, 1)).mark_seen(EpisodeRef(1, 2))
 
     assert render_next_episode_callout(_detail(progress), date(2026, 8, 24)) == ""
 
