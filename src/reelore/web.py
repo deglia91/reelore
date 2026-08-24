@@ -27,6 +27,11 @@ from reelore.application.library_view import (
 from reelore.application.related import RelatedTVTitle
 from reelore.domain import EpisodeProgress, EpisodeRef, LibraryStatus
 from reelore.web_franchise import render_franchise_titles
+from reelore.web_library_sort import (
+    normalize_library_sort as _normalize_library_sort,
+    render_library_sort as _render_library_sort,
+    sort_library_items as _sort_library_items,
+)
 from reelore.web_navigation_theme import NAVIGATION_CSS
 from reelore.web_related import render_related_titles
 from reelore.web_theme import render_theme_css
@@ -161,11 +166,14 @@ def create_web_app(
     @app.get("/library", response_class=HTMLResponse)
     def library(
         status: Annotated[LibraryStatus | None, Query()] = None,
+        sort: Annotated[str, Query()] = "priority",
     ) -> HTMLResponse:
+        selected_sort = _normalize_library_sort(sort)
         items = views.list_items(date.today())
         if status is not None:
             items = tuple(item for item in items if item.status is status)
-        return HTMLResponse(_render_library_page(items, status))
+        items = _sort_library_items(items, selected_sort)
+        return HTMLResponse(_render_library_page(items, status, selected_sort))
 
     @app.get("/calendar", response_class=HTMLResponse)
     def calendar() -> HTMLResponse:
@@ -407,8 +415,9 @@ def _render_calendar_episode(episode: UpcomingEpisodeView) -> str:
     image = _render_image(episode.image_url, episode.series_title)
     media_id = escape(episode.media_id, quote=True)
     reference = f"{episode.season_number:02}x{episode.episode_number:02}"
+    anchor = f"episode-s{episode.season_number:02}e{episode.episode_number:02}"
     availability = _render_upcoming_availability(episode.availability)
-    return f"""<a class="calendar-entry" href="/series/{media_id}">
+    return f"""<a class="calendar-entry" href="/series/{media_id}#{anchor}">
 <div class="calendar-entry-poster">{image}</div>
 <div class="calendar-entry-copy">
 <p class="title">{escape(episode.series_title)}</p>
@@ -524,12 +533,14 @@ def _render_home_library_section(
 def _render_library_page(
     items: tuple[LibraryItemView, ...],
     status: LibraryStatus | None,
+    selected_sort: str = "priority",
 ) -> str:
     selected_label = _status_label(status) if status is not None else "Tutte"
     cards = "".join(_render_library_item(item, False) for item in items)
     if not cards:
         cards = '<p class="empty">Nessuna serie in questa sezione.</p>'
     filters = _render_library_filters(status)
+    sorting = _render_library_sort(selected_sort, status)
     return _page(
         f"""<section class="library-page-heading">
 <p class="eyebrow">Raccolta</p>
@@ -537,6 +548,7 @@ def _render_library_page(
 <p class="sub">{escape(selected_label)} · {len(items)} serie</p>
 </section>
 {filters}
+{sorting}
 <div class="library-grid">{cards}</div>""",
         page_class="library-page",
     )
@@ -873,6 +885,7 @@ def _render_episode(
     )
     media = escape(media_id, quote=True)
     display_ref = f"S{reference.season_number:02}E{reference.episode_number:02}"
+    anchor = f"episode-s{reference.season_number:02}e{reference.episode_number:02}"
     primary_action = ""
     rewatch_action = ""
     through_action = ""
@@ -896,7 +909,7 @@ def _render_episode(
 onsubmit="return confirm('Segnare come visti tutti gli episodi fino a {display_ref}?')">
 <button class="secondary-button progress-correction-button" type="submit">Visti fino a qui</button>
 </form>"""
-    return f"""<div class="episode">
+    return f"""<div class="episode" id="{anchor}">
 <div class="episode-copy">
 <strong>{display_ref}</strong><span>{escape(title)}</span>{watch_badge}
 </div>
