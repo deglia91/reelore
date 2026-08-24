@@ -17,6 +17,7 @@ from reelore.application.release_reminders import ReleaseReminderDeliveryService
 from reelore.application.tracker import TVProgressTracker
 from reelore.application.tv_status_reconciliation import TVStatusReconciliationService
 from reelore.application.watch_history_view import WatchHistoryViewService
+from reelore.application.watch_statistics import WatchStatisticsService
 from reelore.catalog_refresh_runtime import start_catalog_refresh
 from reelore.infrastructure import (
     SQLiteLibraryRepository,
@@ -40,6 +41,7 @@ from reelore.release_reminder_scheduler import start_release_reminder_scheduler
 from reelore.web import create_web_app
 from reelore.web_history import install_history_routes
 from reelore.web_release_reminders import install_release_reminder_routes
+from reelore.web_stats import install_statistics_routes
 from reelore.web_top_ten import install_top_ten_routes
 
 _DEFAULT_DATABASE_PATH = "data/reelore.db"
@@ -104,6 +106,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
         CuratedFranchiseTVProvider(CURATED_TV_FRANCHISE_GRAPH)
     )
     history_views = WatchHistoryViewService(repository, watch_history)
+    statistics = WatchStatisticsService(repository, watch_history)
     tv_progress = TVProgressTracker(tracker, repository)
     top_ten = TopTenService(repository)
     app = create_web_app(
@@ -115,6 +118,7 @@ def build_app(database_path: str | Path, *, tmdb_token: str | None = None) -> Fa
         franchise_views,
     )
     install_history_routes(app, history_views)
+    install_statistics_routes(app, statistics)
     install_top_ten_routes(app, views, top_ten)
     install_release_reminder_routes(
         app,
