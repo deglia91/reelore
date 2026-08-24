@@ -16,6 +16,20 @@ DAILY_USE_POLISH_CSS = """
   white-space: nowrap;
 }
 
+.calendar-page .calendar-provider {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  vertical-align: middle;
+}
+
+.calendar-page .calendar-provider-logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
 @media (max-width: 720px) {
   .detail-page .season-details[open] .episode:has(.progress-correction-button) {
     border-color: var(--color-accent);
