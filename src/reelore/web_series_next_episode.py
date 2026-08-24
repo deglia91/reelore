@@ -5,7 +5,7 @@ from html import escape
 
 from reelore.application.catalog import TVEpisodeMetadata
 from reelore.application.library_view import TVSeriesDetailView
-from reelore.domain import EpisodeRef
+from reelore.domain import EpisodeRef, LibraryStatus
 
 
 def find_next_episode(
@@ -30,7 +30,7 @@ def find_next_episode(
 def render_next_episode_callout(detail: TVSeriesDetailView, today: date) -> str:
     episode = find_next_episode(detail, today)
     if episode is None:
-        return ""
+        return _render_caught_up_callout(detail.state.status)
     media_id = escape(detail.media_id, quote=True)
     title = escape(episode.title)
     reference = f"S{episode.season_number:02}E{episode.episode_number:02}"
@@ -44,6 +44,21 @@ def render_next_episode_callout(detail: TVSeriesDetailView, today: date) -> str:
 <form method="post" action="{action}">
 <button type="submit">Visto</button>
 </form>
+</div>"""
+
+
+def _render_caught_up_callout(status: LibraryStatus) -> str:
+    if status is LibraryStatus.COMPLETED:
+        title = "Serie completata"
+        message = "Hai visto tutti gli episodi disponibili."
+    else:
+        title = "Sei in pari"
+        message = "Nessun episodio disponibile da vedere."
+    return f"""<div class="next-episode-callout next-episode-callout-empty">
+<div class="next-episode-callout-copy">
+<p class="tracking-label">{title}</p>
+<span>{message}</span>
+</div>
 </div>"""
 
 
