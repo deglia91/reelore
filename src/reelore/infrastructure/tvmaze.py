@@ -117,6 +117,7 @@ def _episode_or_none(value: object) -> TVEpisodeMetadata | None:
         airdate=_date_or_none(row.get("airdate")),
         summary=_text_or_none(row.get("summary")),
         image_url=_image_url(row.get("image")),
+        runtime_minutes=_int_or_none(row.get("runtime")),
     )
 
 
