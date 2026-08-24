@@ -50,18 +50,51 @@ DAILY_USE_POLISH_CSS = """
     letter-spacing: .02em;
   }
 
+  .library-page .library-sort {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .library-page .library-sort .tracking-label {
+    flex: 0 0 auto;
+    margin-right: 2px;
+    white-space: nowrap;
+  }
+
+  .calendar-page .calendar-entry-copy {
+    min-width: 0;
+  }
+
   .calendar-page .upcoming-availability {
-    display: inline-flex;
-    width: fit-content;
+    display: flex;
+    width: 100%;
     max-width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
     margin-top: 8px;
-    padding: 5px 9px;
+    padding: 7px 9px;
     border: 1px solid color-mix(in srgb, var(--color-accent) 28%, var(--color-border));
-    border-radius: 999px;
+    border-radius: 14px;
     background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
     color: var(--color-text-muted);
     font-size: .72rem;
-    line-height: 1.2;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .calendar-page .calendar-provider {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .calendar-page .calendar-provider-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .calendar-page .availability-source {
