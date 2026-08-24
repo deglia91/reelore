@@ -1,10 +1,11 @@
 import sqlite3
+from pathlib import Path
 
 from reelore.application import TVEpisodeMetadata, TVSeriesCatalog
 from reelore.infrastructure import SQLiteLibraryRepository
 
 
-def test_sqlite_catalog_round_trips_episode_runtime(tmp_path) -> None:
+def test_sqlite_catalog_round_trips_episode_runtime(tmp_path: Path) -> None:
     database_path = tmp_path / "reelore.db"
     repository = SQLiteLibraryRepository(database_path)
     repository.initialize()
@@ -35,7 +36,7 @@ def test_sqlite_catalog_round_trips_episode_runtime(tmp_path) -> None:
     assert catalog.episodes[0].runtime_minutes == 52
 
 
-def test_sqlite_initialize_migrates_legacy_episode_catalog(tmp_path) -> None:
+def test_sqlite_initialize_migrates_legacy_episode_catalog(tmp_path: Path) -> None:
     database_path = tmp_path / "legacy.db"
     with sqlite3.connect(database_path) as connection:
         connection.execute(
