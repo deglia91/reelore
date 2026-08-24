@@ -35,9 +35,7 @@ class OrderingStore:
                 TVEpisodeMetadata("12", 1, 2, "Future", airdate=date(2026, 9, 1)),
             )
         else:
-            episodes = (
-                TVEpisodeMetadata("21", 1, 1, "Ready", airdate=date(2026, 8, 1)),
-            )
+            episodes = (TVEpisodeMetadata("21", 1, 1, "Ready", airdate=date(2026, 8, 1)),)
         return TVSeriesCatalog(
             provider_id=provider_id,
             title="Example",
