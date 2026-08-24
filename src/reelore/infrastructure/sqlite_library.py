@@ -116,8 +116,7 @@ class SQLiteLibraryRepository:
                     "ALTER TABLE personal_media_states ADD COLUMN top_ten_rank INTEGER"
                 )
             episode_columns = {
-                str(row[1])
-                for row in connection.execute("PRAGMA table_info(tv_episode_catalog)")
+                str(row[1]) for row in connection.execute("PRAGMA table_info(tv_episode_catalog)")
             }
             if "runtime_minutes" not in episode_columns:
                 connection.execute(
